@@ -1,0 +1,166 @@
+---
+version: 0.29
+date:    Tue Nov 11 22:57:07 PST 2008
+changes:
+- Check SvNIOK when dumping and format if quotes when it's a string that looks
+  like a number
+- Parse plain scalars as numbers when they look like numbers
+- Load nulls as newSV(0) instead of &PL_sv_undef to avoid "Modification of
+  non-creatable hash value attempted" errors
+---
+version: 0.28
+date:    Mon Jun 23 15:23:24 PDT 2008
+changes:
+- Apply UTF8 patch supplied by KLEINJ in rt.cpan#36734
+---
+version: 0.27
+date:    Fri Jun  6 22:05:29 PDT 2008
+changes:
+- Apply patches from Gisle Aas and Jan Dubois of ActiveState.
+---
+version: 0.26
+date:    Mon Jun 25 00:14:19 PDT 2007
+changes:
+- Refactor to consistent pointer & declaration syntax
+- Start commenting the C code.
+- Make YAML::XS work on Win32 by adding -DYAML_DECLARE_EXPORT. (Tested on
+  StrawberryPerl)
+---
+version: 0.25
+date:    Sun Jun 24 17:39:13 PDT 2007
+changes:
+- Squelch most -pedantic C warnings. Thanks audreyt.
+- Allow anchored and aliased scalars (and regexps) to be Loaded
+---
+version: 0.24
+date:    Sun Jun 24 10:29:03 PDT 2007
+changes:
+- Turn on unicode dumping support.
+- Make anchor numbers Dump in order.
+---
+version: 0.23
+date:    Fri Jun 22 17:56:50 PDT 2007
+changes:
+- Added full regexp Dump and Load support. Borrowed code from YAML::Syck.
+  Discovered/reported bugs in the same.
+---
+version: 0.22
+date:    Fri Jun 22 00:38:14 PDT 2007
+changes:
+- Support !foo private tags for Loading scalar refs - for David Garamond
+---
+version: 0.21
+date:    Thu Jun 21 15:08:03 PDT 2007
+changes:
+- Add Loadfile and Dumpfile functions
+- Support !foo private tags for Load - for David Garamond
+- Support Dump/Load of strings with nulls
+---
+version: 0.20
+date:    Mon Jun 18 16:29:33 PDT 2007
+changes: Better parse error messaging
+---
+version: 0.19
+date:    Mon Jun 18 00:54:40 PDT 2007
+changes: Fixed memory bugs
+reported_by: avar
+---
+version: 0.18
+date:    Sun Jun 17 18:33:41 PDT 2007
+changes:
+- Renamed to shorter YAML::XS
+- Load and Dump blessed scalar refs
+- Report Load errors
+- Allow !!hash and !!array
+---
+version: 0.17
+date:    Wed Jun  6 19:48:52 PDT 2007
+changes:
+- Support code and glob dumping
+- Much refactoring.
+---
+version: 0.16
+date:    Thu May 31 13:46:50 PDT 2007
+changes:
+- Using a newer version of libyaml (0.1.1 cut of trunk).
+- Can dump scalars that need quoting without getting a !
+---
+version: 0.15
+date:    Wed May 30 20:16:22 PDT 2007
+changes:
+- Use 'Perl_form' to generate tags. Don't use memory allocating.
+- Can correctly load a scalar ref to itself.
+---
+version: 0.14
+date:    Wed May 30 02:31:39 PDT 2007
+changes: Plain empty strings should load as undef
+---
+version: 0.12
+date:    Wed May 30 01:08:52 PDT 2007
+changes: Add support for dumping code refs and blessed code refs
+---
+version: 0.11
+date:    Tue May 29 17:25:18 PDT 2007
+changes:
+- Fixed false YAML::Tiny dependency
+- Support blessed hashes and arrays
+---
+version: 0.10
+date:    Mon May 28 03:17:29 PDT 2007
+changes: Integrated with YAML::Tests test suite.
+---
+version: 0.09
+date:    Mon May 28 00:38:19 PDT 2007
+changes: 
+- Dump and Load scalar refs
+- Handle alias scalar refs
+---
+version: 0.08
+date:    Wed May 23 19:34:35 PDT 2007
+changes: 
+- Make sure dumped empty strings have quotes
+- Add boolean roundtrip support
+- Add full anchor/alias support
+---
+version: 0.07
+date:    Wed May 23 00:04:42 PDT 2007
+changes: TonyC showed me how to use '...' in my XS prototype to say zero or
+  more args.
+---
+version: 0.06
+date:    Tue May 22 23:37:40 PDT 2007
+changes: Support dumping zero objects, and loading empty or comment only
+  streams to produce zero objects.
+---
+version: 0.05
+date:    Mon May 21 00:14:40 PDT 2007
+changes: TonyC pointed out the error in my ways for using newSVpvf for
+  strings.
+---
+version: 0.04
+date:    Sat May 19 20:04:04 PDT 2007
+changes: 
+- Added a typedef 'dumper' like 'loader'. Makes internals nicer and more
+  exposable.
+- Support dumping undef as ~ and "~" as '~', and loading them correctly.
+---
+version: 0.03
+date:    Mon May 14 23:27:17 PDT 2007
+changes: 
+- Fixed Dump call stack bugs reported by vhold. Made Dump work
+  like Load.
+- Made this very 'Changes' file loadable, and have a test to prove it.
+- As a result Load now handles a multiple document stream correctly. 
+- Added a 'loader' typedef to the C code. This is kinda like a self object for
+  the Loader and maybe I'll expose this to the Perl API at some point.
+- Made Dump and Load not be proxy subs from YAML::LibYAML to
+  YAML::LibYAML::XS. This removes one level of Perl sub calling which
+  should improve benchmarks.
+---
+version: 0.02
+date:    Mon May 14 23:27:17 PDT 2007
+changes: Implement initial Dump function. Now supports basic Dump and Load.
+---
+version: 0.01
+date:    Fri May 11 14:08:54 PDT 2007
+changes: First Version. Very alpha. Not for production!
