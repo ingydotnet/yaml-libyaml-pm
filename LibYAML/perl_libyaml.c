@@ -150,6 +150,9 @@ Load(SV *yaml_sv)
             YAML_STREAM_START_EVENT
          );
 
+    loader.anchors = newHV();
+    sv_2mortal(loader.anchors);
+
     /* Keep calling load_node until end of stream */
     while (1) {
         loader.document++;
@@ -157,9 +160,8 @@ Load(SV *yaml_sv)
             goto load_error;
         if (loader.event.type == YAML_STREAM_END_EVENT)
             break;
-        loader.anchors = newHV();
         node = load_node(&loader);
-        SvREFCNT_dec((SV *)(loader.anchors));
+        hv_clear(loader.anchors);
         if (! node) break;
         XPUSHs(sv_2mortal(node));
         if (!yaml_parser_parse(&loader.parser, &loader.event))
