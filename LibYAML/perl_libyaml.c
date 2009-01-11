@@ -161,7 +161,7 @@ Load(SV *yaml_sv)
         node = load_node(&loader);
         SvREFCNT_dec((SV *)(loader.anchors));
         if (! node) break;
-        XPUSHs(node);
+        XPUSHs(sv_2mortal(node));
         if (!yaml_parser_parse(&loader.parser, &loader.event))
             goto load_error;
         if (loader.event.type != YAML_DOCUMENT_END_EVENT)
