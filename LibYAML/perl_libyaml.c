@@ -477,7 +477,7 @@ Dump(SV *dummy, ...)
     yaml_event_t event_stream_start;
     yaml_event_t event_stream_end;
     int i;
-    SV *yaml = newSVpvn("", 0);
+    SV *yaml = sv_2mortal(newSVpvs(""));
     sp = mark;
 
     set_dumper_options(&dumper);
@@ -521,7 +521,6 @@ Dump(SV *dummy, ...)
     /* Put the YAML stream scalar on the XS output stack */
     if (yaml) {
         SvUTF8_off(yaml);
-        sv_2mortal(yaml);
         XPUSHs(yaml);
     }
     PUTBACK;
