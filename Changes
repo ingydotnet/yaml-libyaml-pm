@@ -1,4 +1,10 @@
 ---
+version: 0.30
+date:    Sun Jan 11 12:53:55 IST 2009
+changes:
+- Plug a leak in Load
+- More efficient intermediate structure allocation
+---
 version: 0.29
 date:    Tue Nov 11 22:57:07 PST 2008
 changes:
