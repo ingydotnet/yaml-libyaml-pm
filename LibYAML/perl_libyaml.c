@@ -497,16 +497,20 @@ Dump(SV *dummy, ...)
     );
     yaml_emitter_emit(&dumper.emitter, &event_stream_start);
 
+    dumper.anchors = newHV();
+    dumper.shadows = newHV();
+
+    sv_2mortal((SV *)dumper.anchors);
+    sv_2mortal((SV *)dumper.shadows);
+
     for (i = 0; i < items; i++) {
         dumper.anchor = 0;
-        dumper.anchors = newHV();
-        dumper.shadows = newHV();
 
         dump_prewalk(&dumper, ST(i));
         dump_document(&dumper, ST(i));
 
-        SvREFCNT_dec((SV *)(dumper.anchors));
-        SvREFCNT_dec((SV *)(dumper.shadows));
+        hv_clear(dumper.anchors);
+        hv_clear(dumper.shadows);
     }
 
     /* End emitting and destroy the emitter object */
