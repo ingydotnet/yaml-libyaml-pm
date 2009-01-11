@@ -740,7 +740,7 @@ dump_hash(
     );
     yaml_emitter_emit(&dumper->emitter, &event_mapping_start);
 
-    av = (AV *)sv_2mortal((SV *)newAV());
+    av = newAV();
     for (i = 0; i < len; i++) {
         HE *he = hv_iternext(hash);
         SV *key = hv_iterkeysv(he);
@@ -755,6 +755,8 @@ dump_hash(
         dump_node(dumper, key);
         dump_node(dumper, val);
     }
+
+    SvREFCNT_dec(av);
 
     yaml_mapping_end_event_initialize(&event_mapping_end);
     yaml_emitter_emit(&dumper->emitter, &event_mapping_end);
