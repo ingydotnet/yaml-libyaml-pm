@@ -1,4 +1,10 @@
 ---
+version: 0.31
+date:    Mon Jan 12 11:23:55 IST 2009
+changes:
+- Fix the leak test so it doesn't load an unused, undeclared dependency
+  (Test::LongString)
+---
 version: 0.30
 date:    Sun Jan 11 12:53:55 IST 2009
 changes:
