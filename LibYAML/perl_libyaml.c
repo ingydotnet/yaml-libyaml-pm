@@ -477,7 +477,7 @@ Dump(SV *dummy, ...)
     yaml_event_t event_stream_start;
     yaml_event_t event_stream_end;
     int i;
-    SV *yaml = sv_2mortal(newSVpvs(""));
+    SV *yaml = sv_2mortal(newSVpvn("", 0));
     sp = mark;
 
     set_dumper_options(&dumper);
