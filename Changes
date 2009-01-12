@@ -1,4 +1,10 @@
 ---
+version: 0.33
+date:    Mon Jan 12 11:23:55 IST 2009
+changes:
+- newSVpvs is not portable, change to newSVpvn
+- update ppport.h options
+---
 version: 0.31
 date:    Mon Jan 12 11:23:55 IST 2009
 changes:
