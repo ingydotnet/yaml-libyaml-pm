@@ -1,8 +1,4 @@
-use constant HAVE_DEVEL_LEAK => scalar eval { require Devel::Leak; die };
-use Symbol;
-
 use t::TestYAMLTests tests => ( 3 * ( 5 * 5 + 3 ) );
-use Test::LongString;
 
 use Scalar::Util qw(weaken);
 
@@ -14,20 +10,21 @@ for ( 1 .. 3 ) {
         sub { my $x = "foo"; \$x; },
         sub { my $y = 42; my $x = \$y; \$x },
         sub { my $h = {}; [ $h, $h ] },
-        #sub { my $glob = gensym(); *$glob = { foo => "bar" }; $glob },
+        #sub { my $glob = gensym(); *$glob = { foo => "bar" }; \$glob },
         #sub { sub { "foo " . $_[0] } },
         #sub { sub () { 3 } },
     ) {
         my $obj = $case->();
 
         my $yaml = Dump($obj);
-        my $loaded = Load($yaml);
 
         ok( $yaml, "dumped" );
 
+        my $loaded = Load($yaml);
+
         is( ref($loaded), ref($obj), "loaded $loaded from $obj" );
 
-        is_deeply( \$loaded, \$obj, "eq deeply" );
+        is_deeply( $loaded, $obj, "eq deeply" );
 
         if ( ref $obj ) {
             weaken($obj);
