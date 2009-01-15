@@ -172,8 +172,9 @@ originally bound to Python and was later bound to Ruby.
 This module is a Perl XS binding to libyaml which offers Perl the best YAML
 support to date.
 
-This module exports the functions C<Dump> and C<Load>. These functions
-are intended to work exactly like C<YAML.pm>'s corresponding functions.
+This module exports the functions C<Dump>, C<Load>, C<DumpFile> and
+C<LoadFile>. These functions are intended to work exactly like C<YAML.pm>'s
+corresponding functions.
 
 =head1 SEE ALSO
 
