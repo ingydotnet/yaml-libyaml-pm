@@ -37,6 +37,8 @@ use base 'Exporter';
 # $YAML::XS::DumpCode = 0;
 # $YAML::XS::LoadCode = 0;
 
+$YAML::XS::QuoteNumericStrings = 1;
+
 use YAML::XS::LibYAML qw(Load Dump);
 
 sub DumpFile {
@@ -175,6 +177,28 @@ support to date.
 This module exports the functions C<Dump>, C<Load>, C<DumpFile> and
 C<LoadFile>. These functions are intended to work exactly like C<YAML.pm>'s
 corresponding functions.
+
+=head1 CONFIGURATION
+
+=over 4
+
+=item C<$YAML::XS::UseCode>
+
+=item C<$YAML::XS::DumpCode>
+
+=item C<$YAML::XS::LoadCode>
+
+If enabled supports deparsing and evaling of code blocks.
+
+=item C<$YAML::XS::QuoteNumericStrings>
+
+When true (the default) strings that look like numbers but have not been
+numified will be quoted when dumping.
+
+This ensures leading that things like leading zeros and other formatting are
+preserved.
+
+=back
 
 =head1 SEE ALSO
 

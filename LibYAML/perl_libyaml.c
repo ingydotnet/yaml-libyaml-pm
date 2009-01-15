@@ -463,6 +463,11 @@ set_dumper_options(perl_yaml_dumper_t *dumper)
         ((gv = gv_fetchpv("YAML::XS::DumpCode", TRUE, SVt_PV)) &&
         SvTRUE(GvSV(gv)))
     );
+
+    dumper->quote_number_strings = (
+        ((gv = gv_fetchpv("YAML::XS::QuoteNumericStrings", TRUE, SVt_PV)) &&
+        SvTRUE(GvSV(gv)))
+    );
 }
 
 /*
@@ -833,7 +838,7 @@ dump_scalar(perl_yaml_dumper_t *dumper, SV *node, yaml_char_t *tag)
             strEQ(string, "false") ||
             strEQ(string, "null") ||
             (SvTYPE(node) >= SVt_PVGV) ||
-            ( !SvNIOK(node) && looks_like_number(node) )
+            ( dumper->quote_number_strings && !SvNIOK(node) && looks_like_number(node) )
         ) {
             style = YAML_SINGLE_QUOTED_SCALAR_STYLE;
         }
