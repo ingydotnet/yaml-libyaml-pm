@@ -350,6 +350,8 @@ load_scalar(perl_yaml_loader_t *loader)
             return newSV(0);
         else if (strEQ(string, ""))
             return newSV(0);
+        else if (strEQ(string, "null"))
+            return newSV(0);
         else if (strEQ(string, "true"))
             return &PL_sv_yes;
         else if (strEQ(string, "false"))

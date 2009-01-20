@@ -41,8 +41,9 @@ foo:
 bar:
 -
 - -
+gorch: null
 ...
-$perl = {foo => undef, bar => [undef, [undef]]};
+$perl = {foo => undef, bar => [undef, [undef]], gorch => undef};
 
 is_deeply Load($yaml), $perl,
     "Empty values Load as undefs";
