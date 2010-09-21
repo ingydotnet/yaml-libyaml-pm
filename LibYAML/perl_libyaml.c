@@ -365,7 +365,7 @@ load_scalar(perl_yaml_loader_t *loader)
         SvIV_please(scalar);
     }
 
-    SvUTF8_on(scalar);
+    (void)sv_utf8_decode(scalar);
     if (anchor)
         hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(scalar), 0);
     return scalar;
