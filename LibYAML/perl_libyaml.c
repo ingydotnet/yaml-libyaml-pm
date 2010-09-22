@@ -732,8 +732,14 @@ dump_hash(
     int len;
     AV *av;
     HV *hash = (HV *)SvRV(node);
-    len = HvKEYS(hash);
-    hv_iterinit(hash);
+    len = hv_iterinit(hash);
+
+    if (SvMAGICAL(hash)) {
+        len = 0;
+        while(hv_iternext(hash))
+            len++;
+        hv_iterinit(hash);
+    }
 
     if (!anchor)
         anchor = get_yaml_anchor(dumper, (SV *)hash);
@@ -816,6 +822,7 @@ dump_scalar(perl_yaml_dumper_t *dumper, SV *node, yaml_char_t *tag)
         plain_implicit = quoted_implicit = 1;
     }
 
+    SvGETMAGIC(node);
     if (!SvOK(node)) {
         string = "~";
         string_len = 1;
@@ -832,7 +839,7 @@ dump_scalar(perl_yaml_dumper_t *dumper, SV *node, yaml_char_t *tag)
         style = YAML_PLAIN_SCALAR_STYLE;
     }
     else {
-        string = SvPV(node, string_len);
+        string = SvPV_nomg(node, string_len);
         if (
             (string_len == 0) ||
             strEQ(string, "~") ||
