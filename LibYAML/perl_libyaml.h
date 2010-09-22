@@ -122,5 +122,5 @@ get_yaml_tag(SV *);
 
 
 int
-append_output(void *, unsigned char *, unsigned int size);
+append_output(void *, unsigned char *, size_t size);
 

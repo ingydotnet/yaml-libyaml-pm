@@ -151,7 +151,7 @@ Load(SV *yaml_sv)
          );
 
     loader.anchors = newHV();
-    sv_2mortal(loader.anchors);
+    sv_2mortal((SV *)loader.anchors);
 
     /* Keep calling load_node until end of stream */
     while (1) {
@@ -615,7 +615,7 @@ dump_node(perl_yaml_dumper_t *dumper, SV *node)
 {
     yaml_char_t *anchor = NULL;
     yaml_char_t *tag = NULL;
-    char *class = NULL;
+    const char *class = NULL;
 
     if (SvTYPE(node) == SVt_PVGV) {
         SV **svr;
@@ -699,8 +699,8 @@ yaml_char_t *
 get_yaml_tag(SV *node)
 {
     yaml_char_t *tag;
-    char *class;
-    char *kind = "";
+    const char *class;
+    const char *kind = "";
     if (! (
         sv_isobject(node) ||
         (SvRV(node) && ( SvTYPE(SvRV(node)) == SVt_PVCV))
@@ -958,7 +958,7 @@ dump_ref(perl_yaml_dumper_t *dumper, SV *node)
 }
 
 int
-append_output(void *yaml, unsigned char *buffer, unsigned int size)
+append_output(void *yaml, unsigned char *buffer, size_t size)
 {
     sv_catpvn((SV *)yaml, (const char *)buffer, (STRLEN)size);
     return 1;
