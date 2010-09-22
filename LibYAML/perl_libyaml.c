@@ -732,14 +732,7 @@ dump_hash(
     int len;
     AV *av;
     HV *hash = (HV *)SvRV(node);
-    len = hv_iterinit(hash);
-
-    if (SvMAGICAL(hash)) {
-        len = 0;
-        while(hv_iternext(hash))
-            len++;
-        hv_iterinit(hash);
-    }
+    HE *he;
 
     if (!anchor)
         anchor = get_yaml_anchor(dumper, (SV *)hash);
@@ -754,16 +747,18 @@ dump_hash(
     yaml_emitter_emit(&dumper->emitter, &event_mapping_start);
 
     av = newAV();
-    for (i = 0; i < len; i++) {
-        HE *he = hv_iternext(hash);
+    len = 0;
+    hv_iterinit(hash);
+    while ((he = hv_iternext(hash))) {
         SV *key = hv_iterkeysv(he);
         av_store(av, AvFILLp(av)+1, key); /* av_push(), really */
+        len++;
     }
     STORE_HASH_SORT;
     for (i = 0; i < len; i++) {
         SV *key = av_shift(av);
         HE *he  = hv_fetch_ent(hash, key, 0, 0);
-        SV *val = HeVAL(he);
+        SV *val = he ? HeVAL(he) : NULL;
         if (val == NULL) { val = &PL_sv_undef; }
         dump_node(dumper, key);
         dump_node(dumper, val);
