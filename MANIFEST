@@ -42,6 +42,7 @@ META.yml
 README
 t/alias.t
 t/api.t
+t/ascii.t
 t/blessed.t
 t/boolean.t
 t/bug-pvf.t
@@ -67,5 +68,6 @@ t/string_nulls.t
 t/tags.t
 t/TestYAML.pm
 t/TestYAMLTests.pm
+t/tied.t
 t/utf8.t
 t/yaml_tests.yaml
