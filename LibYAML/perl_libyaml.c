@@ -121,14 +121,17 @@ Load(SV *yaml_sv)
     dXSARGS;
     perl_yaml_loader_t loader;
     SV *node;
-    char *yaml_str;
+    const unsigned char *yaml_str;
     STRLEN yaml_len;
-    
-    /* If UTF8, make copy and downgrade */
-    if (SvPV_nolen(yaml_sv) && SvUTF8(yaml_sv)) {
+
+    yaml_str = (const unsigned char *)SvPV_const(yaml_sv, yaml_len);
+
+    if (DO_UTF8(yaml_sv)) {
         yaml_sv = sv_mortalcopy(yaml_sv);
+        if (!sv_utf8_downgrade(yaml_sv, TRUE))
+            croak("Wide character in YAML::XS::Load()");
+        yaml_str = (const unsigned char *)SvPV_const(yaml_sv, yaml_len);
     }
-    yaml_str = SvPVbyte(yaml_sv, yaml_len);
 
     sp = mark;
     if (0 && (items || ax)) {} /* XXX Quiet the -Wall warnings for now. */
@@ -137,7 +140,7 @@ Load(SV *yaml_sv)
     loader.document = 0;
     yaml_parser_set_input_string(
         &loader.parser,
-        (unsigned char *)yaml_str,
+        yaml_str,
         yaml_len
     );
 
