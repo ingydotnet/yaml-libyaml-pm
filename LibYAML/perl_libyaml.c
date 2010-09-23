@@ -584,10 +584,9 @@ dump_prewalk(perl_yaml_dumper_t *dumper, SV *node)
     }
     else if (ref_type == SVt_PVHV) {
         HV *hash = (HV *)SvRV(node);
-        len = HvKEYS(hash);
+        HE *he;
         hv_iterinit(hash);
-        for (i = 0; i < len; i++) {
-            HE *he = hv_iternext(hash);
+        while ((he = hv_iternext(hash))) {
             SV *val = HeVAL(he);
             if (val)
                 dump_prewalk(dumper, val);
