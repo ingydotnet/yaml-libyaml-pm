@@ -661,6 +661,15 @@ dump_node(perl_yaml_dumper_t *dumper, SV *node)
             }
             dump_scalar(dumper, node, tag);
         }
+#if PERL_REVISION > 5 || (PERL_REVISION == 5 && PERL_VERSION >= 11)
+        else if (ref_type == SVt_REGEXP) {
+            yaml_char_t *tag = (yaml_char_t *)form(TAG_PERL_PREFIX "regexp");
+            class = sv_reftype(rnode, TRUE);
+                if (!strEQ(class, "Regexp"))
+                     tag = (yaml_char_t *)form("%s:%s", tag, class);
+            dump_scalar(dumper, node, tag);
+        }
+#endif
         else {
             printf(
                 "YAML::XS dump unhandled ref. type == '%d'!\n",
