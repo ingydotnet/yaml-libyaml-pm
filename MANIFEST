@@ -57,6 +57,8 @@ t/file.t
 t/glob.t
 t/leak.t
 t/load.t
+t/magic.t
+t/native.t
 t/null.t
 t/numbers.t
 t/pl_sv_undef.t
