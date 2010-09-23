@@ -1,0 +1,22 @@
+ToDo:
+
+- Load globs
+- Dump *foo{IO} and *foo{FORMAT}
+- Rewrite documentation
+- Copy all relevant code from YAML::Syck
+  - Review YAML::Syck Changes file
+- Make YAML a prereq for YAML-LibYAML
+- Make loading regexp use code from YAML::Types
+- Make glob dumping use YAML::Node
+- Move all YAML and YAML::XS tests to YAML::Tests
+  - Make YAML and YAML::XS pass all common tests
+- Add scalar dumping heuristics similar to YAML.pm
+
+Tests:
+- Abstract all tests to YAML::Tests
+- http://svn.ali.as/cpan/concept/cpan-yaml-tiny/
+
+Profiling:
+- TonyC: sprof if I can remember the way to enable shared library profiling
+- TonyC: LD_PROFILE, but that may not work on OS X
+- TonyC: sample or Sampler.app on OS X, I'd guess

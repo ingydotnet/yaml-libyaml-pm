@@ -15,8 +15,33 @@ DESCRIPTION
     This module is a Perl XS binding to libyaml which offers Perl the best
     YAML support to date.
 
-    This module exports the functions "Dump" and "Load". These functions are
-    intended to work exactly like "YAML.pm"'s corresponding functions.
+    This module exports the functions "Dump", "Load", "DumpFile" and
+    "LoadFile". These functions are intended to work exactly like
+    "YAML.pm"'s corresponding functions.
+
+CONFIGURATION
+    $YAML::XS::UseCode
+    $YAML::XS::DumpCode
+    $YAML::XS::LoadCode
+        If enabled supports deparsing and evaling of code blocks.
+
+    $YAML::XS::QuoteNumericStrings
+        When true (the default) strings that look like numbers but have not
+        been numified will be quoted when dumping.
+
+        This ensures leading that things like leading zeros and other
+        formatting are preserved.
+
+USING YAML::XS WITH UNICODE
+    Handling unicode properly in Perl can be a pain. YAML::XS only deals
+    with streams of utf8 octets. Just remember this:
+
+        $perl = Load($utf8_octets);
+        $utf8_octets = Dump($perl);
+
+    There are many, many places where things can go wrong with unicode. If
+    you are having problems, use Devel::Peek on all the possible data
+    points.
 
 SEE ALSO
      * YAML.pm
@@ -24,10 +49,10 @@ SEE ALSO
      * YAML::Tiny
 
 AUTHOR
-    Ingy döt Net <ingy@cpan.org>
+    Ingy dÃ¶t Net <ingy@cpan.org>
 
 COPYRIGHT
-    Copyright (c) 2007, 2008. Ingy döt Net.
+    Copyright (c) 2007, 2008, 2010. Ingy dÃ¶t Net.
 
     This program is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself.

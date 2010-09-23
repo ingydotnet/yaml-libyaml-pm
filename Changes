@@ -1,4 +1,18 @@
 ---
+version: 0.34
+date:    Wed Apr 14 17:57:10 PDT 2010
+changes:
+- These changes from chansen++
+- Handle misbehaved tied hashes
+- Handle 'get' magic
+- Added support for tied arrays and hashes
+- Don't turn on the UTF-8 flag for strings containing US-ASCII (0x00-0x7F)
+---
+version: 0.33
+date:    Wed Apr 14 17:57:10 PDT 2010
+changes:
+- Applied Gisle Aas' patch from https://rt.cpan.org/Ticket/Display.html?id=43115
+---
 version: 0.32
 date:    Mon Jan 12 11:23:55 IST 2009
 changes:

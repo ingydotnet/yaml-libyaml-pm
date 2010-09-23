@@ -1,31 +1,7 @@
-# ToDo:
-#
-# - Load globs
-# - Dump *foo{IO} and *foo{FORMAT}
-# - Rewrite documentation
-# - Copy all relevant code from YAML::Syck
-#   - Review YAML::Syck Changes file
-# - Make YAML a prereq for YAML-LibYAML
-# - Make loading regexp use code from YAML::Types
-# - Make glob dumping use YAML::Node
-# - Move all YAML and YAML::XS tests to YAML::Tests
-#   - Make YAML and YAML::XS pass all common tests
-# - Add scalar dumping heuristics similar to YAML.pm
-#
-# Tests:
-# - Abstract all tests to YAML::Tests
-# - http://svn.ali.as/cpan/concept/cpan-yaml-tiny/
-#
-# Profiling:
-# - TonyC: sprof if I can remember the way to enable shared library profiling
-# - TonyC: LD_PROFILE, but that may not work on OS X
-# - TonyC: sample or Sampler.app on OS X, I'd guess
-
-
 package YAML::XS;
 use 5.008003;
 use strict;
-$YAML::XS::VERSION = '0.32';
+$YAML::XS::VERSION = '0.34';
 use base 'Exporter';
 
 @YAML::XS::EXPORT = qw(Load Dump);
@@ -195,10 +171,22 @@ If enabled supports deparsing and evaling of code blocks.
 When true (the default) strings that look like numbers but have not been
 numified will be quoted when dumping.
 
-This ensures leading that things like leading zeros and other formatting are
-preserved.
+This ensures leading that things like leading zeros and other formatting
+are preserved.
 
 =back
+
+=head1 USING YAML::XS WITH UNICODE
+
+Handling unicode properly in Perl can be a pain. YAML::XS only deals
+with streams of utf8 octets. Just remember this:
+
+    $perl = Load($utf8_octets);
+    $utf8_octets = Dump($perl);
+
+There are many, many places where things can go wrong with unicode.
+If you are having problems, use Devel::Peek on all the possible
+data points.
 
 =head1 SEE ALSO
 
@@ -212,7 +200,7 @@ Ingy döt Net <ingy@cpan.org>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2007, 2008. Ingy döt Net.
+Copyright (c) 2007, 2008, 2010. Ingy döt Net.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
