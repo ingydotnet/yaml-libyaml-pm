@@ -95,8 +95,8 @@ loader_error_msg(perl_yaml_loader_t *loader, char *problem)
     )
         msg = form("%s, line: %d, column: %d\n",
             msg,
-            loader->parser.problem_mark.line + 1,
-            loader->parser.problem_mark.column + 1
+            (int)loader->parser.problem_mark.line + 1,
+            (int)loader->parser.problem_mark.column + 1
         );
     else
         msg = form("%s\n", msg);
@@ -104,8 +104,8 @@ loader_error_msg(perl_yaml_loader_t *loader, char *problem)
         msg = form("%s%s at line: %d, column: %d\n",
             msg,
             loader->parser.context,
-            loader->parser.context_mark.line + 1,
-            loader->parser.context_mark.column + 1
+            (int)loader->parser.context_mark.line + 1,
+            (int)loader->parser.context_mark.column + 1
         );
 
     return msg;
