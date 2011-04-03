@@ -1,7 +1,7 @@
 package YAML::XS;
 use 5.008003;
 use strict;
-$YAML::XS::VERSION = '0.34';
+$YAML::XS::VERSION = '0.35';
 use base 'Exporter';
 
 @YAML::XS::EXPORT = qw(Load Dump);
@@ -200,7 +200,7 @@ Ingy döt Net <ingy@cpan.org>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2007, 2008, 2010. Ingy döt Net.
+Copyright (c) 2007, 2008, 2010, 2011. Ingy döt Net.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
