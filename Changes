@@ -1,4 +1,10 @@
 ---
+version: 0.35
+date:    Sun Apr  3 23:26:34 CST 2011
+changes:
+- Apply bdfoy patch from rt-46172
+- Update ppport.h to fix rt-64749 & rt-62054
+---
 version: 0.34
 date:    Wed Apr 14 17:57:10 PDT 2010
 changes:

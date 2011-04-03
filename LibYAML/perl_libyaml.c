@@ -159,11 +159,15 @@ Load(SV *yaml_sv)
     /* Keep calling load_node until end of stream */
     while (1) {
         loader.document++;
+        /* We are through with the previous event - delete it! */
+        yaml_event_delete(&loader.event);
         if (!yaml_parser_parse(&loader.parser, &loader.event))
             goto load_error;
         if (loader.event.type == YAML_STREAM_END_EVENT)
             break;
         node = load_node(&loader);
+        /* We are through with the previous event - delete it! */
+        yaml_event_delete(&loader.event);
         hv_clear(loader.anchors);
         if (! node) break;
         XPUSHs(sv_2mortal(node));
@@ -193,52 +197,81 @@ load_error:
 SV *
 load_node(perl_yaml_loader_t *loader)
 {
+    SV* return_sv = NULL;
+    /* This uses stack, but avoids (severe!) memory leaks */
+    yaml_event_t uplevel_event;
+
+    uplevel_event = loader->event;
+
     /* Get the next parser event */
     if (!yaml_parser_parse(&loader->parser, &loader->event))
+        goto load_error;
+
+    /* These events don't need yaml_event_delete */
+    /* Some kind of error occurred */
+    if (loader->event.type == YAML_NO_EVENT)
         goto load_error;
 
     /* Return NULL when we hit the end of a scope */
     if (loader->event.type == YAML_DOCUMENT_END_EVENT ||
         loader->event.type == YAML_MAPPING_END_EVENT ||
-        loader->event.type == YAML_SEQUENCE_END_EVENT) return NULL;
-
-    /* Handle loading a mapping */
-    if (loader->event.type == YAML_MAPPING_START_EVENT) {
-        SV *hash_ref;
-        char *tag = (char *)loader->event.data.mapping_start.tag;
-
-        /* Handle mapping tagged as a Perl hard reference */
-        if (tag && strEQ(tag, TAG_PERL_REF))
-            return load_scalar_ref(loader);
-        
-        /* Handle mapping tagged as a Perl typeglob */
-        if (tag && strEQ(tag, TAG_PERL_GLOB))
-            return load_glob(loader);
-
-        /* Load the mapping into a hash ref and return it */
-        return load_mapping(loader, NULL);
+        loader->event.type == YAML_SEQUENCE_END_EVENT) {
+            /* restore the uplevel event, so it can be properly deleted */
+            loader->event = uplevel_event;
+            return return_sv;
     }
 
-    /* Handle loading a sequence into an array */
-    if (loader->event.type == YAML_SEQUENCE_START_EVENT)
-        return load_sequence(loader);
+    /* The rest all need cleanup */
+    switch (loader->event.type) {
+        char *tag;
 
-    /* Handle loading a scalar */
-    if (loader->event.type == YAML_SCALAR_EVENT)
-        return load_scalar(loader);
+        /* Handle loading a mapping */
+        case YAML_MAPPING_START_EVENT:
+            tag = (char *)loader->event.data.mapping_start.tag;
 
-    /* Handle loading an alias node */
-    if (loader->event.type == YAML_ALIAS_EVENT)
-        return load_alias(loader);
+            /* Handle mapping tagged as a Perl hard reference */
+            if (tag && strEQ(tag, TAG_PERL_REF)) {
+                return_sv = load_scalar_ref(loader);
+                break;
+            }
 
-    /* Some kind of error occurred */
-    if (loader->event.type == YAML_NO_EVENT)
+            /* Handle mapping tagged as a Perl typeglob */
+            if (tag && strEQ(tag, TAG_PERL_GLOB)) {
+                return_sv = load_glob(loader);
+                break;
+            }
+
+            return_sv = load_mapping(loader, NULL);
+            break;
+
+        /* Handle loading a sequence into an array */
+        case YAML_SEQUENCE_START_EVENT:
+            return_sv = load_sequence(loader);
+            break;
+
+        /* Handle loading a scalar */
+        case YAML_SCALAR_EVENT:
+            return_sv = load_scalar(loader);
+            break;
+
+        /* Handle loading an alias node */
+        case YAML_ALIAS_EVENT:
+            return_sv = load_alias(loader);
+            break;
+
+        default:
+            croak(ERRMSG "Invalid event '%d' at top level", (int) loader->event.type);
+    }
+
+    yaml_event_delete(&loader->event);
+
+    /* restore the uplevel event, so it can be properly deleted */
+    loader->event = uplevel_event;
+
+    return return_sv;
+
+    load_error:
         croak(loader_error_msg(loader, NULL));
-
-    croak(ERRMSG "Invalid event '%d' at top level", (int) loader->event.type);
-
-load_error:
-    croak(loader_error_msg(loader, NULL));
 }
 
 /*
@@ -265,7 +298,7 @@ load_mapping(perl_yaml_loader_t *loader, char *tag)
         assert(SvPOK(key_node));
         value_node = load_node(loader);
         hv_store_ent(
-            hash, key_node, value_node, 0
+            hash, sv_2mortal(key_node), value_node, 0
         );
     } 
 
@@ -345,7 +378,7 @@ load_scalar(perl_yaml_loader_t *loader)
         class = tag + strlen(prefix);
         scalar = sv_setref_pvn(newSV(0), class, string, strlen(string));
         SvUTF8_on(scalar);
-	return scalar;
+    return scalar;
     }
 
     if (loader->event.data.scalar.style == YAML_PLAIN_SCALAR_STYLE) {
@@ -858,11 +891,11 @@ dump_scalar(perl_yaml_dumper_t *dumper, SV *node, yaml_char_t *tag)
             style = YAML_SINGLE_QUOTED_SCALAR_STYLE;
         }
         if (!SvUTF8(node)) {
-	    /* copy to new SV and promote to utf8 */
-	    SV *utf8sv = sv_mortalcopy(node);
+        /* copy to new SV and promote to utf8 */
+        SV *utf8sv = sv_mortalcopy(node);
 
-	    /* get string and length out of utf8 */
-	    string = SvPVutf8(utf8sv, string_len);
+        /* get string and length out of utf8 */
+        string = SvPVutf8(utf8sv, string_len);
         }
     }
     yaml_scalar_event_initialize(
