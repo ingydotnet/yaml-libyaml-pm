@@ -1,7 +1,8 @@
-package YAML::XS;
-use 5.008003;
+use 5.008001;
 use strict;
-$YAML::XS::VERSION = '0.35';
+
+package YAML::XS;
+$YAML::XS::VERSION = '0.36';
 use base 'Exporter';
 
 @YAML::XS::EXPORT = qw(Load Dump);
@@ -45,7 +46,7 @@ sub LoadFile {
         open $IN, $filename
           or die "Can't open '$filename' for input:\n$!";
     }
-    return YAML::XS::LibYAML::Load(do { local $/; <$IN> });
+    return YAML::XS::LibYAML::Load(do { local $/; local $_ = <$IN> });
 }
 
 # XXX Figure out how to lazily load this module. 
