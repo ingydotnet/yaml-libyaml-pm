@@ -1,4 +1,10 @@
 ---
+version: 0.37
+date:    Thu Sep 29 20:09:20 CEST 2011
+changes:
+- Fix the bug that accidentally released YAML-XS instead of YAML-LibYAML.
+- Released from Wendy++ and Liz++'s Guest Bedroom.
+---
 version: 0.36
 date:    Sun Sep 25 22:08:53 CEST 2011
 changes:
