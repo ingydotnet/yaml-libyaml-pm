@@ -18,10 +18,16 @@ $yaml = <<'...';
 --- !!perl/code:Barry::White |-
   {
       use warnings;
-      use strict 'refs';
+      use strict;
       print "Bye.\n";
   }
 ...
+
+use B::Deparse;
+if (new B::Deparse -> coderef2text ( sub { no strict; 1; use strict; 1; })
+      =~ 'refs') {
+    $yaml =~ s/use strict/use strict 'refs'/g;
+}
 
 $YAML::XS::DumpCode = 1;
 is Dump($sub), $yaml,

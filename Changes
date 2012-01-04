@@ -1,4 +1,9 @@
 ---
+version: 0.38
+date:    Tue Jan  3 22:56:01 PST 2012
+changes:
+- Apply SPROUT++ deparse test patch. Thanks!
+---
 version: 0.37
 date:    Thu Sep 29 20:09:20 CEST 2011
 changes:
