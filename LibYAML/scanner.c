@@ -1118,9 +1118,11 @@ yaml_parser_save_simple_key(yaml_parser_t *parser)
 
     if (parser->simple_key_allowed)
     {
-        yaml_simple_key_t simple_key = { 1, required,
-            parser->tokens_parsed + parser->tokens.tail - parser->tokens.head,
-            { 0, 0, 0 } };
+        yaml_simple_key_t simple_key;
+        simple_key.possible = 1;
+        simple_key.required = required;
+        simple_key.token_number = 
+            parser->tokens_parsed + (parser->tokens.tail - parser->tokens.head);
         simple_key.mark = parser->mark;
 
         if (!yaml_parser_remove_simple_key(parser)) return 0;
@@ -1915,7 +1917,7 @@ yaml_parser_fetch_plain_scalar(yaml_parser_t *parser)
 static int
 yaml_parser_scan_to_next_token(yaml_parser_t *parser)
 {
-    /* Until the next token is not find. */
+    /* Until the next token is not found. */
 
     while (1)
     {
@@ -2126,7 +2128,7 @@ yaml_parser_scan_directive_name(yaml_parser_t *parser,
 
     if (string.start == string.pointer) {
         yaml_parser_set_scanner_error(parser, "while scanning a directive",
-                start_mark, "cannot find expected directive name");
+                start_mark, "could not find expected directive name");
         goto error;
     }
 
@@ -3152,6 +3154,10 @@ yaml_parser_scan_flow_scalar(yaml_parser_t *parser, yaml_token_t *token,
 
                     case '"':
                         *(string.pointer++) = '"';
+                        break;
+
+                    case '/':
+                        *(string.pointer++) = '/';
                         break;
 
                     case '\'':

@@ -1,5 +1,5 @@
 BEGIN {$main::PM = 'lib/YAML/XS.pm'}
-use inc::Module::Package 'Ingy:modern 0.16';
+use inc::Module::Package 'Ingy:modern 0.20';
 
 name 'YAML-LibYAML';
 all_from 'lib/YAML/XS.pm';

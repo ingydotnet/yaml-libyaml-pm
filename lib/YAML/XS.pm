@@ -2,7 +2,7 @@ use 5.008001;
 use strict;
 
 package YAML::XS;
-$YAML::XS::VERSION = '0.38';
+$YAML::XS::VERSION = '0.39';
 use base 'Exporter';
 
 @YAML::XS::EXPORT = qw(Load Dump);

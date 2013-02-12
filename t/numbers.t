@@ -18,7 +18,7 @@ my ($num, $float, $str) = Load(<<'...');
 --- '02134'
 ...
 
-is Dump($num, $float, $str), <<'...', "Round triping integers and strings";
+is Dump($num, $float, $str), <<'...', "Round tripping integers and strings";
 --- 42
 --- 0.333
 --- '02134'
@@ -42,7 +42,7 @@ my ($num, $float, $str) = Load(<<'...');
 --- '02134'
 ...
 
-is Dump($num, $float, $str), <<'...', "Round triping integers and strings";
+is Dump($num, $float, $str), <<'...', "Round tripping integers and strings";
 --- 42
 --- 0.333
 --- '02134'
@@ -66,7 +66,7 @@ my ($num, $float, $str) = Load(<<'...');
 --- '02134'
 ...
 
-is Dump($num, $float, $str), <<'...', "Round triping integers and strings";
+is Dump($num, $float, $str), <<'...', "Round tripping integers and strings";
 --- 42
 --- 0.333
 --- 02134

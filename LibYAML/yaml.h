@@ -26,7 +26,7 @@ extern "C" {
 
 /** The public API declaration. */
 
-#ifdef WIN32
+#ifdef _WIN32
 #   if defined(YAML_DECLARE_STATIC)
 #       define  YAML_DECLARE(type)  type
 #   elif defined(YAML_DECLARE_EXPORT)
@@ -1680,6 +1680,8 @@ typedef struct yaml_emitter_s {
     int whitespace;
     /** If the last character was an indentation character (' ', '-', '?', ':')? */
     int indention;
+    /** If an explicit document end is required? */
+    int open_ended;
 
     /** Anchor analysis. */
     struct {

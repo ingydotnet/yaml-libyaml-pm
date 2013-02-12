@@ -1,4 +1,11 @@
 ---
+version: 0.39
+date:    Mon Feb 11 18:08:04 PST 2013
+changes:
+- Using the latest libyaml codebase
+- https://github.com/yaml/libyaml/tree/perl-yaml-xs
+- Changes have been made to start moving libyaml to 1.2
+---
 version: 0.38
 date:    Tue Jan  3 22:56:01 PST 2012
 changes:
