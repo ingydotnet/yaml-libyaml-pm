@@ -1,4 +1,9 @@
 ---
+version: 0.40
+date:    Tue Mar 12 11:05:34 PDT 2013
+changes:
+- Removed C++ // style comments, for better portability. jdb++
+---
 version: 0.39
 date:    Mon Feb 11 18:08:04 PST 2013
 changes:
