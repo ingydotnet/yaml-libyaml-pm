@@ -506,7 +506,8 @@ set_dumper_options(perl_yaml_dumper_t *dumper)
         ((gv = gv_fetchpv("YAML::XS::QuoteNumericStrings", TRUE, SVt_PV)) &&
         SvTRUE(GvSV(gv)))
     );
-    // dumper->emitter.open_ended = 1;
+    /* dumper->emitter.open_ended = 1;
+     */
 }
 
 /*
