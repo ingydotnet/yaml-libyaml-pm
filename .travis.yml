@@ -1,0 +1,20 @@
+language: perl
+perl:
+   - "5.18"
+   - "5.16"
+   - "5.14"
+   - "5.12"
+   - "5.10"
+   - "5.8"
+
+install:
+   - export RELEASE_TESTING=1 AUTOMATED_TESTING=1 AUTHOR_TESTING=1 HARNESS_OPTIONS=j10:c HARNESS_TIMER=1
+   - cpanm --quiet --notest Devel::Cover::Report::Coveralls Dist::Zilla
+   - dzil authordeps --missing | cpanm --quiet --notest
+   - cpanm --quiet --notest --installdeps .
+
+script:
+   - PERL5OPT=-MDevel::Cover=-coverage,statement,branch,condition,path,subroutine dzil smoke
+   - cover
+after_success:
+  - cover -report coveralls
