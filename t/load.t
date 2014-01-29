@@ -1,6 +1,6 @@
 use t::TestYAMLTests tests => 5;
 
-spec_file('t/data/basic.t');
+spec_file('t/data/basic.yml');
 filters {
     yaml => ['parse_to_byte'],
     perl => ['eval'],

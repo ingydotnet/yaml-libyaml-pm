@@ -1,6 +1,6 @@
 use t::TestYAMLTests tests => 4;
 
-spec_file('t/data/basic.t');
+spec_file('t/data/basic.yml');
 filters {
     perl => ['eval', 'test_dump'],
 };

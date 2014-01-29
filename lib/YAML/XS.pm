@@ -2,7 +2,8 @@ use 5.008001;
 use strict;
 
 package YAML::XS;
-$YAML::XS::VERSION = '0.41';
+# VERSION
+# ABSTRACT: Perl YAML Serialization using XS and libyaml
 use base 'Exporter';
 
 @YAML::XS::EXPORT = qw(Load Dump);
