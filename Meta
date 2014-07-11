@@ -1,0 +1,34 @@
+=meta: 0.0.1
+
+name: YAML-LibYAML
+version: 0.41
+abstract: Perl YAML Serialization using XS and libyaml
+homepage: http://yaml.org
+
+license: perl
+copyright: 2007-2014. Ingy döt Net.
+author:
+  name: Ingy döt Net
+  email: ingy@cpan.org
+  github: ingydotnet
+  twitter: ingydotnet
+  freenode: ingy
+  homepage: http://ingy.net
+
+requires:
+  perl: 5.8.1
+
+devel:
+  git: git@github.org/ingydotnet/yaml-libyaml-pm
+  irc: irc.freenode.net/yaml
+  bug: https://github.com/ingydotnet/yaml-libyaml-pm/issues/
+
+=cpan:
+  include_testbase: true
+
+=travis:
+  type: perl
+  testbase: true
+  test:
+    requires:
+      Spiffy: 0

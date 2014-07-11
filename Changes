@@ -1,4 +1,10 @@
 ---
+version: 0.42
+date:    Fri Jul 11 14:45:58 PDT 2014
+changes:
+- Switch to Zilla::Dist
+- No longer dep on Test::Base, Spiffy, and Filter::Util::Call
+---
 version: 0.41
 date:    Wed Mar 13 10:34:55 PDT 2013
 changes:

@@ -1,9 +1,8 @@
-use 5.008001;
-use strict;
+use strict; use warnings;
 
 package YAML::XS;
-# VERSION
-# ABSTRACT: Perl YAML Serialization using XS and libyaml
+our $VERSION = '0.41';
+
 use base 'Exporter';
 
 @YAML::XS::EXPORT = qw(Load Dump);
@@ -129,84 +128,3 @@ sub __qr_loader {
 }
 
 1;
-
-=encoding utf8
-
-=head1 NAME
-
-YAML::XS - Perl YAML Serialization using XS and libyaml
-
-=head1 SYNOPSIS
-
-    use YAML::XS;
-
-    my $yaml = Dump [ 1..4 ];
-    my $array = Load $yaml;
-
-=head1 DESCRIPTION
-
-Kirill Siminov's C<libyaml> is arguably the best YAML implementation.
-The C library is written precisely to the YAML 1.1 specification. It was
-originally bound to Python and was later bound to Ruby.
-
-This module is a Perl XS binding to libyaml which offers Perl the best YAML
-support to date.
-
-This module exports the functions C<Dump>, C<Load>, C<DumpFile> and
-C<LoadFile>. These functions are intended to work exactly like C<YAML.pm>'s
-corresponding functions.
-
-=head1 CONFIGURATION
-
-=over 4
-
-=item C<$YAML::XS::UseCode>
-
-=item C<$YAML::XS::DumpCode>
-
-=item C<$YAML::XS::LoadCode>
-
-If enabled supports deparsing and evaling of code blocks.
-
-=item C<$YAML::XS::QuoteNumericStrings>
-
-When true (the default) strings that look like numbers but have not been
-numified will be quoted when dumping.
-
-This ensures leading that things like leading zeros and other formatting
-are preserved.
-
-=back
-
-=head1 USING YAML::XS WITH UNICODE
-
-Handling unicode properly in Perl can be a pain. YAML::XS only deals
-with streams of utf8 octets. Just remember this:
-
-    $perl = Load($utf8_octets);
-    $utf8_octets = Dump($perl);
-
-There are many, many places where things can go wrong with unicode.
-If you are having problems, use Devel::Peek on all the possible
-data points.
-
-=head1 SEE ALSO
-
- * YAML.pm
- * YAML::Syck
- * YAML::Tiny
-
-=head1 AUTHOR
-
-Ingy döt Net <ingy@cpan.org>
-
-=head1 COPYRIGHT
-
-Copyright (c) 2007-2013. Ingy döt Net.
-
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
-
-See http://www.perl.com/perl/misc/Artistic.html
-
-=cut
