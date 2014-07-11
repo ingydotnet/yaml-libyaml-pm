@@ -4,6 +4,7 @@ date:    Fri Jul 11 14:45:58 PDT 2014
 changes:
 - Switch to Zilla::Dist
 - No longer dep on Test::Base, Spiffy, and Filter::Util::Call
+- Remove test/changes.t
 ---
 version: 0.41
 date:    Wed Mar 13 10:34:55 PDT 2013
@@ -138,12 +139,13 @@ changes:
 ---
 version: 0.20
 date:    Mon Jun 18 16:29:33 PDT 2007
-changes: Better parse error messaging
+changes:
+- Better parse error messaging
 ---
 version: 0.19
 date:    Mon Jun 18 00:54:40 PDT 2007
-changes: Fixed memory bugs
-reported_by: avar
+changes:
+- Fixed memory bugs. Reported_by avar
 ---
 version: 0.18
 date:    Sun Jun 17 18:33:41 PDT 2007
@@ -173,11 +175,13 @@ changes:
 ---
 version: 0.14
 date:    Wed May 30 02:31:39 PDT 2007
-changes: Plain empty strings should load as undef
+changes:
+- Plain empty strings should load as undef
 ---
 version: 0.12
 date:    Wed May 30 01:08:52 PDT 2007
-changes: Add support for dumping code refs and blessed code refs
+changes:
+- Add support for dumping code refs and blessed code refs
 ---
 version: 0.11
 date:    Tue May 29 17:25:18 PDT 2007
@@ -187,46 +191,50 @@ changes:
 ---
 version: 0.10
 date:    Mon May 28 03:17:29 PDT 2007
-changes: Integrated with YAML::Tests test suite.
+changes:
+- Integrated with YAML::Tests test suite.
 ---
 version: 0.09
 date:    Mon May 28 00:38:19 PDT 2007
-changes: 
+changes:
 - Dump and Load scalar refs
 - Handle alias scalar refs
 ---
 version: 0.08
 date:    Wed May 23 19:34:35 PDT 2007
-changes: 
+changes:
 - Make sure dumped empty strings have quotes
 - Add boolean roundtrip support
 - Add full anchor/alias support
 ---
 version: 0.07
 date:    Wed May 23 00:04:42 PDT 2007
-changes: TonyC showed me how to use '...' in my XS prototype to say zero or
+changes:
+- TonyC showed me how to use '...' in my XS prototype to say zero or
   more args.
 ---
 version: 0.06
 date:    Tue May 22 23:37:40 PDT 2007
-changes: Support dumping zero objects, and loading empty or comment only
+changes:
+- Support dumping zero objects, and loading empty or comment only
   streams to produce zero objects.
 ---
 version: 0.05
 date:    Mon May 21 00:14:40 PDT 2007
-changes: TonyC pointed out the error in my ways for using newSVpvf for
+changes:
+- TonyC pointed out the error in my ways for using newSVpvf for
   strings.
 ---
 version: 0.04
 date:    Sat May 19 20:04:04 PDT 2007
-changes: 
+changes:
 - Added a typedef 'dumper' like 'loader'. Makes internals nicer and more
   exposable.
 - Support dumping undef as ~ and "~" as '~', and loading them correctly.
 ---
 version: 0.03
 date:    Mon May 14 23:27:17 PDT 2007
-changes: 
+changes:
 - Fixed Dump call stack bugs reported by vhold. Made Dump work
   like Load.
 - Made this very 'Changes' file loadable, and have a test to prove it.
@@ -239,8 +247,10 @@ changes:
 ---
 version: 0.02
 date:    Mon May 14 23:27:17 PDT 2007
-changes: Implement initial Dump function. Now supports basic Dump and Load.
+changes:
+- Implement initial Dump function. Now supports basic Dump and Load.
 ---
 version: 0.01
 date:    Fri May 11 14:08:54 PDT 2007
-changes: First Version. Very alpha. Not for production!
+changes:
+- First Version. Very alpha. Not for production!

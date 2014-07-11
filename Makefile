@@ -51,7 +51,11 @@ help:
 	@echo ''
 
 test:
+ifeq ($(wildcard pkg/no-test),)
 	prove -lv test
+else
+	@echo "Testing not available. Use 'disttest' instead."
+endif
 
 install: distdir
 	(cd $(DISTDIR); perl Makefile.PL; make install)
@@ -81,7 +85,11 @@ cpanshell: cpan
 	make clean
 
 cpantest: cpan
+ifeq ($(wildcard pkg/no-test),)
 	(cd cpan; prove -lv t) && make clean
+else
+	@echo "Testing not available. Use 'disttest' instead."
+endif
 
 dist: clean cpan
 	(cd cpan; dzil build)
