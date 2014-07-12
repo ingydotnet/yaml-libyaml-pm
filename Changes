@@ -1,4 +1,9 @@
 ---
+version: 0.43
+date:    Sat Jul 12 10:04:07 PDT 2014
+changes:
+- Test::Base tests needed 'inc' in @INC
+---
 version: 0.42
 date:    Fri Jul 11 14:45:58 PDT 2014
 changes:

@@ -1,4 +1,5 @@
 package t::TestYAMLTests;
+use lib 'inc';
 use Test::Base -Base;
 @t::TestYAMLTests::EXPORT = qw(Load Dump n2y y2n nyny get_block_by_name);
 

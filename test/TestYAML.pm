@@ -1,4 +1,5 @@
 package t::TestYAML;
+use lib 'inc';
 use Test::Base -Base;
 use blib;
 use File::Path 'rmtree';
