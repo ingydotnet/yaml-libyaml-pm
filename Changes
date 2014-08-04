@@ -1,4 +1,9 @@
 ---
+version: 0.45
+date:    Mon Aug  4 01:23:10 PDT 2014
+changes:
+- Fix Meta and add Contributing.
+---
 version: 0.44
 date:    Sun Jul 13 15:19:41 PDT 2014
 changes:

@@ -1,7 +1,7 @@
 =meta: 0.0.1
 
 name: YAML-LibYAML
-version: 0.44
+version: 0.45
 abstract: Perl YAML Serialization using XS and libyaml
 homepage: http://yaml.org
 
@@ -19,15 +19,16 @@ requires:
   perl: 5.8.1
 
 devel:
-  git: git@github.org/ingydotnet/yaml-libyaml-pm
-  irc: irc.freenode.net/yaml
-  bug: https://github.com/ingydotnet/yaml-libyaml-pm/issues/
+  git: https://github.com/ingydotnet/yaml-libyaml-pm
+  bug: https://github.com/ingydotnet/yaml-libyaml-pm/issues
+  irc: irc.perl.org#yaml
 
 =cpan:
   include_testbase: true
 
 =travis:
   type: perl
+  irc: irc.perl.org#yaml
   testbase: true
   test:
     requires:
