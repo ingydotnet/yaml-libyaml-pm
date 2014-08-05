@@ -3,6 +3,8 @@ YAML::XS
 
 Perl YAML Serialization using XS and libyaml
 
+<badge travis coveralls ingydotnet/yaml-libyaml-pm>
+
 = Synopsis
 
   use YAML::XS;

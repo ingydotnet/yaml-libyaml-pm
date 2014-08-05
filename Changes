@@ -1,4 +1,10 @@
 ---
+version: 0.46
+date:    Tue Aug  5 10:32:41 PDT 2014
+changes:
+- Add badges to doc
+- Fix ReadMe
+---
 version: 0.45
 date:    Mon Aug  4 01:23:10 PDT 2014
 changes:

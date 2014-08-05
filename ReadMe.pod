@@ -8,13 +8,78 @@ See http://github.com/ingydotnet/swim-pm#readme
 
 =head1 NAME
 
-YAML::LibYAML - Perl YAML Serialization using XS and libyaml
+YAML::XS - Perl YAML Serialization using XS and libyaml
 
-=head1 NOTICE
+=for html
+<a href="https://travis-ci.org/ingydotnet/yaml-libyaml-pm"><img src="https://travis-ci.org/ingydotnet/yaml-libyaml-pm.png" alt="yaml-libyaml-pm"></a>
+<a href="https://coveralls.io/r/ingydotnet/yaml-libyaml-pm?branch=master"><img src="https://coveralls.io/repos/ingydotnet/yaml-libyaml-pm/badge.png" alt="yaml-libyaml-pm"></a>
 
-C<YAML-LibYAML> is the CPAN I<distribution> name for the C<YAML::XS> module.
+=head1 SYNOPSIS
 
-See the L<YAML::XS> documentation instead.
+    use YAML::XS;
+
+    my $yaml = Dump [ 1..4 ];
+    my $array = Load $yaml;
+
+=head1 DESCRIPTION
+
+Kirill Siminov's C<libyaml> is arguably the best YAML implementation. The C
+library is written precisely to the YAML 1.1 specification. It was originally
+bound to Python and was later bound to Ruby.
+
+This module is a Perl XS binding to libyaml which offers Perl the best YAML
+support to date.
+
+This module exports the functions C<Dump>, C<Load>, C<DumpFile> and
+C<LoadFile>. These functions are intended to work exactly like C<YAML.pm>'s
+corresponding functions.
+
+=head1 CONFIGURATION
+
+=over
+
+=item C<$YAML::XS::UseCode>
+
+
+=item C<$YAML::XS::DumpCode>
+
+
+=item C<$YAML::XS::LoadCode>
+
+If enabled supports deparsing and evaling of code blocks.
+
+=item C<$YAML::XS::QuoteNumericStrings>
+
+When true (the default) strings that look like numbers but have not been
+numified will be quoted when dumping.
+
+This ensures leading that things like leading zeros and other formatting are
+preserved.
+
+=back
+
+=head1 USING YAML::XS WITH UNICODE
+
+Handling unicode properly in Perl can be a pain. YAML::XS only deals with
+streams of utf8 octets. Just remember this:
+
+    $perl = Load($utf8_octets);
+    $utf8_octets = Dump($perl);
+
+There are many, many places where things can go wrong with unicode. If you are
+having problems, use Devel::Peek on all the possible data points.
+
+=head1 SEE ALSO
+
+=over
+
+=item * YAML.pm
+
+=item * YAML::Syck
+
+=item * YAML::Tiny
+
+=back
 
 =head1 AUTHOR
 
