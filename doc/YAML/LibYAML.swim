@@ -3,7 +3,7 @@ YAML::LibYAML
 
 Perl YAML Serialization using XS and libyaml
 
-= NOTICE
+= NOTE
 
 `YAML-LibYAML` is the CPAN /distribution/ name for the `YAML::XS` module.
 
