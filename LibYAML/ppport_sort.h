@@ -24,7 +24,7 @@
 #else /* PATCHLEVEL > 6 */
 
 #define STORE_HASH_SORT \
-        sortsv(AvARRAY(av), len, Perl_sv_cmp);  
+        sortsv(AvARRAY(av), len, Perl_sv_cmp);
 
 #endif /* PATCHLEVEL <= 6 */
 

@@ -20,7 +20,7 @@ my $yaml1 = <<'...';
 ...
 
 {
-    tie my @av, 'Tie::StdArray'; 
+    tie my @av, 'Tie::StdArray';
     $av[0] = 'foo';
     $av[1] = 'bar';
     $av[2] = 'baz';

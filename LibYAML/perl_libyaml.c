@@ -65,8 +65,8 @@ find_coderef(char *perl_var)
 {
     SV *coderef;
 
-    if ((coderef = get_sv(perl_var, FALSE)) 
-        && SvROK(coderef) 
+    if ((coderef = get_sv(perl_var, FALSE))
+        && SvROK(coderef)
         && SvTYPE(SvRV(coderef)) == SVt_PVCV)
         return coderef;
 
@@ -83,7 +83,7 @@ loader_error_msg(perl_yaml_loader_t *loader, char *problem)
     if (!problem)
         problem = (char *)loader->parser.problem;
     msg = form(
-        LOADERRMSG 
+        LOADERRMSG
         "%swas found at "
         "document: %d",
         (problem ? form("The problem:\n\n    %s\n\n", problem) : "A problem "),
@@ -300,7 +300,7 @@ load_mapping(perl_yaml_loader_t *loader, char *tag)
         hv_store_ent(
             hash, sv_2mortal(key_node), value_node, 0
         );
-    } 
+    }
 
     /* Deal with possibly blessing the hash if the YAML tag has a class */
     if (tag && strEQ(tag, TAG_PERL_PREFIX "hash"))
@@ -317,7 +317,7 @@ load_mapping(perl_yaml_loader_t *loader, char *tag)
             loader_error_msg(loader, form("bad tag found for hash: '%s'", tag))
         );
         class = tag + strlen(prefix);
-        sv_bless(hash_ref, gv_stashpv(class, TRUE)); 
+        sv_bless(hash_ref, gv_stashpv(class, TRUE));
     }
 
     return hash_ref;
@@ -336,7 +336,7 @@ load_sequence(perl_yaml_loader_t *loader)
         hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(array_ref), 0);
     while ((node = load_node(loader))) {
         av_push(array, node);
-    } 
+    }
     if (tag && strEQ(tag, TAG_PERL_PREFIX "array"))
         tag = NULL;
     if (tag) {
@@ -350,7 +350,7 @@ load_sequence(perl_yaml_loader_t *loader)
             loader_error_msg(loader, form("bad tag found for array: '%s'", tag))
         );
         class = tag + strlen(prefix);
-        sv_bless(array_ref, gv_stashpv(class, TRUE)); 
+        sv_bless(array_ref, gv_stashpv(class, TRUE));
     }
     return array_ref;
 }
@@ -470,7 +470,7 @@ load_scalar_ref(perl_yaml_loader_t *loader)
     load_node(loader);  /* Load the single hash key (=) */
     value_node = load_node(loader);
     SvRV(rv) = value_node;
-    if (load_node(loader)) 
+    if (load_node(loader))
         croak(ERRMSG "Expected end of node");
     return rv;
 }
@@ -765,7 +765,7 @@ get_yaml_tag(SV *node)
     else
         tag = (yaml_char_t *)form("%s%s:%s", TAG_PERL_PREFIX, kind, class);
     return tag;
-} 
+}
 
 void
 dump_hash(
@@ -786,7 +786,7 @@ dump_hash(
 
     if (!tag)
         tag = get_yaml_tag(node);
-    
+
     yaml_mapping_start_event_initialize(
         &event_mapping_start, anchor, tag, 0, YAML_BLOCK_MAPPING_STYLE
     );
@@ -939,7 +939,7 @@ dump_code(perl_yaml_dumper_t *dumper, SV *node)
         }
     }
     tag = get_yaml_tag(node);
-    
+
     yaml_scalar_event_initialize(
         &event_scalar,
         NULL,

@@ -1,7 +1,7 @@
 use strict; use warnings;
 
 package YAML::XS;
-our $VERSION = '0.48';
+our $VERSION = '0.49';
 
 use base 'Exporter';
 
@@ -49,7 +49,7 @@ sub LoadFile {
     return YAML::XS::LibYAML::Load(do { local $/; local $_ = <$IN> });
 }
 
-# XXX Figure out how to lazily load this module. 
+# XXX Figure out how to lazily load this module.
 # So far I've tried using the C function:
 #      load_module(PERL_LOADMOD_NOIMPORT, newSVpv("B::Deparse", 0), NULL);
 # But it didn't seem to work.
