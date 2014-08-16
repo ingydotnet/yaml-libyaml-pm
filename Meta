@@ -1,7 +1,7 @@
 =meta: 0.0.2
 
 name: YAML-LibYAML
-version: 0.50
+version: 0.51
 abstract: Perl YAML Serialization using XS and libyaml
 homepage: http://yaml.org
 language: perl
@@ -25,12 +25,6 @@ requires:
   perl: 5.8.1
 
 =zild:
-  include_testbase: true
   libname: YAML::XS
+  include_testbase: true
   test-000: require
-
-=travis:
-  testbase: true
-  test:
-    requires:
-      Spiffy: 0

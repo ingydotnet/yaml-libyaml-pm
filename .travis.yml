@@ -17,15 +17,12 @@ perl:
 - '5.8'
 
 install:
-- git clone --depth=1
-  git://github.com/ingydotnet/test-base-pm ../test-base-pm
 - cpanm --quiet --notest
   Devel::Cover::Report::Coveralls
-  Spiffy
+  Test::Base
 
 script:
 - PERL5OPT=-MDevel::Cover=-coverage,statement,branch,condition,path,subroutine
-  PERL5LIB=../test-base-pm/lib
   prove -lv test/
 - cover
 
