@@ -1,7 +1,7 @@
 use strict; use warnings;
 
 package YAML::XS;
-our $VERSION = '0.49';
+our $VERSION = '0.50';
 
 use base 'Exporter';
 
