@@ -1,7 +1,7 @@
 =meta: 0.0.1
 
 name: YAML-LibYAML
-version: 0.47
+version: 0.48
 abstract: Perl YAML Serialization using XS and libyaml
 homepage: http://yaml.org
 
@@ -17,6 +17,10 @@ author:
 
 requires:
   perl: 5.8.1
+
+test:
+  generate:
+    000-require-modules.t: true
 
 devel:
   git: https://github.com/ingydotnet/yaml-libyaml-pm
