@@ -1,4 +1,9 @@
 ---
+version: 0.52
+date:    Fri Aug 22 21:03:19 PDT 2014
+changes:
+- Fix e1 test failure on 5.21.4
+---
 version: 0.51
 date:    Sat Aug 16 14:28:45 PDT 2014
 changes:

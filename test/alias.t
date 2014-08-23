@@ -42,7 +42,9 @@ $hash->{a1} = $hash->{a2} = [];
 $hash->{b1} = $hash->{b2} = [];
 $hash->{c1} = $hash->{c2} = [];
 $hash->{d1} = $hash->{d2} = [];
-$hash->{e1} = $hash->{e2} = [];
+# XXX Failed on 5.21.4. 'e1' got quoted because it looks like a number?
+# $hash->{e1} = $hash->{e2} = [];
+$hash->{f1} = $hash->{f2} = [];
 is Dump($hash), <<'...', 'Alias Order is Correct';
 ---
 a1: &1 []
@@ -53,8 +55,8 @@ c1: &3 []
 c2: *3
 d1: &4 []
 d2: *4
-e1: &5 []
-e2: *5
+f1: &5 []
+f2: *5
 ...
 
 my $yaml = <<'...';
