@@ -1,4 +1,4 @@
-use t::TestYAMLTests tests => 24;
+use t::TestYAMLTests tests => 25;
 
 filters {
     error => ['lines', 'chomp'],
@@ -78,3 +78,10 @@ bad tag found for hash: 'tag:yaml.org,2002:!foo'
 document: 1
 !line:
 !column:
+
+=== https://bitbucket.org/xi/libyaml/issue/10/wrapped-strings-cause-assert-failure
++++ yaml
+  x: "
+" y: z
++++ error
+did not find expected key

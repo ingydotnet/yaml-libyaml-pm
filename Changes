@@ -1,4 +1,9 @@
 ---
+version: 0.53
+date:    Fri Nov 28 09:20:08 PST 2014
+changes:
+- Fix for https://bitbucket.org/xi/libyaml/issue/10/wrapped-strings-cause-assert-failure
+---
 version: 0.52
 date:    Fri Aug 22 21:03:19 PDT 2014
 changes:
