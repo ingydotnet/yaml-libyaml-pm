@@ -1,7 +1,7 @@
 use t::TestYAMLTests tests => 8;
 use utf8;
 
-is Dump("\x{100}"), "--- \xC4\x80\n...\n", 'Dumping wide char works';
+is Dump("\x{100}"), "--- \xC4\x80\n", 'Dumping wide char works';
 is Load("--- \xC4\x80\n"), "\x{100}", 'Loading UTF-8 works';
 is Load("\xFE\xFF\0-\0-\0-\0 \x01\x00\0\n"), "\x{100}", 'Loading UTF-16BE works';
 is Load("\xFF\xFE-\0-\0-\0 \0\x00\x01\n\0"), "\x{100}", 'Loading UTF-16LE works';

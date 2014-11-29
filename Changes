@@ -1,4 +1,9 @@
 ---
+version: 0.54
+date:    Sat Nov 29 11:47:10 PST 2014
+changes:
+- Reverted an old patch with 0.53. Unreverted.
+---
 version: 0.53
 date:    Fri Nov 28 09:20:08 PST 2014
 changes:
