@@ -1,4 +1,9 @@
 ---
+version: 0.55
+date:    Mon Dec 22 17:26:27 PST 2014
+changes:
+- Get YAML::XS using latest libyaml
+---
 version: 0.54
 date:    Sat Nov 29 11:47:10 PST 2014
 changes:
