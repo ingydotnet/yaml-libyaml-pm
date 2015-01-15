@@ -47,7 +47,7 @@ fold_results(I32 count)
 
         if (!SvOK(sv) || sv == &PL_sv_undef) {
             /* if first element was undef, die */
-            croak(ERRMSG "Call error");
+            croak("%s", ERRMSG "Call error");
         }
         return retval;
 
@@ -129,7 +129,7 @@ Load(SV *yaml_sv)
     if (DO_UTF8(yaml_sv)) {
         yaml_sv = sv_mortalcopy(yaml_sv);
         if (!sv_utf8_downgrade(yaml_sv, TRUE))
-            croak("Wide character in YAML::XS::Load()");
+            croak("%s", "Wide character in YAML::XS::Load()");
         yaml_str = (const unsigned char *)SvPV_const(yaml_sv, yaml_len);
     }
 
@@ -148,7 +148,7 @@ Load(SV *yaml_sv)
     if (!yaml_parser_parse(&loader.parser, &loader.event))
         goto load_error;
     if (loader.event.type != YAML_STREAM_START_EVENT)
-        croak(ERRMSG "Expected STREAM_START_EVENT; Got: %d != %d",
+        croak("%s", ERRMSG "Expected STREAM_START_EVENT; Got: %d != %d",
             loader.event.type,
             YAML_STREAM_START_EVENT
          );
@@ -174,12 +174,12 @@ Load(SV *yaml_sv)
         if (!yaml_parser_parse(&loader.parser, &loader.event))
             goto load_error;
         if (loader.event.type != YAML_DOCUMENT_END_EVENT)
-            croak(ERRMSG "Expected DOCUMENT_END_EVENT");
+            croak("%s", ERRMSG "Expected DOCUMENT_END_EVENT");
     }
 
     /* Make sure the last event is a STREAM_END */
     if (loader.event.type != YAML_STREAM_END_EVENT)
-        croak(ERRMSG "Expected STREAM_END_EVENT; Got: %d != %d",
+        croak("%s", ERRMSG "Expected STREAM_END_EVENT; Got: %d != %d",
             loader.event.type,
             YAML_STREAM_END_EVENT
          );
@@ -188,7 +188,7 @@ Load(SV *yaml_sv)
     return;
 
 load_error:
-    croak(loader_error_msg(&loader, NULL));
+    croak("%s", loader_error_msg(&loader, NULL));
 }
 
 /*
@@ -260,7 +260,7 @@ load_node(perl_yaml_loader_t *loader)
             break;
 
         default:
-            croak(ERRMSG "Invalid event '%d' at top level", (int) loader->event.type);
+            croak("%s", ERRMSG "Invalid event '%d' at top level", (int) loader->event.type);
     }
 
     yaml_event_delete(&loader->event);
@@ -271,7 +271,7 @@ load_node(perl_yaml_loader_t *loader)
     return return_sv;
 
     load_error:
-        croak(loader_error_msg(loader, NULL));
+        croak("%s", loader_error_msg(loader, NULL));
 }
 
 /*
@@ -313,7 +313,7 @@ load_mapping(perl_yaml_loader_t *loader, char *tag)
         }
         else if (strlen(tag) <= strlen(prefix) ||
             ! strnEQ(tag, prefix, strlen(prefix))
-        ) croak(
+        ) croak("%s",
             loader_error_msg(loader, form("bad tag found for hash: '%s'", tag))
         );
         class = tag + strlen(prefix);
@@ -346,7 +346,7 @@ load_sequence(perl_yaml_loader_t *loader)
             prefix = "!";
         else if (strlen(tag) <= strlen(prefix) ||
             ! strnEQ(tag, prefix, strlen(prefix))
-        ) croak(
+        ) croak("%s",
             loader_error_msg(loader, form("bad tag found for array: '%s'", tag))
         );
         class = tag + strlen(prefix);
@@ -374,7 +374,7 @@ load_scalar(perl_yaml_loader_t *loader)
             prefix = "!";
         else if (strlen(tag) <= strlen(prefix) ||
             ! strnEQ(tag, prefix, strlen(prefix))
-        ) croak(ERRMSG "bad tag found for scalar: '%s'", tag);
+        ) croak("%s", ERRMSG "bad tag found for scalar: '%s'", tag);
         class = tag + strlen(prefix);
         scalar = sv_setref_pvn(newSV(0), class, string, strlen(string));
         SvUTF8_on(scalar);
@@ -453,7 +453,7 @@ load_alias(perl_yaml_loader_t *loader)
     SV **entry = hv_fetch(loader->anchors, anchor, strlen(anchor), 0);
     if (entry)
         return SvREFCNT_inc(*entry);
-    croak(ERRMSG "No anchor for alias '%s'", anchor);
+    croak("%s", ERRMSG "No anchor for alias '%s'", anchor);
 }
 
 /*
@@ -471,7 +471,7 @@ load_scalar_ref(perl_yaml_loader_t *loader)
     value_node = load_node(loader);
     SvRV(rv) = value_node;
     if (load_node(loader))
-        croak(ERRMSG "Expected end of node");
+        croak("%s", ERRMSG "Expected end of node");
     return rv;
 }
 
@@ -911,7 +911,7 @@ dump_scalar(perl_yaml_dumper_t *dumper, SV *node, yaml_char_t *tag)
         style
     );
     if (! yaml_emitter_emit(&dumper->emitter, &event_scalar))
-        croak(
+        croak("%s",
             ERRMSG "Emit scalar '%s', error: %s\n",
             string, dumper->emitter.problem
         );
