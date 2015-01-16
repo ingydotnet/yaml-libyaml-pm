@@ -1,4 +1,9 @@
 ---
+version: 0.57
+date:    Thu Jan 15 22:21:47 EST 2015
+changes:
+- Applied fix for PR/21. nawglan++
+---
 version: 0.56
 date:    Thu Jan 15 22:21:47 EST 2015
 changes:
