@@ -9,12 +9,14 @@ perl:
 - '5.14'
 - '5.12'
 - '5.10'
-- '5.8'
 
-before_install:
-- git clone git://github.com/travis-perl/helpers
-  ~/travis-perl-helpers
-- source ~/travis-perl-helpers/init --auto
+# XXX Failing to install deps on 5.8 because one ZD plugin wants 5.10
+# - '5.8'
+
+# before_install:
+# - git clone git://github.com/travis-perl/helpers
+#   ~/travis-perl-helpers
+# - source ~/travis-perl-helpers/init --auto
 
 install:
 - perlbrew install-cpanm -f
