@@ -13,7 +13,6 @@ perl:
 
 install:
 - cpanm --quiet --notest
-  Devel::Cover::Report::Coveralls
   Test::Base
   Zilla::Dist
 - git clone https://github.com/ingydotnet/test-base-pm
@@ -21,10 +20,6 @@ install:
 
 script:
 - zild disttest
-- cover
-
-after_success:
-- cover -report coveralls
 
 notifications:
   irc:
