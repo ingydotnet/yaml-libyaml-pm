@@ -11,6 +11,11 @@ perl:
 - '5.10'
 - '5.8'
 
+before_install:
+- git clone git://github.com/travis-perl/helpers
+  ~/travis-perl-helpers
+- source ~/travis-perl-helpers/init --auto
+
 install:
 - perlbrew install-cpanm -f
 - git clone https://github.com/ingydotnet/test-base-pm
