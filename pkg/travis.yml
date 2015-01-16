@@ -12,6 +12,7 @@ perl:
 - '5.8'
 
 install:
+- perlbrew install-cpanm -f
 - git clone https://github.com/ingydotnet/test-base-pm
   ../test-base-pm
 - cpanm --quiet --notest
