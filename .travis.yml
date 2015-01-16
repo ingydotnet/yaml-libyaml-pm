@@ -12,11 +12,11 @@ perl:
 - '5.8'
 
 install:
+- git clone https://github.com/ingydotnet/test-base-pm
+  ../test-base-pm
 - cpanm --quiet --notest
   Test::Base
   Zilla::Dist
-- git clone https://github.com/ingydotnet/test-base-pm
-  ../test-base-pm
 
 script:
 - zild disttest
