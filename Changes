@@ -1,4 +1,9 @@
 ---
+version: 0.58
+date:    Tue Jan 20 21:01:49 PST 2015
+changes:
+- Add a VERSION statement to YAML::LibYAML (issue#8)
+---
 version: 0.57
 date:    Thu Jan 15 23:05:15 EST 2015
 changes:
