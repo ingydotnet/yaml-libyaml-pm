@@ -508,6 +508,10 @@ set_dumper_options(perl_yaml_dumper_t *dumper)
         ((gv = gv_fetchpv("YAML::XS::QuoteNumericStrings", TRUE, SVt_PV)) &&
         SvTRUE(GvSV(gv)))
     );
+    dumper->literal_multiline_strings = (
+        ((gv = gv_fetchpv("YAML::XS::LiteralMultilineStrings", TRUE, SVt_PV)) &&
+        SvTRUE(GvSV(gv)))
+    );
     /* dumper->emitter.open_ended = 1;
      */
 }
@@ -900,6 +904,10 @@ dump_scalar(perl_yaml_dumper_t *dumper, SV *node, yaml_char_t *tag)
 
         /* get string and length out of utf8 */
         string = SvPVutf8(utf8sv, string_len);
+
+        /* check for embedded newlines and change style accordingly */
+        if(dumper->literal_multiline_strings && strchr(string, '\n'))
+           style = YAML_LITERAL_SCALAR_STYLE;
         }
     }
     yaml_scalar_event_initialize(
