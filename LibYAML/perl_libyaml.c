@@ -893,13 +893,16 @@ dump_scalar(perl_yaml_dumper_t *dumper, SV *node, yaml_char_t *tag)
             ( dumper->quote_number_strings && !SvNIOK(node) && looks_like_number(node) )
         ) {
             style = YAML_SINGLE_QUOTED_SCALAR_STYLE;
-        }
-        if (!SvUTF8(node)) {
-        /* copy to new SV and promote to utf8 */
-        SV *utf8sv = sv_mortalcopy(node);
+        } else {
+            if (!SvUTF8(node)) {
+            /* copy to new SV and promote to utf8 */
+            SV *utf8sv = sv_mortalcopy(node);
 
-        /* get string and length out of utf8 */
-        string = SvPVutf8(utf8sv, string_len);
+            /* get string and length out of utf8 */
+            string = SvPVutf8(utf8sv, string_len);
+            }
+            if(strchr(string, '\n'))
+               style = (string_len > 30) ? YAML_LITERAL_SCALAR_STYLE : YAML_DOUBLE_QUOTED_SCALAR_STYLE;
         }
     }
     yaml_scalar_event_initialize(
