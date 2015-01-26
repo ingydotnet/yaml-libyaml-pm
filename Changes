@@ -1,4 +1,11 @@
 ---
+version: 0.59
+date:    Mon Jan 26 15:04:10 PST 2015
+changes:
+- PR/23 Better scalar dump heuristics
+- More closely match YAML.pm
+- Thanks Matthias Bethke
+---
 version: 0.58
 date:    Tue Jan 20 21:01:49 PST 2015
 changes:
