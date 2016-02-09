@@ -1,4 +1,9 @@
 ---
+version: 0.60
+date:    Tue Feb  9 14:23:24 EST 2016
+changes:
+- Apply PR #33. @andygrundman++. Solaris fixes.
+---
 version: 0.59
 date:    Mon Jan 26 15:04:10 PST 2015
 changes:
