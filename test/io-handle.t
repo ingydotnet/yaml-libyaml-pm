@@ -3,15 +3,10 @@ use lib -e 't' ? 't' : 'test';
 my $t = -e 't' ? 't' : 'test';
 
 use utf8;
-use lib 'inc';
-BEGIN {
-    @Test::YAML::EXPORT =
-        grep { not /^(Dump|Load)(File)?$/ } @Test::YAML::EXPORT;
-}
 use IO::Pipe;
 use IO::File;
 use t::TestYAML tests => 6;
-use YAML qw/DumpFile LoadFile/;;
+use YAML::XS qw/DumpFile LoadFile/;;
 
 my $testdata = 'El país es medible. La patria es del tamaño del corazón de quien la quiere.';
 
@@ -21,14 +16,14 @@ my $testdata = 'El país es medible. La patria es del tamaño del corazón de qu
 my $pipe = new IO::Pipe;
 
 if ( fork() ) { # parent reads from IO::Pipe handle
-	$pipe->reader();
-	my $recv_data = LoadFile($pipe);
-	is length($recv_data), length($testdata), 'LoadFile from IO::Pipe read data';
-	is $recv_data, $testdata, 'LoadFile from IO::Pipe contents is correct';
+    $pipe->reader();
+    my $recv_data = LoadFile($pipe);
+    is length($recv_data), length($testdata), 'LoadFile from IO::Pipe read data';
+    is $recv_data, $testdata, 'LoadFile from IO::Pipe contents is correct';
 } else { # child writes to IO::Pipe handle
-	$pipe->writer();
-	DumpFile($pipe, $testdata);
-	exit 0;
+    $pipe->writer();
+    DumpFile($pipe, $testdata);
+    exit 0;
 }
 
 # IO::File
@@ -54,4 +49,6 @@ $fh->close;
 is length($read_data), length($testdata), 'LoadFile from IO::File read data';
 is $read_data, $testdata, 'LoadFile from IO::File read data';
 
-unlink $file;
+END {
+    unlink $file;
+}
