@@ -3,6 +3,7 @@ use lib -e 't' ? 't' : 'test';
 my $t = -e 't' ? 't' : 'test';
 
 use utf8;
+use Encode;
 use IO::Pipe;
 use IO::File;
 use t::TestYAML tests => 6;
@@ -32,15 +33,15 @@ my $file = "$t/dump-io-file-$$.yaml";
 my $fh = new IO::File;
 
 # write to IO::File handle
-$fh->open($file, '>:utf8') or die $!;
+$fh->open($file, ">") or die $!;
 DumpFile($fh, $testdata);
 $fh->close;
 ok -e $file, 'IO::File output file exists';
 
 # read from IO::File handle
-$fh->open($file, '<:utf8') or die $!;
+$fh->open($file, '<') or die $!;
 my $yaml = do { local $/; <$fh> };
-is $yaml, "--- $testdata\n", 'LoadFile from IO::File contents is correct';
+is decode_utf8($yaml), "--- $testdata\n", 'LoadFile from IO::File contents is correct';
 
 $fh->seek(0, 0);
 my $read_data = LoadFile($fh) or die $!;
