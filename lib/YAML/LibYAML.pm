@@ -1,6 +1,6 @@
 use strict; use warnings;
 package YAML::LibYAML;
-our $VERSION = '0.60';
+our $VERSION = '0.61';
 
 sub import {
     die "YAML::LibYAML has been renamed to YAML::XS. Please use YAML::XS instead.";
