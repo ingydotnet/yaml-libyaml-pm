@@ -51,5 +51,5 @@ is length($read_data), length($testdata), 'LoadFile from IO::File read data';
 is $read_data, $testdata, 'LoadFile from IO::File read data';
 
 END {
-    unlink $file;
+    unlink $file if defined $file;  # $file will be undefined in fork child.
 }
