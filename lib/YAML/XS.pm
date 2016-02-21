@@ -21,7 +21,7 @@ use YAML::XS::LibYAML qw(Load Dump);
 sub DumpFile {
     my $OUT;
     my $filename = shift;
-    if (defined fileno($filename)) {
+    if (ref $filename ne 'Path::Class::File' and defined fileno($filename)) {
         $OUT = $filename;
     }
     else {
@@ -39,7 +39,7 @@ sub DumpFile {
 sub LoadFile {
     my $IN;
     my $filename = shift;
-    if (defined fileno($filename)) {
+    if (ref $filename ne 'Path::Class::File' and defined fileno($filename)) {
         $IN = $filename;
     }
     else {
