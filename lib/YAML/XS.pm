@@ -17,11 +17,12 @@ use base 'Exporter';
 $YAML::XS::QuoteNumericStrings = 1;
 
 use YAML::XS::LibYAML qw(Load Dump);
+use Ref::Util qw/ is_globref is_ioref /;
 
 sub DumpFile {
     my $OUT;
     my $filename = shift;
-    if (defined fileno($filename)) {
+    if (is_globref($filename) || is_ioref($filename)) {
         $OUT = $filename;
     }
     else {
@@ -39,7 +40,7 @@ sub DumpFile {
 sub LoadFile {
     my $IN;
     my $filename = shift;
-    if (defined fileno($filename)) {
+    if (is_globref($filename) || is_ioref($filename)) {
         $IN = $filename;
     }
     else {
