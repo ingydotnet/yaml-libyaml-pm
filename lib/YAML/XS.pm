@@ -18,10 +18,24 @@ $YAML::XS::QuoteNumericStrings = 1;
 
 use YAML::XS::LibYAML qw(Load Dump);
 
+sub _from_a_handle {
+    my ($var) = @_;
+    my $from_a_handle = (
+        ref($var)
+            ? (
+                ref($var) eq 'GLOB'
+                || UNIVERSAL::isa($var, 'GLOB' )
+                || UNIVERSAL::isa($var, 'IO::Handle')
+            )
+            : (ref(\$var) eq 'GLOB')
+    );
+    return $from_a_handle;
+}
+
 sub DumpFile {
     my $OUT;
     my $filename = shift;
-    if (defined fileno($filename)) {
+    if (_from_a_handle($filename)) {
         $OUT = $filename;
     }
     else {
@@ -39,7 +53,7 @@ sub DumpFile {
 sub LoadFile {
     my $IN;
     my $filename = shift;
-    if (defined fileno($filename)) {
+    if (_from_a_handle($filename)) {
         $IN = $filename;
     }
     else {
