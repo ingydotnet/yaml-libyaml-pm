@@ -17,11 +17,12 @@ use base 'Exporter';
 $YAML::XS::QuoteNumericStrings = 1;
 
 use YAML::XS::LibYAML qw(Load Dump);
+use Scalar::Util qw/ openhandle /;
 
 sub DumpFile {
     my $OUT;
     my $filename = shift;
-    if (defined fileno($filename)) {
+    if (openhandle $filename) {
         $OUT = $filename;
     }
     else {
@@ -39,7 +40,7 @@ sub DumpFile {
 sub LoadFile {
     my $IN;
     my $filename = shift;
-    if (defined fileno($filename)) {
+    if (openhandle $filename) {
         $IN = $filename;
     }
     else {
