@@ -1,7 +1,7 @@
 use strict; use warnings;
 
 package YAML::XS;
-our $VERSION = '0.62';
+our $VERSION = '0.70';
 
 use base 'Exporter';
 
@@ -10,44 +10,20 @@ use base 'Exporter';
 %YAML::XS::EXPORT_TAGS = (
     all => [qw(Dump Load LoadFile DumpFile)],
 );
-# $YAML::XS::UseCode = 0;
-# $YAML::XS::DumpCode = 0;
-# $YAML::XS::LoadCode = 0;
+# $YAML::XS::NonStrict = 1; # for Load
+# $YAML::XS::UseCode = 0;   # for Dump
+# $YAML::XS::DumpCode = 0;  # for Dump
+# $YAML::XS::LoadCode = 0;  # for Load. ignored
 
 $YAML::XS::QuoteNumericStrings = 1;
 
-use YAML::XS::LibYAML qw(Load Dump);
+use YAML::XS::LibYAML qw(Load Dump DumpFile);
 use Scalar::Util qw/ openhandle /;
 
-sub DumpFile {
-    my $OUT;
-    my $filename = shift;
-    if (openhandle $filename) {
-        $OUT = $filename;
-    }
-    else {
-        my $mode = '>';
-        if ($filename =~ /^\s*(>{1,2})\s*(.*)$/) {
-            ($mode, $filename) = ($1, $2);
-        }
-        open $OUT, $mode, $filename
-          or die "Can't open '$filename' for output:\n$!";
-    }
-    local $/ = "\n"; # reset special to "sane"
-    print $OUT YAML::XS::LibYAML::Dump(@_);
-}
-
 sub LoadFile {
-    my $IN;
     my $filename = shift;
-    if (openhandle $filename) {
-        $IN = $filename;
-    }
-    else {
-        open $IN, $filename
-          or die "Can't open '$filename' for input:\n$!";
-    }
-    return YAML::XS::LibYAML::Load(do { local $/; local $_ = <$IN> });
+    -e $filename or die "Can't open '$filename' for input:\n$!";
+    return YAML::XS::LibYAML::LoadFile($filename);
 }
 
 # XXX Figure out how to lazily load this module.
