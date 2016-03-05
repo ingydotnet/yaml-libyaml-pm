@@ -513,6 +513,7 @@ set_dumper_options(perl_yaml_dumper_t *dumper)
 /*
  * This is the main Dump function.
  * Take zero or more Perl objects and return a YAML stream (as a string)
+ * Does take options only via globals, see above.
  */
 void
 Dump(SV *dummy, ...)
@@ -536,6 +537,16 @@ Dump(SV *dummy, ...)
         &append_output,
         (void *) yaml
     );
+    {
+        GV* gv;
+        dumper.emitter.indentless_map = (
+            ((gv = gv_fetchpv("YAML::XS::IndentlessMap", TRUE, SVt_PV))
+             && SvTRUE(GvSV(gv))) ? 1 : 0
+        );
+    }
+    /* dumper->emitter.open_ended = 1;
+     */
+
     yaml_stream_start_event_initialize(
         &event_stream_start,
         YAML_UTF8_ENCODING
