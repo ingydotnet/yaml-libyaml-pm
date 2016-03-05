@@ -1,27 +1,6 @@
 #include <perl_libyaml.h>
 
 static SV *
-call_coderef(SV *code, AV *args)
-{
-    dSP;
-    SV **svp;
-    I32 count = (args && args != Nullav) ? av_len(args) : -1;
-    I32 i;
-
-    PUSHMARK(SP);
-    for (i = 0; i <= count; i++) {
-        if ((svp = av_fetch(args, i, FALSE))) {
-            XPUSHs(*svp);
-        }
-    }
-    PUTBACK;
-    count = call_sv(code, G_ARRAY);
-    SPAGAIN;
-
-    return fold_results(count);
-}
-
-static SV *
 fold_results(I32 count)
 {
     dSP;
@@ -59,6 +38,27 @@ fold_results(I32 count)
 }
 
 static SV *
+call_coderef(SV *code, AV *args)
+{
+    dSP;
+    SV **svp;
+    I32 count = (args && args != Nullav) ? av_len(args) : -1;
+    I32 i;
+
+    PUSHMARK(SP);
+    for (i = 0; i <= count; i++) {
+        if ((svp = av_fetch(args, i, FALSE))) {
+            XPUSHs(*svp);
+        }
+    }
+    PUTBACK;
+    count = call_sv(code, G_ARRAY);
+    SPAGAIN;
+
+    return fold_results(count);
+}
+
+static SV *
 find_coderef(char *perl_var)
 {
     SV *coderef;
@@ -82,13 +82,13 @@ loader_error_msg(perl_yaml_loader_t *loader, char *problem)
         problem = (char *)loader->parser.problem;
     if (loader->filename)
       msg = form("%s%swas found at document: %s",
-                 (loader->parser.input.file ? LOADFILEERRMSG : LOADERRMSG),
+                 LOADFILEERRMSG,
                  (problem ? form("The problem\n\n    %s\n\n", problem) : "A problem "),
                  loader->filename
                  );
     else
       msg = form("%s%swas found at document: %d",
-                 (loader->parser.input.file ? LOADFILEERRMSG : LOADERRMSG),
+                 LOADERRMSG,
                  (problem ? form("The problem\n\n    %s\n\n", problem) : "A problem "),
                  loader->document
                  );
@@ -147,82 +147,88 @@ set_loader_options(perl_yaml_loader_t *loader)
     return result;
 }
 
-/*
- * It takes a yaml filename and turns it into 0 or more Perl objects.
- */
-int
-LoadFile(SV *filename)
+static int
+load_impl(perl_yaml_loader_t *loader)
 {
     dXSARGS;
-    perl_yaml_loader_t loader;
-    yaml_encoding_t encoding;
-    FILE *file;
     SV *node;
-    const char *yaml_str;
-    STRLEN yaml_len;
 
     sp = mark;
     if (0 && (items || ax)) {} /* XXX Quiet the -Wall warnings for now. */
 
-    yaml_parser_initialize(&loader.parser);
-    encoding = set_loader_options(&loader);
-
-    yaml_str = (const char *)SvPV_const(filename, yaml_len);
-    file = fopen(yaml_str, "rb");
-    if (!file) {
-        croak("Can't open '%s' for input", yaml_str);
-        return 0;
-    }
-    loader.filename = (char *)yaml_str;
-    yaml_parser_set_input_file(&loader.parser, file);
-
     /* Get the first event. Must be a STREAM_START */
-    if (!yaml_parser_parse(&loader.parser, &loader.event))
+    if (!yaml_parser_parse(&loader->parser, &loader->event))
         goto load_error;
-    if (loader.event.type != YAML_STREAM_START_EVENT)
+    if (loader->event.type != YAML_STREAM_START_EVENT)
         croak("%sExpected STREAM_START_EVENT; Got: %d != %d",
             ERRMSG,
-            loader.event.type,
+            loader->event.type,
             YAML_STREAM_START_EVENT
          );
 
-    loader.anchors = (HV *)sv_2mortal((SV *)newHV());
+    loader->anchors = (HV *)sv_2mortal((SV *)newHV());
 
     /* Keep calling load_node until end of stream */
     while (1) {
-        loader.document++;
+        loader->document++;
         /* We are through with the previous event - delete it! */
-        yaml_event_delete(&loader.event);
-        if (!yaml_parser_parse(&loader.parser, &loader.event))
+        yaml_event_delete(&loader->event);
+        if (!yaml_parser_parse(&loader->parser, &loader->event))
             goto load_error;
-        if (loader.event.type == YAML_STREAM_END_EVENT)
+        if (loader->event.type == YAML_STREAM_END_EVENT)
             break;
-        node = load_node(&loader);
+        node = load_node(loader);
         /* We are through with the previous event - delete it! */
-        yaml_event_delete(&loader.event);
-        hv_clear(loader.anchors);
+        yaml_event_delete(&loader->event);
+        hv_clear(loader->anchors);
         if (! node) break;
         XPUSHs(sv_2mortal(node));
-        if (!yaml_parser_parse(&loader.parser, &loader.event))
+        if (!yaml_parser_parse(&loader->parser, &loader->event))
             goto load_error;
-        if (loader.event.type != YAML_DOCUMENT_END_EVENT)
+        if (loader->event.type != YAML_DOCUMENT_END_EVENT)
             croak("%sExpected DOCUMENT_END_EVENT", ERRMSG);
     }
 
     /* Make sure the last event is a STREAM_END */
-    if (loader.event.type != YAML_STREAM_END_EVENT)
+    if (loader->event.type != YAML_STREAM_END_EVENT)
         croak("%sExpected STREAM_END_EVENT; Got: %d != %d",
             ERRMSG,
-            loader.event.type,
+            loader->event.type,
             YAML_STREAM_END_EVENT
          );
-    yaml_parser_delete(&loader.parser);
+    yaml_parser_delete(&loader->parser);
     PUTBACK;
     return 1;
 
 load_error:
-    croak("%s", loader_error_msg(&loader, NULL));
+    croak("%s", loader_error_msg(loader, NULL));
     return 0;
+}
+
+/*
+ * It takes a yaml filename and turns it into 0 or more Perl objects.
+ */
+int
+LoadFile(SV *sv_fname)
+{
+    perl_yaml_loader_t loader;
+    FILE *file;
+    const char *fname;
+    STRLEN len;
+
+    yaml_parser_initialize(&loader.parser);
+    (void)set_loader_options(&loader);
+
+    fname = (const char *)SvPV_const(sv_fname, len);
+    file = fopen(fname, "rb");
+    if (!file) {
+        croak("Can't open '%s' for input", fname);
+        return 0;
+    }
+    loader.filename = (char *)fname;
+    yaml_parser_set_input_file(&loader.parser, file);
+
+    return load_impl(&loader);
 }
 
 /*
@@ -232,10 +238,8 @@ load_error:
 int
 Load(SV *yaml_sv)
 {
-    dXSARGS;
     perl_yaml_loader_t loader;
     yaml_encoding_t encoding;
-    SV *node;
     const unsigned char *yaml_str;
     STRLEN yaml_len;
 
@@ -248,9 +252,6 @@ Load(SV *yaml_sv)
         yaml_str = (const unsigned char *)SvPV_const(yaml_sv, yaml_len);
     }
 
-    sp = mark;
-    if (0 && (items || ax)) {} /* XXX Quiet the -Wall warnings for now. */
-
     yaml_parser_initialize(&loader.parser);
     encoding = set_loader_options(&loader);
     yaml_parser_set_input_string(
@@ -259,53 +260,7 @@ Load(SV *yaml_sv)
         yaml_len
     );
 
-    /* Get the first event. Must be a STREAM_START */
-    if (!yaml_parser_parse(&loader.parser, &loader.event))
-        goto load_error;
-    if (loader.event.type != YAML_STREAM_START_EVENT)
-        croak("%sExpected STREAM_START_EVENT; Got: %d != %d",
-            ERRMSG,
-            loader.event.type,
-            YAML_STREAM_START_EVENT
-         );
-
-    loader.anchors = (HV *)sv_2mortal((SV *)newHV());
-
-    /* Keep calling load_node until end of stream */
-    while (1) {
-        loader.document++;
-        /* We are through with the previous event - delete it! */
-        yaml_event_delete(&loader.event);
-        if (!yaml_parser_parse(&loader.parser, &loader.event))
-            goto load_error;
-        if (loader.event.type == YAML_STREAM_END_EVENT)
-            break;
-        node = load_node(&loader);
-        /* We are through with the previous event - delete it! */
-        yaml_event_delete(&loader.event);
-        hv_clear(loader.anchors);
-        if (! node) break;
-        XPUSHs(sv_2mortal(node));
-        if (!yaml_parser_parse(&loader.parser, &loader.event))
-            goto load_error;
-        if (loader.event.type != YAML_DOCUMENT_END_EVENT)
-            croak("%sExpected DOCUMENT_END_EVENT", ERRMSG);
-    }
-
-    /* Make sure the last event is a STREAM_END */
-    if (loader.event.type != YAML_STREAM_END_EVENT)
-        croak("%sExpected STREAM_END_EVENT; Got: %d != %d",
-            ERRMSG,
-            loader.event.type,
-            YAML_STREAM_END_EVENT
-         );
-    yaml_parser_delete(&loader.parser);
-    PUTBACK;
-    return 1;
-
-load_error:
-    croak("%s", loader_error_msg(&loader, NULL));
-    return 0;
+    return load_impl(&loader);
 }
 
 /*
@@ -687,7 +642,7 @@ set_dumper_options(perl_yaml_dumper_t *dumper)
  * Take zero or more Perl objects and return a YAML stream (as a string)
  * Does take options only via globals.
  */
-void
+int
 Dump(SV *dummy)
 {
     dXSARGS;
@@ -732,14 +687,18 @@ Dump(SV *dummy)
     if (yaml) {
         SvUTF8_off(yaml);
         XPUSHs(yaml);
+        PUTBACK;
+        return 1;
+    } else {
+        PUTBACK;
+        return 0;
     }
-    PUTBACK;
 }
 
 /*
  * Dump zero or more Perl objects into the file
  */
-void
+int
 DumpFile(SV *sv_fname)
 {
     dXSARGS;
@@ -748,6 +707,7 @@ DumpFile(SV *sv_fname)
     yaml_event_t event_stream_end;
     yaml_encoding_t encoding;
     long i;
+    STRLEN len;
     FILE *file;
     const char *fname;
 
@@ -756,16 +716,20 @@ DumpFile(SV *sv_fname)
     yaml_emitter_initialize(&dumper.emitter);
     encoding = set_dumper_options(&dumper);
 
-    fname = (const char *)SvPV_const(sv_fname, i);
+    fname = (const char *)SvPV_const(sv_fname, len);
     file = fopen(fname, "wb");
-    if (!file)
+    if (!file) {
         croak("Can't open '%s' for output", fname);
+        return 0;
+    }
     dumper.filename = (char *)fname;
-
     yaml_emitter_set_output_file(&dumper.emitter, file);
 
     yaml_stream_start_event_initialize(&event_stream_start, encoding);
-    yaml_emitter_emit(&dumper.emitter, &event_stream_start);
+    if (!yaml_emitter_emit(&dumper.emitter, &event_stream_start)) {
+        PUTBACK;
+        return 0;
+    }
 
     dumper.anchors = (HV *)sv_2mortal((SV *)newHV());
     dumper.shadows = (HV *)sv_2mortal((SV *)newHV());
@@ -782,11 +746,15 @@ DumpFile(SV *sv_fname)
 
     /* End emitting and destroy the emitter object */
     yaml_stream_end_event_initialize(&event_stream_end);
-    yaml_emitter_emit(&dumper.emitter, &event_stream_end);
+    if (!yaml_emitter_emit(&dumper.emitter, &event_stream_end)) {
+        PUTBACK;
+        return 0;
+    }
     yaml_emitter_delete(&dumper.emitter);
     fclose(file);
 
     PUTBACK;
+    return 1;
 }
 
 /*
