@@ -21,6 +21,7 @@
 #define TAG_PERL_GLOB TAG_PERL_PREFIX "glob"
 #define ERRMSG "YAML::XS Error: "
 #define LOADERRMSG "YAML::XS::Load Error: "
+#define LOADFILEERRMSG "YAML::XS::LoadFile Error: "
 #define DUMPERRMSG "YAML::XS::Dump Error: "
 
 typedef struct {
@@ -29,6 +30,7 @@ typedef struct {
     HV *anchors;
     int load_code;
     int document;
+    char *filename;
 } perl_yaml_loader_t;
 
 typedef struct {
@@ -38,6 +40,7 @@ typedef struct {
     HV *shadows;
     int dump_code;
     int quote_number_strings;
+    char *filename;
 } perl_yaml_dumper_t;
 
 static SV *
@@ -49,17 +52,23 @@ fold_results(I32);
 static SV *
 find_coderef(char *);
 
-void
+yaml_encoding_t
 set_dumper_options(perl_yaml_dumper_t *);
 
-void
-set_loader_options(perl_yaml_dumper_t *);
+yaml_encoding_t
+set_loader_options(perl_yaml_loader_t *);
 
 void
-Dump(SV *, ...);
+Dump(SV *);
 
 void
+DumpFile(SV *);
+
+int
 Load(SV *);
+
+int
+LoadFile(SV *);
 
 SV *
 load_node(perl_yaml_loader_t *);
