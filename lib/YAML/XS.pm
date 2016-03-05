@@ -17,14 +17,8 @@ use base 'Exporter';
 
 $YAML::XS::QuoteNumericStrings = 1;
 
-use YAML::XS::LibYAML qw(Load Dump DumpFile);
+use YAML::XS::LibYAML qw(Load LoadFile Dump DumpFile);
 use Scalar::Util qw/ openhandle /;
-
-sub LoadFile {
-    my $filename = shift;
-    -e $filename or die "Can't open '$filename' for input:\n$!";
-    return YAML::XS::LibYAML::LoadFile($filename);
-}
 
 # XXX Figure out how to lazily load this module.
 # So far I've tried using the C function:

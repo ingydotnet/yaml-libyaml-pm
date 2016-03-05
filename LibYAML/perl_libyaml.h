@@ -44,25 +44,16 @@ typedef struct {
     char *filename;
 } perl_yaml_dumper_t;
 
-static SV *
-call_coderef(SV *, AV *);
-
-static SV *
-fold_results(I32);
-
-static SV *
-find_coderef(char *);
-
 yaml_encoding_t
 set_dumper_options(perl_yaml_dumper_t *);
 
 yaml_encoding_t
 set_loader_options(perl_yaml_loader_t *);
 
-void
+int
 Dump(SV *);
 
-void
+int
 DumpFile(SV *);
 
 int
