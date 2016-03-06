@@ -250,7 +250,6 @@ int
 Load(SV *yaml_sv)
 {
     perl_yaml_loader_t loader;
-    yaml_encoding_t encoding;
     const unsigned char *yaml_str;
     STRLEN yaml_len;
 
@@ -264,7 +263,7 @@ Load(SV *yaml_sv)
     }
 
     yaml_parser_initialize(&loader.parser);
-    encoding = set_loader_options(&loader);
+    (void)set_loader_options(&loader);
     yaml_parser_set_input_string(
         &loader.parser,
         yaml_str,
@@ -654,7 +653,7 @@ set_dumper_options(perl_yaml_dumper_t *dumper)
  * Does take options only via globals.
  */
 int
-Dump(SV *dummy)
+Dump()
 {
     dXSARGS;
     perl_yaml_dumper_t dumper;
@@ -663,6 +662,7 @@ Dump(SV *dummy)
     yaml_encoding_t encoding;
     int i;
     SV *yaml = sv_2mortal(newSVpvn("", 0));
+
     sp = mark;
 
     /* Set up the emitter object and begin emitting */
@@ -727,10 +727,20 @@ DumpFile(SV *sv_fname)
     yaml_emitter_initialize(&dumper.emitter);
     encoding = set_dumper_options(&dumper);
 
-    fname = (const char *)SvPV_const(sv_fname, len);
-    file = fopen(fname, "wb");
-    if (!file) {
-        croak("Can't open '%s' for output", fname);
+    if (SvPOK(sv_fname)) {
+        fname = (const char *)SvPV_const(sv_fname, len);
+        file = fopen(fname, "wb");
+        if (!file) {
+            croak("Can't open '%s' for output", fname);
+            return 0;
+        }
+    } else if (SvTYPE(sv_fname) == SVt_PVIO) {
+        /* already open */
+        croak("Cannot handle IO objects yet");
+        return 0;
+        /* file = sv_io(sv_fname); XXX */
+    } else {
+        croak("Invalid argument type: %u", SvTYPE(sv_fname));
         return 0;
     }
     dumper.filename = (char *)fname;
@@ -745,7 +755,7 @@ DumpFile(SV *sv_fname)
     dumper.anchors = (HV *)sv_2mortal((SV *)newHV());
     dumper.shadows = (HV *)sv_2mortal((SV *)newHV());
 
-    for (i = 0; i < items; i++) {
+    for (i = 1; i < items; i++) {
         dumper.anchor = 0;
 
         dump_prewalk(&dumper, ST(i));

@@ -51,7 +51,7 @@ yaml_encoding_t
 set_loader_options(perl_yaml_loader_t *);
 
 int
-Dump(SV *);
+Dump();
 
 int
 DumpFile(SV *);
