@@ -14,9 +14,9 @@ Load (yaml_sv)
   PPCODE:
         PL_markstack_ptr++;
         if (!Load(yaml_sv))
-          XSRETURN_UNDEF;
+            XSRETURN_UNDEF;
         else
-          return;
+            return;
 
 void
 LoadFile (yaml_fname)
@@ -24,24 +24,25 @@ LoadFile (yaml_fname)
   PPCODE:
         PL_markstack_ptr++;
         if (!LoadFile(yaml_fname))
-          XSRETURN_UNDEF;
+            XSRETURN_UNDEF;
         else
-          return;
+            return;
 
-SV*
+void
 Dump (...)
-  CODE:
-        SV *dummy = NULL;
+  PPCODE:
         PL_markstack_ptr++;
-        if (!Dump(dummy))
-          XSRETURN_UNDEF;
+        if (!Dump())
+            XSRETURN_UNDEF;
+        else
+            return;
 
-SV*
-DumpFile (yaml_fname)
+void
+DumpFile (yaml_fname, ...)
         SV *yaml_fname
-  CODE:
+  PPCODE:
         PL_markstack_ptr++;
         if (!DumpFile(yaml_fname))
-          XSRETURN_UNDEF;
+            XSRETURN_UNDEF;
         else
-          XSRETURN_YES;
+            XSRETURN_YES;
