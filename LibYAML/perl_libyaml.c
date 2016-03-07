@@ -1,5 +1,54 @@
 #include <perl_libyaml.h>
 
+static yaml_encoding_t
+set_dumper_options(perl_yaml_dumper_t *);
+static yaml_encoding_t
+set_loader_options(perl_yaml_loader_t *);
+static SV *
+load_node(perl_yaml_loader_t *);
+static SV *
+load_mapping(perl_yaml_loader_t *, char *);
+static SV *
+load_sequence(perl_yaml_loader_t *);
+static SV *
+load_scalar(perl_yaml_loader_t *);
+static SV *
+load_alias(perl_yaml_loader_t *);
+static SV *
+load_scalar_ref(perl_yaml_loader_t *);
+static SV *
+load_regexp(perl_yaml_loader_t *);
+static SV *
+load_glob(perl_yaml_loader_t *);
+static void
+dump_prewalk(perl_yaml_dumper_t *, SV *);
+static void
+dump_document(perl_yaml_dumper_t *, SV *);
+static void
+dump_node(perl_yaml_dumper_t *, SV *);
+static void
+dump_hash(perl_yaml_dumper_t *, SV *, yaml_char_t *, yaml_char_t *);
+static void
+dump_array(perl_yaml_dumper_t *, SV *);
+static void
+dump_scalar(perl_yaml_dumper_t *, SV *, yaml_char_t *);
+static void
+dump_ref(perl_yaml_dumper_t *, SV *);
+static void
+dump_code(perl_yaml_dumper_t *, SV *);
+static SV*
+dump_glob(perl_yaml_dumper_t *, SV *);
+static yaml_char_t *
+get_yaml_anchor(perl_yaml_dumper_t *, SV *);
+static yaml_char_t *
+get_yaml_tag(SV *);
+static int
+append_output(void *sv, unsigned char *buffer, size_t size);
+static int
+yaml_perlio_read_handler(void *data, unsigned char *buffer, size_t size, size_t *size_read);
+static int
+yaml_perlio_write_handler(void *data, unsigned char *buffer, size_t size);
+
 static SV *
 fold_results(I32 count)
 {
@@ -74,7 +123,7 @@ find_coderef(char *perl_var)
 /*
  * Piece together a parser/loader error message
  */
-char *
+static char *
 loader_error_msg(perl_yaml_loader_t *loader, char *problem)
 {
     char *msg;
@@ -117,7 +166,7 @@ loader_error_msg(perl_yaml_loader_t *loader, char *problem)
 /*
  * Set loader options from global variables.
  */
-yaml_encoding_t
+static yaml_encoding_t
 set_loader_options(perl_yaml_loader_t *loader)
 {
     GV *gv;
@@ -184,7 +233,8 @@ load_impl(perl_yaml_loader_t *loader)
         /* We are through with the previous event - delete it! */
         yaml_event_delete(&loader->event);
         hv_clear(loader->anchors);
-        if (! node) break;
+        if (! node)
+            break;
         XPUSHs(sv_2mortal(node));
         if (!yaml_parser_parse(&loader->parser, &loader->event))
             goto load_error;
@@ -217,29 +267,77 @@ load_error:
 }
 
 /*
- * It takes a yaml filename and turns it into 0 or more Perl objects.
+ * It takes a file or filename and turns it into 0 or more Perl objects.
  */
 int
-LoadFile(SV *sv_fname)
+LoadFile(SV *sv_file)
 {
     perl_yaml_loader_t loader;
-    FILE *file;
+    FILE *file = NULL;
     const char *fname;
     STRLEN len;
+    int ret;
 
     yaml_parser_initialize(&loader.parser);
     (void)set_loader_options(&loader);
 
-    fname = (const char *)SvPV_const(sv_fname, len);
-    file = fopen(fname, "rb");
-    if (!file) {
-        croak("Can't open '%s' for input", fname);
+    if (SvROK(sv_file)) { /* pv mg or io or gv */
+        SV *rv = SvRV(sv_file);
+
+        if (SvTYPE(rv) == SVt_PVIO) {
+            loader.perlio = IoIFP(rv);
+            yaml_parser_set_input(&loader.parser,
+                                  &yaml_perlio_read_handler,
+                                  &loader);
+        } else if (SvTYPE(rv) == SVt_PVGV && GvIO(rv)) {
+            loader.perlio = IoIFP(GvIOp(rv));
+            yaml_parser_set_input(&loader.parser,
+                                  &yaml_perlio_read_handler,
+                                  &loader);
+        } else if (SvMAGIC(rv)) {
+            mg_get(rv);
+            fname = SvPV_const(rv, len);
+            goto pv_load;
+        } else if (SvAMAGIC(sv_file)) {
+            fname = SvPV_const(sv_file, len);
+            goto pv_load;
+        } else {
+            croak("Invalid argument type: ref of %u", SvTYPE(rv));
+            return 0;
+        }
+    }
+    else if (SvPOK(sv_file)) {
+        fname = SvPV_const(sv_file, len);
+    pv_load:
+        file = fopen(fname, "rb");
+        if (!file) {
+            croak("Can't open '%s' for input", fname);
+            return 0;
+        }
+        loader.filename = (char *)fname;
+        yaml_parser_set_input_file(&loader.parser, file);
+    } else if (SvTYPE(sv_file) == SVt_PVIO) {
+        loader.perlio = IoIFP(sv_file);
+        yaml_parser_set_input(&loader.parser,
+                              &yaml_perlio_read_handler,
+                              &loader);
+    } else if (SvTYPE(sv_file) == SVt_PVGV
+               && GvIO(sv_file)) {
+        loader.perlio = IoIFP(GvIOp(sv_file));
+        yaml_parser_set_input(&loader.parser,
+                              &yaml_perlio_read_handler,
+                              &loader);
+    } else {
+        croak("Invalid argument type: %u", SvTYPE(sv_file));
         return 0;
     }
-    loader.filename = (char *)fname;
-    yaml_parser_set_input_file(&loader.parser, file);
 
-    return load_impl(&loader);
+    ret = load_impl(&loader);
+    if (file)
+        fclose(file);
+    else if (SvTYPE(sv_file) == SVt_PVIO)
+        PerlIO_close(IoIFP(sv_file));
+    return ret;
 }
 
 /*
@@ -259,7 +357,7 @@ Load(SV *yaml_sv)
         yaml_sv = sv_mortalcopy(yaml_sv);
         if (!sv_utf8_downgrade(yaml_sv, TRUE))
             croak("%s", "Wide character in YAML::XS::Load()");
-        yaml_str = (const unsigned char *)SvPV_const(yaml_sv, yaml_len);
+        yaml_str = (const unsigned char*)SvPV_const(yaml_sv, yaml_len);
     }
 
     yaml_parser_initialize(&loader.parser);
@@ -276,7 +374,7 @@ Load(SV *yaml_sv)
 /*
  * This is the main function for dumping any node.
  */
-SV *
+static SV *
 load_node(perl_yaml_loader_t *loader)
 {
     SV* return_sv = NULL;
@@ -359,7 +457,7 @@ load_node(perl_yaml_loader_t *loader)
 /*
  * Load a YAML mapping into a Perl hash
  */
-SV *
+static SV *
 load_mapping(perl_yaml_loader_t *loader, char *tag)
 {
     SV *key_node;
@@ -406,7 +504,7 @@ load_mapping(perl_yaml_loader_t *loader, char *tag)
 }
 
 /* Load a YAML sequence into a Perl array */
-SV *
+static SV *
 load_sequence(perl_yaml_loader_t *loader)
 {
     SV *node;
@@ -438,7 +536,7 @@ load_sequence(perl_yaml_loader_t *loader)
 }
 
 /* Load a YAML scalar into a Perl scalar */
-SV *
+static SV *
 load_scalar(perl_yaml_loader_t *loader)
 {
     SV *scalar;
@@ -493,7 +591,7 @@ load_scalar(perl_yaml_loader_t *loader)
  * This operation is less common and is tricky, so doing it in Perl code for
  * now.
  */
-SV *
+static SV *
 load_regexp(perl_yaml_loader_t * loader)
 {
     dSP;
@@ -528,7 +626,7 @@ load_regexp(perl_yaml_loader_t * loader)
 /*
  * Load a reference to a previously loaded node.
  */
-SV *
+static SV *
 load_alias(perl_yaml_loader_t *loader)
 {
     char *anchor = (char *)loader->event.data.alias.anchor;
@@ -560,7 +658,7 @@ load_scalar_ref(perl_yaml_loader_t *loader)
 /*
  * Load a Perl typeglob.
  */
-SV *
+static SV *
 load_glob(perl_yaml_loader_t *loader)
 {
     /* XXX Call back a Perl sub to do something interesting here */
@@ -572,7 +670,7 @@ load_glob(perl_yaml_loader_t *loader)
 /*
  * Set dumper options from global variables.
  */
-yaml_encoding_t
+static yaml_encoding_t
 set_dumper_options(perl_yaml_dumper_t *dumper)
 {
     GV *gv;
@@ -710,41 +808,72 @@ Dump()
  * Dump zero or more Perl objects into the file
  */
 int
-DumpFile(SV *sv_fname)
+DumpFile(SV *sv_file)
 {
     dXSARGS;
     perl_yaml_dumper_t dumper;
     yaml_event_t event_stream_start;
     yaml_event_t event_stream_end;
     yaml_encoding_t encoding;
-    long i;
-    STRLEN len;
-    FILE *file;
+    FILE *file = NULL;
     const char *fname;
+    STRLEN len;
+    long i;
 
     sp = mark;
 
     yaml_emitter_initialize(&dumper.emitter);
     encoding = set_dumper_options(&dumper);
 
-    if (SvPOK(sv_fname)) {
-        fname = (const char *)SvPV_const(sv_fname, len);
+    if (SvROK(sv_file)) { /* pv mg or io or gv */
+        SV *rv = SvRV(sv_file);
+
+        if (SvTYPE(rv) == SVt_PVIO) {
+            dumper.perlio = IoOFP(rv);
+            yaml_emitter_set_output(&dumper.emitter,
+                                    &yaml_perlio_write_handler,
+                                    &dumper);
+        } else if (SvTYPE(rv) == SVt_PVGV && GvIO(rv)) {
+            dumper.perlio = IoOFP(GvIOp(SvRV(sv_file)));
+            yaml_emitter_set_output(&dumper.emitter,
+                                    &yaml_perlio_write_handler,
+                                    &dumper);
+        } else if (SvMAGIC(rv)) {
+            mg_get(rv);
+            fname = SvPV_const(rv, len);
+            goto pv_dump;
+        } else if (SvAMAGIC(sv_file)) {
+            fname = SvPV_const(sv_file, len);
+            goto pv_dump;
+        } else {
+            croak("Invalid argument type: ref of %u", SvTYPE(rv));
+            return 0;
+        }
+    }
+    else if (SvPOK(sv_file)) {
+        fname = (const char *)SvPV_const(sv_file, len);
+    pv_dump:
         file = fopen(fname, "wb");
         if (!file) {
             croak("Can't open '%s' for output", fname);
             return 0;
         }
-    } else if (SvTYPE(sv_fname) == SVt_PVIO) {
-        /* already open */
-        croak("Cannot handle IO objects yet");
-        return 0;
-        /* file = sv_io(sv_fname); XXX */
+        dumper.filename = (char *)fname;
+        yaml_emitter_set_output_file(&dumper.emitter, file);
+    } else if (SvTYPE(sv_file) == SVt_PVIO) {
+        dumper.perlio = IoOFP(sv_file);
+        yaml_emitter_set_output(&dumper.emitter,
+                                &yaml_perlio_write_handler,
+                                &dumper);
+    } else if (SvTYPE(sv_file) == SVt_PVGV && GvIO(sv_file)) {
+        dumper.perlio = IoOFP(GvIOp(sv_file));
+        yaml_emitter_set_output(&dumper.emitter,
+                                &yaml_perlio_write_handler,
+                                &dumper);
     } else {
-        croak("Invalid argument type: %u", SvTYPE(sv_fname));
+        croak("Invalid argument type: %u", SvTYPE(sv_file));
         return 0;
     }
-    dumper.filename = (char *)fname;
-    yaml_emitter_set_output_file(&dumper.emitter, file);
 
     yaml_stream_start_event_initialize(&event_stream_start, encoding);
     if (!yaml_emitter_emit(&dumper.emitter, &event_stream_start)) {
@@ -755,6 +884,7 @@ DumpFile(SV *sv_fname)
     dumper.anchors = (HV *)sv_2mortal((SV *)newHV());
     dumper.shadows = (HV *)sv_2mortal((SV *)newHV());
 
+    /* ST(0) is the file */
     for (i = 1; i < items; i++) {
         dumper.anchor = 0;
 
@@ -772,7 +902,10 @@ DumpFile(SV *sv_fname)
         return 0;
     }
     yaml_emitter_delete(&dumper.emitter);
-    fclose(file);
+    if (file)
+        fclose(file);
+    else if (SvTYPE(sv_file) == SVt_PVIO)
+        PerlIO_close(IoOFP(sv_file));
 
     PUTBACK;
     return 1;
@@ -784,7 +917,7 @@ DumpFile(SV *sv_fname)
  * seen twice you can stop walking it. That way we can handle circular refs.
  * All the node information is stored in an HV.
  */
-void
+static void
 dump_prewalk(perl_yaml_dumper_t *dumper, SV *node)
 {
     int i;
@@ -840,7 +973,7 @@ dump_prewalk(perl_yaml_dumper_t *dumper, SV *node)
     }
 }
 
-void
+static void
 dump_document(perl_yaml_dumper_t *dumper, SV *node)
 {
     yaml_event_t event_document_start;
@@ -854,7 +987,7 @@ dump_document(perl_yaml_dumper_t *dumper, SV *node)
     yaml_emitter_emit(&dumper->emitter, &event_document_end);
 }
 
-void
+static void
 dump_node(perl_yaml_dumper_t *dumper, SV *node)
 {
     yaml_char_t *anchor = NULL;
@@ -925,7 +1058,7 @@ dump_node(perl_yaml_dumper_t *dumper, SV *node)
     }
 }
 
-yaml_char_t *
+static yaml_char_t *
 get_yaml_anchor(perl_yaml_dumper_t *dumper, SV *node)
 {
     yaml_event_t event_alias;
@@ -948,7 +1081,7 @@ get_yaml_anchor(perl_yaml_dumper_t *dumper, SV *node)
     return NULL;
 }
 
-yaml_char_t *
+static yaml_char_t *
 get_yaml_tag(SV *node)
 {
     yaml_char_t *tag = NULL;
@@ -981,7 +1114,7 @@ get_yaml_tag(SV *node)
     return tag;
 }
 
-void
+static void
 dump_hash(
     perl_yaml_dumper_t *dumper, SV *node,
     yaml_char_t *anchor, yaml_char_t *tag)
@@ -1029,7 +1162,7 @@ dump_hash(
     yaml_emitter_emit(&dumper->emitter, &event_mapping_end);
 }
 
-void
+static void
 dump_array(perl_yaml_dumper_t *dumper, SV *node)
 {
     yaml_event_t event_sequence_start;
@@ -1059,7 +1192,7 @@ dump_array(perl_yaml_dumper_t *dumper, SV *node)
     yaml_emitter_emit(&dumper->emitter, &event_sequence_end);
 }
 
-void
+static void
 dump_scalar(perl_yaml_dumper_t *dumper, SV *node, yaml_char_t *tag)
 {
     yaml_event_t event_scalar;
@@ -1134,7 +1267,7 @@ dump_scalar(perl_yaml_dumper_t *dumper, SV *node, yaml_char_t *tag)
         );
 }
 
-void
+static void
 dump_code(perl_yaml_dumper_t *dumper, SV *node)
 {
     yaml_event_t event_scalar;
@@ -1171,7 +1304,7 @@ dump_code(perl_yaml_dumper_t *dumper, SV *node)
     yaml_emitter_emit(&dumper->emitter, &event_scalar);
 }
 
-SV *
+static SV *
 dump_glob(perl_yaml_dumper_t *dumper, SV *node)
 {
     SV *result;
@@ -1188,7 +1321,7 @@ dump_glob(perl_yaml_dumper_t *dumper, SV *node)
 }
 
 /* XXX Refo this to just dump a special map */
-void
+static void
 dump_ref(perl_yaml_dumper_t *dumper, SV *node)
 {
     yaml_event_t event_mapping_start;
@@ -1221,11 +1354,27 @@ dump_ref(perl_yaml_dumper_t *dumper, SV *node)
     yaml_emitter_emit(&dumper->emitter, &event_mapping_end);
 }
 
-int
-append_output(void *yaml, unsigned char *buffer, size_t size)
+static int
+append_output(void *sv, unsigned char *buffer, size_t size)
 {
-    sv_catpvn((SV *)yaml, (const char *)buffer, (STRLEN)size);
+    sv_catpvn((SV *)sv, (const char *)buffer, (STRLEN)size);
     return 1;
+}
+
+static int
+yaml_perlio_read_handler(void *data, unsigned char *buffer, size_t size, size_t *size_read)
+{
+    perl_yaml_loader_t *loader = (perl_yaml_loader_t *)data;
+
+    *size_read = PerlIO_read(loader->perlio, buffer, size);
+    return !PerlIO_error(loader->perlio);
+}
+
+static int
+yaml_perlio_write_handler(void *data, unsigned char *buffer, size_t size)
+{
+    perl_yaml_dumper_t *dumper = (perl_yaml_dumper_t *)data;
+    return (PerlIO_write(dumper->perlio, (char*)buffer, (long)size) == (SSize_t)size);
 }
 
 /* XXX Make -Wall not complain about 'local_patches' not being used. */
