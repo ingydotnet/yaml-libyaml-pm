@@ -21,6 +21,7 @@
 #define TAG_PERL_GLOB TAG_PERL_PREFIX "glob"
 #define ERRMSG "YAML::XS Error: "
 #define LOADERRMSG "YAML::XS::Load Error: "
+#define LOADFILEERRMSG "YAML::XS::LoadFile Error: "
 #define DUMPERRMSG "YAML::XS::Dump Error: "
 
 typedef struct {
@@ -29,6 +30,8 @@ typedef struct {
     HV *anchors;
     int load_code;
     int document;
+    char *filename;
+    PerlIO *perlio;
 } perl_yaml_loader_t;
 
 typedef struct {
@@ -38,89 +41,19 @@ typedef struct {
     HV *shadows;
     int dump_code;
     int quote_number_strings;
+    char *filename;
+    PerlIO *perlio;
 } perl_yaml_dumper_t;
 
-static SV *
-call_coderef(SV *, AV *);
-
-static SV *
-fold_results(I32);
-
-static SV *
-find_coderef(char *);
-
-void
-set_dumper_options(perl_yaml_dumper_t *);
-
-void
-set_loader_options(perl_yaml_dumper_t *);
-
-void
-Dump(SV *, ...);
-
-void
-Load(SV *);
-
-SV *
-load_node(perl_yaml_loader_t *);
-
-SV *
-load_mapping(perl_yaml_loader_t *, char *);
-
-SV *
-load_sequence(perl_yaml_loader_t *);
-
-SV *
-load_scalar(perl_yaml_loader_t *);
-
-SV *
-load_alias(perl_yaml_loader_t *);
-
-SV *
-load_scalar_ref(perl_yaml_loader_t *);
-
-SV *
-load_regexp(perl_yaml_loader_t *);
-
-SV *
-load_glob(perl_yaml_loader_t *);
-
-
-void
-dump_prewalk(perl_yaml_dumper_t *, SV *);
-
-void
-dump_document(perl_yaml_dumper_t *, SV *);
-
-void
-dump_node(perl_yaml_dumper_t *, SV *);
-
-void
-dump_hash(perl_yaml_dumper_t *, SV *, yaml_char_t *, yaml_char_t *);
-
-void
-dump_array(perl_yaml_dumper_t *, SV *);
-
-void
-dump_scalar(perl_yaml_dumper_t *, SV *, yaml_char_t *);
-
-void
-dump_ref(perl_yaml_dumper_t *, SV *);
-
-void
-dump_code(perl_yaml_dumper_t *, SV *);
-
-SV*
-dump_glob(perl_yaml_dumper_t *, SV *);
-
-
-yaml_char_t *
-get_yaml_anchor(perl_yaml_dumper_t *, SV *);
-
-yaml_char_t *
-get_yaml_tag(SV *);
-
+int
+Dump();
 
 int
-append_output(void *, unsigned char *, size_t size);
+DumpFile(SV *);
+
+int
+Load(SV *);
+
+int
+LoadFile(SV *);
 
