@@ -7,6 +7,7 @@
 
 #include "EXTERN.h"
 #include "perl.h"
+#define NO_XSLOCKS
 #include "XSUB.h"
 #define NEED_newRV_noinc
 #define NEED_sv_2pv_nolen

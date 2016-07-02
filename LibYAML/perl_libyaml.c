@@ -118,6 +118,8 @@ loader_error_msg(perl_yaml_loader_t *loader, char *problem)
 void
 Load(SV *yaml_sv)
 {
+    dXCPT;
+
     dXSARGS;
     perl_yaml_loader_t loader;
     SV *node;
@@ -157,34 +159,45 @@ Load(SV *yaml_sv)
     loader.anchors = newHV();
     sv_2mortal((SV *)loader.anchors);
 
-    /* Keep calling load_node until end of stream */
-    while (1) {
-        loader.document++;
-        /* We are through with the previous event - delete it! */
-        yaml_event_delete(&loader.event);
-        if (!yaml_parser_parse(&loader.parser, &loader.event))
-            goto load_error;
-        if (loader.event.type == YAML_STREAM_END_EVENT)
-            break;
-        node = load_node(&loader);
-        /* We are through with the previous event - delete it! */
-        yaml_event_delete(&loader.event);
-        hv_clear(loader.anchors);
-        if (! node) break;
-        XPUSHs(sv_2mortal(node));
-        if (!yaml_parser_parse(&loader.parser, &loader.event))
-            goto load_error;
-        if (loader.event.type != YAML_DOCUMENT_END_EVENT)
-            croak("%sExpected DOCUMENT_END_EVENT", ERRMSG);
+    XCPT_TRY_START {
+
+        /* Keep calling load_node until end of stream */
+        while (1) {
+            loader.document++;
+            /* We are through with the previous event - delete it! */
+            yaml_event_delete(&loader.event);
+            if (!yaml_parser_parse(&loader.parser, &loader.event))
+                goto load_error;
+            if (loader.event.type == YAML_STREAM_END_EVENT)
+                break;
+            node = load_node(&loader);
+            /* We are through with the previous event - delete it! */
+            yaml_event_delete(&loader.event);
+            hv_clear(loader.anchors);
+            if (! node) break;
+            XPUSHs(sv_2mortal(node));
+            if (!yaml_parser_parse(&loader.parser, &loader.event))
+                goto load_error;
+            if (loader.event.type != YAML_DOCUMENT_END_EVENT)
+                croak("%sExpected DOCUMENT_END_EVENT", ERRMSG);
+        }
+
+        /* Make sure the last event is a STREAM_END */
+        if (loader.event.type != YAML_STREAM_END_EVENT)
+            croak("%sExpected STREAM_END_EVENT; Got: %d != %d",
+                ERRMSG,
+                loader.event.type,
+                YAML_STREAM_END_EVENT
+             );
+
+    } XCPT_TRY_END
+
+    XCPT_CATCH
+    {
+        yaml_parser_delete(&loader.parser);
+        XCPT_RETHROW;
     }
 
-    /* Make sure the last event is a STREAM_END */
-    if (loader.event.type != YAML_STREAM_END_EVENT)
-        croak("%sExpected STREAM_END_EVENT; Got: %d != %d",
-            ERRMSG,
-            loader.event.type,
-            YAML_STREAM_END_EVENT
-         );
     yaml_parser_delete(&loader.parser);
     PUTBACK;
     return;
