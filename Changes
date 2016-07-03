@@ -1,6 +1,6 @@
 ---
-version: 0.62_001
-date:    Sun Jul  3 10:31:56 PDT 2016
+version: 0.62_002
+date:    Sun Jul  3 10:39:00 PDT 2016
 changes:
 - Apply PR/48 by @perlpunk++
 - Fixes memory leaks
