@@ -1,7 +1,7 @@
 =meta: 0.0.2
 
 name: YAML-LibYAML
-version: 0.70
+version: 0.71
 abstract: Perl YAML Serialization using XS and libyaml
 homepage: http://yaml.org
 language: perl
@@ -17,7 +17,7 @@ author:
   freenode: ingy
 
 devel:
-  git: https://github.com/ingydotnet/yaml-libyaml-pm
+  git: https://github.com/rurban/yaml-libyaml-pm
   bug: https://github.com/ingydotnet/yaml-libyaml-pm/issues
   irc: irc.perl.org#yaml
 
