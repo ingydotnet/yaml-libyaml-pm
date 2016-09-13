@@ -28,7 +28,7 @@ my $DEFINE = $^O eq 'MSWin32'
 
 WriteMakefile(
     NAME => 'YAML::XS::LibYAML',
-    PREREQ_PM => {},
+    PREREQ_PM => { 'Test::Base' => 0.88 },
     # CCFLAGS => '-ansi -pedantic -Wall',
     # CCFLAGS => '-ansi -Wall',
     # CCFLAGS => '-pedantic -Wall',
