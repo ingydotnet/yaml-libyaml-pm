@@ -4,7 +4,7 @@
 /*
 ----------------------------------------------------------------------
 
-    ppport.h -- Perl/Pollution/Portability Version 3.33_02
+    ppport.h -- Perl/Pollution/Portability Version 3.35_01
 
     Automatically created by Devel::PPPort running under perl 5.025001.
 
@@ -21,7 +21,7 @@ SKIP
 
 =head1 NAME
 
-ppport.h - Perl/Pollution/Portability version 3.33_02
+ppport.h - Perl/Pollution/Portability version 3.35_01
 
 =head1 SYNOPSIS
 
@@ -383,7 +383,7 @@ use strict;
 # Disable broken TRIE-optimization
 BEGIN { eval '${^RE_TRIE_MAXBUF} = -1' if $] >= 5.009004 && $] <= 5.009005 }
 
-my $VERSION = 3.33_02;
+my $VERSION = 3.35_01;
 
 my %opt = (
   quiet     => 0,
@@ -4204,6 +4204,9 @@ __DATA__
 
 #ifndef Newxz
 #  define Newxz(v,n,t)                   Newz(0,v,n,t)
+#endif
+#ifndef PERL_MAGIC_qr
+#  define PERL_MAGIC_qr                  'r'
 #endif
 #ifndef cBOOL
 #  define cBOOL(cbool)                   ((cbool) ? (bool)1 : (bool)0)
