@@ -1,4 +1,58 @@
 ---
+version: 0.74
+date:    Fri Oct 14 22:33:08 2016 rurban
+changes:
+- fixed encoding issues: fixed wrong $YAML::XS::Encoding and
+  $YAML::XS::LineBreak comparison logic.
+- fixed utf8 input as handled as UTF8,
+  non-utf8 honors $YAML::XS::Encoding.
+---
+version: 0.73
+date:    Tue Sep 13 16:34:59 2016 rurban
+changes:
+- fix libyaml clang -Wlogical-not-parentheses warnings
+---
+version: 0.72
+date:    Tue Sep 13 15:37:56 2016 rurban
+changes:
+- fix libyaml clang -Wlogical-op warnings
+- add missing Test::base prereq
+- fix XS.pod syntax error
+---
+version: 0.71 rurban
+date:    Thu Sep 8 10:39:25 2016
+changes:
+- avoid duplicate checks against NULL
+- merge with libyaml 0.1.7 upstream
+---
+version: 0.70 rurban
+date:    Mon May 9 17:38:54 2016
+changes:
+- cperl fixes for fake_signatures
+- libyaml fix C++-compat errors
+- improve Makefile for win32
+- improve ppport_sort.h
+- implement new NonStrict mode (for perl5 compat)
+- libyaml reformat, minor optimizations, fix warnings
+- Update documentation
+- Use error codes, return undef on error.
+- abstract the loader functionality to load_impl(),
+  dump_impl() not yet.
+- rearrange static funcs (not decl in header)
+- DumpFile,LoadFile is now XS only, and do accept mg pv,
+  io objects and fileglobs. support filename in error messages.
+- support $YAML::XS::NonStrict loader
+- Add dumper options Indent, BestWidth, Canonical, Unicode,
+  Encoding, LineBreak, OpenEnded (kept defaults)
+- Add loader option NonStrict, Encoding (kept defaults)
+- Fix default emitter_set_width (2 => 80)
+- Fix the tests for the new default IndentlessMap=0
+  and check also IndentlessMap=1
+- enable 2 more test/glob.t tests
+- fix dump_yaml in test/TestYAMLTests.pm
+- libyaml: add problem_nonstrict to parser
+- libyaml: add DEBUG macros to emitter.c, fix some indentations
+---
 version: 0.63
 date:    Fri Jul  8 14:40:35 UTC 2016
 changes:

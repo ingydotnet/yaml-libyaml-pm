@@ -1,25 +1,53 @@
 #include <perl_libyaml.h>
 
+static yaml_encoding_t
+set_dumper_options(perl_yaml_dumper_t *);
+static yaml_encoding_t
+set_loader_options(perl_yaml_loader_t *);
 static SV *
-call_coderef(SV *code, AV *args)
-{
-    dSP;
-    SV **svp;
-    I32 count = (args && args != Nullav) ? av_len(args) : -1;
-    I32 i;
-
-    PUSHMARK(SP);
-    for (i = 0; i <= count; i++) {
-        if ((svp = av_fetch(args, i, FALSE))) {
-            XPUSHs(*svp);
-        }
-    }
-    PUTBACK;
-    count = call_sv(code, G_ARRAY);
-    SPAGAIN;
-
-    return fold_results(count);
-}
+load_node(perl_yaml_loader_t *);
+static SV *
+load_mapping(perl_yaml_loader_t *, char *);
+static SV *
+load_sequence(perl_yaml_loader_t *);
+static SV *
+load_scalar(perl_yaml_loader_t *);
+static SV *
+load_alias(perl_yaml_loader_t *);
+static SV *
+load_scalar_ref(perl_yaml_loader_t *);
+static SV *
+load_regexp(perl_yaml_loader_t *);
+static SV *
+load_glob(perl_yaml_loader_t *);
+static void
+dump_prewalk(perl_yaml_dumper_t *, SV *);
+static void
+dump_document(perl_yaml_dumper_t *, SV *);
+static void
+dump_node(perl_yaml_dumper_t *, SV *);
+static void
+dump_hash(perl_yaml_dumper_t *, SV *, yaml_char_t *, yaml_char_t *);
+static void
+dump_array(perl_yaml_dumper_t *, SV *);
+static void
+dump_scalar(perl_yaml_dumper_t *, SV *, yaml_char_t *);
+static void
+dump_ref(perl_yaml_dumper_t *, SV *);
+static void
+dump_code(perl_yaml_dumper_t *, SV *);
+static SV*
+dump_glob(perl_yaml_dumper_t *, SV *);
+static yaml_char_t *
+get_yaml_anchor(perl_yaml_dumper_t *, SV *);
+static yaml_char_t *
+get_yaml_tag(SV *);
+static int
+append_output(void *sv, unsigned char *buffer, size_t size);
+static int
+yaml_perlio_read_handler(void *data, unsigned char *buffer, size_t size, size_t *size_read);
+static int
+yaml_perlio_write_handler(void *data, unsigned char *buffer, size_t size);
 
 static SV *
 fold_results(I32 count)
@@ -30,13 +58,11 @@ fold_results(I32 count)
     if (count > 1) {
         /* convert multiple return items into a list reference */
         AV *av = newAV();
-        SV *last_sv = &PL_sv_undef;
         SV *sv = &PL_sv_undef;
         I32 i;
 
         av_extend(av, count - 1);
         for(i = 1; i <= count; i++) {
-            last_sv = sv;
             sv = POPs;
             if (SvOK(sv) && !av_store(av, count - i, SvREFCNT_inc(sv)))
                 SvREFCNT_dec(sv);
@@ -61,7 +87,28 @@ fold_results(I32 count)
 }
 
 static SV *
-find_coderef(char *perl_var)
+call_coderef(SV *code, AV *args)
+{
+    dSP;
+    SV **svp;
+    I32 count = args ? av_len(args) : -1;
+    I32 i;
+
+    PUSHMARK(SP);
+    for (i = 0; i <= count; i++) {
+        if ((svp = av_fetch(args, i, FALSE))) {
+            XPUSHs(*svp);
+        }
+    }
+    PUTBACK;
+    count = call_sv(code, G_ARRAY);
+    SPAGAIN;
+
+    return fold_results(count);
+}
+
+static SV *
+find_coderef(const char *perl_var)
 {
     SV *coderef;
 
@@ -76,140 +123,260 @@ find_coderef(char *perl_var)
 /*
  * Piece together a parser/loader error message
  */
-char *
+static char *
 loader_error_msg(perl_yaml_loader_t *loader, char *problem)
 {
     char *msg;
     if (!problem)
         problem = (char *)loader->parser.problem;
-    msg = form(
-        LOADERRMSG
-        "%swas found at "
-        "document: %d",
-        (problem ? form("The problem:\n\n    %s\n\n", problem) : "A problem "),
-        loader->document
-    );
-    if (
-        loader->parser.problem_mark.line ||
-        loader->parser.problem_mark.column
-    )
-        msg = form("%s, line: %d, column: %d\n",
-            msg,
-            loader->parser.problem_mark.line + 1,
-            loader->parser.problem_mark.column + 1
-        );
+    if (loader->filename)
+      msg = form("%s%swas found at document: %s",
+                 LOADFILEERRMSG,
+                 (problem ? form("The problem\n\n    %s\n\n", problem)
+                          : "A problem "),
+                 loader->filename
+                 );
+    else
+      msg = form("%s%swas found at document: %d",
+                 LOADERRMSG,
+                 (problem ? form("The problem\n\n    %s\n\n", problem)
+                          : "A problem "),
+                 loader->document
+                 );
+    if (loader->parser.problem_mark.line ||
+        loader->parser.problem_mark.column)
+        msg = form("%s, line: %ld, column: %ld\n",
+                   msg,
+                   (long)loader->parser.problem_mark.line + 1,
+                   (long)loader->parser.problem_mark.column + 1
+                   );
+    else if (loader->parser.problem_offset)
+        msg = form("%s, offset: %ld\n", msg, loader->parser.problem_offset);
     else
         msg = form("%s\n", msg);
     if (loader->parser.context)
-        msg = form("%s%s at line: %d, column: %d\n",
-            msg,
-            loader->parser.context,
-            loader->parser.context_mark.line + 1,
-            loader->parser.context_mark.column + 1
+        msg = form("%s%s at line: %ld, column: %ld\n",
+                   msg,
+                   loader->parser.context,
+                   (long)loader->parser.context_mark.line + 1,
+                   (long)loader->parser.context_mark.column + 1
         );
 
     return msg;
 }
 
 /*
+ * Set loader options from global variables.
+ */
+static yaml_encoding_t
+set_loader_options(perl_yaml_loader_t *loader)
+{
+    GV *gv;
+    yaml_encoding_t result = YAML_ANY_ENCODING;
+
+    /* As with YAML::Tiny. Default: strict Load */
+    gv = gv_fetchpv("YAML::XS::NonStrict", TRUE, SVt_PV);
+    loader->parser.problem_nonstrict = gv && SvTRUE(GvSV(gv)) ? 1 : 0;
+    loader->document = 0;
+    loader->filename = NULL;
+
+    if ((gv = gv_fetchpv("YAML::XS::Encoding", GV_NOADD_NOINIT, SVt_PV))
+         && SvPOK(GvSV(gv)))
+    {
+        const char *enc = SvPVX_const(GvSV(gv));
+        if (memEQs(enc, 3, "any"))
+            yaml_parser_set_encoding(&loader->parser,
+                                     (result = YAML_ANY_ENCODING));
+        else if (memEQs(enc, 4, "utf8"))
+            yaml_parser_set_encoding(&loader->parser, YAML_UTF8_ENCODING);
+        else if (memEQs(enc, 7, "utf16le"))
+            yaml_parser_set_encoding(&loader->parser,
+                                     (result = YAML_UTF16LE_ENCODING));
+        else if (memEQs(enc, 7, "utf16be"))
+            yaml_parser_set_encoding(&loader->parser,
+                                     (result = YAML_UTF16BE_ENCODING));
+        else
+            croak("Invalid $YAML::XS::Encoding %s. Valid: any, utf8, utf16le, utf16be", enc);
+    }
+    return result;
+}
+
+static int
+load_impl(perl_yaml_loader_t *loader)
+{
+    dXCPT;
+    dXSARGS;
+    SV *node;
+
+    sp = mark;
+    if (0 && (items || ax)) {} /* XXX Quiet the -Wall warnings for now. */
+
+    /* Get the first event. Must be a STREAM_START */
+    if (!yaml_parser_parse(&loader->parser, &loader->event))
+        goto load_error;
+    if (loader->event.type != YAML_STREAM_START_EVENT)
+        croak("%sExpected STREAM_START_EVENT; Got: %d != %d",
+            ERRMSG,
+            loader->event.type,
+            YAML_STREAM_START_EVENT
+         );
+
+    loader->anchors = (HV *)sv_2mortal((SV *)newHV());
+
+  XCPT_TRY_START {
+
+    /* Keep calling load_node until end of stream */
+    while (1) {
+        loader->document++;
+        /* We are through with the previous event - delete it! */
+        yaml_event_delete(&loader->event);
+        if (!yaml_parser_parse(&loader->parser, &loader->event))
+            goto load_error;
+        if (loader->event.type == YAML_STREAM_END_EVENT)
+            break;
+        node = load_node(loader);
+        /* We are through with the previous event - delete it! */
+        yaml_event_delete(&loader->event);
+        hv_clear(loader->anchors);
+        if (! node)
+            break;
+        XPUSHs(sv_2mortal(node));
+        if (!yaml_parser_parse(&loader->parser, &loader->event))
+            goto load_error;
+        if (loader->event.type != YAML_DOCUMENT_END_EVENT)
+            croak("%sExpected DOCUMENT_END_EVENT", ERRMSG);
+    }
+
+    /* Make sure the last event is a STREAM_END */
+    if (loader->event.type != YAML_STREAM_END_EVENT)
+        croak("%sExpected STREAM_END_EVENT; Got: %d != %d",
+            ERRMSG,
+            loader->event.type,
+            YAML_STREAM_END_EVENT
+         );
+    } XCPT_TRY_END
+
+    XCPT_CATCH
+    {
+        yaml_parser_delete(&loader->parser);
+        XCPT_RETHROW;
+    }
+
+    yaml_parser_delete(&loader->parser);
+    PUTBACK;
+    return 1;
+
+load_error:
+    croak("%s", loader_error_msg(loader, NULL));
+    return 0;
+}
+
+/*
+ * It takes a file or filename and turns it into 0 or more Perl objects.
+ */
+int
+LoadFile(SV *sv_file)
+{
+    perl_yaml_loader_t loader;
+    FILE *file = NULL;
+    const char *fname;
+    STRLEN len;
+    int ret;
+
+    yaml_parser_initialize(&loader.parser);
+    (void)set_loader_options(&loader);
+
+    if (SvROK(sv_file)) { /* pv mg or io or gv */
+        SV *rv = SvRV(sv_file);
+
+        if (SvTYPE(rv) == SVt_PVIO) {
+            loader.perlio = IoIFP(rv);
+            yaml_parser_set_input(&loader.parser,
+                                  &yaml_perlio_read_handler,
+                                  &loader);
+        } else if (SvTYPE(rv) == SVt_PVGV && GvIO(rv)) {
+            loader.perlio = IoIFP(GvIOp(rv));
+            yaml_parser_set_input(&loader.parser,
+                                  &yaml_perlio_read_handler,
+                                  &loader);
+        } else if (SvMAGIC(rv)) {
+            mg_get(rv);
+            fname = SvPV_const(rv, len);
+            goto pv_load;
+        } else if (SvAMAGIC(sv_file)) {
+            fname = SvPV_const(sv_file, len);
+            goto pv_load;
+        } else {
+            croak("Invalid argument type: ref of %u", SvTYPE(rv));
+            return 0;
+        }
+    }
+    else if (SvPOK(sv_file)) {
+        fname = SvPV_const(sv_file, len);
+    pv_load:
+        file = fopen(fname, "rb");
+        if (!file) {
+            croak("Can't open '%s' for input", fname);
+            return 0;
+        }
+        loader.filename = (char *)fname;
+        yaml_parser_set_input_file(&loader.parser, file);
+    } else if (SvTYPE(sv_file) == SVt_PVIO) {
+        loader.perlio = IoIFP(sv_file);
+        yaml_parser_set_input(&loader.parser,
+                              &yaml_perlio_read_handler,
+                              &loader);
+    } else if (SvTYPE(sv_file) == SVt_PVGV
+               && GvIO(sv_file)) {
+        loader.perlio = IoIFP(GvIOp(sv_file));
+        yaml_parser_set_input(&loader.parser,
+                              &yaml_perlio_read_handler,
+                              &loader);
+    } else {
+        croak("Invalid argument type: %u", SvTYPE(sv_file));
+        return 0;
+    }
+
+    ret = load_impl(&loader);
+    if (file)
+        fclose(file);
+    else if (SvTYPE(sv_file) == SVt_PVIO)
+        PerlIO_close(IoIFP(sv_file));
+    return ret;
+}
+
+/*
  * This is the main Load function.
  * It takes a yaml stream and turns it into 0 or more Perl objects.
  */
-void
+int
 Load(SV *yaml_sv)
 {
-    dXCPT;
-
-    dXSARGS;
     perl_yaml_loader_t loader;
-    SV *node;
     const unsigned char *yaml_str;
     STRLEN yaml_len;
 
     yaml_str = (const unsigned char *)SvPV_const(yaml_sv, yaml_len);
 
-    if (DO_UTF8(yaml_sv)) {
-        yaml_sv = sv_mortalcopy(yaml_sv);
-        if (!sv_utf8_downgrade(yaml_sv, TRUE))
-            croak("%s", "Wide character in YAML::XS::Load()");
-        yaml_str = (const unsigned char *)SvPV_const(yaml_sv, yaml_len);
-    }
-
-    sp = mark;
-    if (0 && (items || ax)) {} /* XXX Quiet the -Wall warnings for now. */
-
     yaml_parser_initialize(&loader.parser);
-    loader.document = 0;
+    (void)set_loader_options(&loader);
+    if (DO_UTF8(yaml_sv)) { /* overrides $YAML::XS::Encoding */
+        loader.parser.encoding = YAML_UTF8_ENCODING;
+    } /* else check the BOM. don't check for decoded utf8. */
+
     yaml_parser_set_input_string(
         &loader.parser,
         yaml_str,
         yaml_len
     );
 
-    /* Get the first event. Must be a STREAM_START */
-    if (!yaml_parser_parse(&loader.parser, &loader.event))
-        goto load_error;
-    if (loader.event.type != YAML_STREAM_START_EVENT)
-        croak("%sExpected STREAM_START_EVENT; Got: %d != %d",
-            ERRMSG,
-            loader.event.type,
-            YAML_STREAM_START_EVENT
-         );
-
-    loader.anchors = newHV();
-    sv_2mortal((SV *)loader.anchors);
-
-    XCPT_TRY_START {
-
-        /* Keep calling load_node until end of stream */
-        while (1) {
-            loader.document++;
-            /* We are through with the previous event - delete it! */
-            yaml_event_delete(&loader.event);
-            if (!yaml_parser_parse(&loader.parser, &loader.event))
-                goto load_error;
-            if (loader.event.type == YAML_STREAM_END_EVENT)
-                break;
-            node = load_node(&loader);
-            /* We are through with the previous event - delete it! */
-            yaml_event_delete(&loader.event);
-            hv_clear(loader.anchors);
-            if (! node) break;
-            XPUSHs(sv_2mortal(node));
-            if (!yaml_parser_parse(&loader.parser, &loader.event))
-                goto load_error;
-            if (loader.event.type != YAML_DOCUMENT_END_EVENT)
-                croak("%sExpected DOCUMENT_END_EVENT", ERRMSG);
-        }
-
-        /* Make sure the last event is a STREAM_END */
-        if (loader.event.type != YAML_STREAM_END_EVENT)
-            croak("%sExpected STREAM_END_EVENT; Got: %d != %d",
-                ERRMSG,
-                loader.event.type,
-                YAML_STREAM_END_EVENT
-             );
-
-    } XCPT_TRY_END
-
-    XCPT_CATCH
-    {
-        yaml_parser_delete(&loader.parser);
-        XCPT_RETHROW;
-    }
-
-    yaml_parser_delete(&loader.parser);
-    PUTBACK;
-    return;
-
-load_error:
-    croak("%s", loader_error_msg(&loader, NULL));
+    return load_impl(&loader);
 }
 
 /*
  * This is the main function for dumping any node.
  */
-SV *
+static SV *
 load_node(perl_yaml_loader_t *loader)
 {
     SV* return_sv = NULL;
@@ -230,10 +397,11 @@ load_node(perl_yaml_loader_t *loader)
     /* Return NULL when we hit the end of a scope */
     if (loader->event.type == YAML_DOCUMENT_END_EVENT ||
         loader->event.type == YAML_MAPPING_END_EVENT ||
-        loader->event.type == YAML_SEQUENCE_END_EVENT) {
-            /* restore the uplevel event, so it can be properly deleted */
-            loader->event = uplevel_event;
-            return return_sv;
+        loader->event.type == YAML_SEQUENCE_END_EVENT)
+    {
+        /* restore the uplevel event, so it can be properly deleted */
+        loader->event = uplevel_event;
+        return return_sv;
     }
 
     /* The rest all need cleanup */
@@ -245,13 +413,13 @@ load_node(perl_yaml_loader_t *loader)
             tag = (char *)loader->event.data.mapping_start.tag;
 
             /* Handle mapping tagged as a Perl hard reference */
-            if (tag && strEQ(tag, TAG_PERL_REF)) {
+            if (tag && strEQc(tag, TAG_PERL_REF)) {
                 return_sv = load_scalar_ref(loader);
                 break;
             }
 
             /* Handle mapping tagged as a Perl typeglob */
-            if (tag && strEQ(tag, TAG_PERL_GLOB)) {
+            if (tag && strEQc(tag, TAG_PERL_GLOB)) {
                 return_sv = load_glob(loader);
                 break;
             }
@@ -292,7 +460,7 @@ load_node(perl_yaml_loader_t *loader)
 /*
  * Load a YAML mapping into a Perl hash
  */
-SV *
+static SV *
 load_mapping(perl_yaml_loader_t *loader, char *tag)
 {
     SV *key_node;
@@ -306,23 +474,21 @@ load_mapping(perl_yaml_loader_t *loader, char *tag)
 
     /* Store the anchor label if any */
     if (anchor)
-        hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(hash_ref), 0);
+      (void)hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(hash_ref), 0);
 
     /* Get each key string and value node and put them in the hash */
     while ((key_node = load_node(loader))) {
         assert(SvPOK(key_node));
         value_node = load_node(loader);
-        hv_store_ent(
-            hash, sv_2mortal(key_node), value_node, 0
-        );
+        (void)hv_store_ent(hash, sv_2mortal(key_node), value_node, 0);
     }
 
     /* Deal with possibly blessing the hash if the YAML tag has a class */
-    if (tag && strEQ(tag, TAG_PERL_PREFIX "hash"))
+    if (tag && strEQc(tag, TAG_PERL_PREFIX "hash"))
         tag = NULL;
     if (tag) {
-        char *class;
-        char *prefix = TAG_PERL_PREFIX "hash:";
+        char *klass;
+        const char *prefix = TAG_PERL_PREFIX "hash:";
         if (*tag == '!') {
             prefix = "!";
         }
@@ -331,15 +497,15 @@ load_mapping(perl_yaml_loader_t *loader, char *tag)
         ) croak("%s",
             loader_error_msg(loader, form("bad tag found for hash: '%s'", tag))
         );
-        class = tag + strlen(prefix);
-        sv_bless(hash_ref, gv_stashpv(class, TRUE));
+        klass = tag + strlen(prefix);
+        sv_bless(hash_ref, gv_stashpv(klass, TRUE));
     }
 
     return hash_ref;
 }
 
 /* Load a YAML sequence into a Perl array */
-SV *
+static SV *
 load_sequence(perl_yaml_loader_t *loader)
 {
     SV *node;
@@ -348,30 +514,30 @@ load_sequence(perl_yaml_loader_t *loader)
     char *anchor = (char *)loader->event.data.sequence_start.anchor;
     char *tag = (char *)loader->event.data.mapping_start.tag;
     if (anchor)
-        hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(array_ref), 0);
+      (void)hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(array_ref), 0);
     while ((node = load_node(loader))) {
         av_push(array, node);
     }
-    if (tag && strEQ(tag, TAG_PERL_PREFIX "array"))
+    if (tag && strEQc(tag, TAG_PERL_PREFIX "array"))
         tag = NULL;
     if (tag) {
-        char *class;
-        char *prefix = TAG_PERL_PREFIX "array:";
+        char *klass;
+        char *prefix = (char*)TAG_PERL_PREFIX "array:";
         if (*tag == '!')
-            prefix = "!";
+            prefix = (char*)"!";
         else if (strlen(tag) <= strlen(prefix) ||
             ! strnEQ(tag, prefix, strlen(prefix))
         ) croak("%s",
             loader_error_msg(loader, form("bad tag found for array: '%s'", tag))
         );
-        class = tag + strlen(prefix);
-        sv_bless(array_ref, gv_stashpv(class, TRUE));
+        klass = tag + strlen(prefix);
+        sv_bless(array_ref, gv_stashpv(klass, TRUE));
     }
     return array_ref;
 }
 
 /* Load a YAML scalar into a Perl scalar */
-SV *
+static SV *
 load_scalar(perl_yaml_loader_t *loader)
 {
     SV *scalar;
@@ -380,32 +546,32 @@ load_scalar(perl_yaml_loader_t *loader)
     char *anchor = (char *)loader->event.data.scalar.anchor;
     char *tag = (char *)loader->event.data.scalar.tag;
     if (tag) {
-        char *class;
-        char *prefix = TAG_PERL_PREFIX "regexp";
+        char *klass;
+        char *prefix = (char*)TAG_PERL_PREFIX "regexp";
         if (strnEQ(tag, prefix, strlen(prefix)))
             return load_regexp(loader);
-        prefix = TAG_PERL_PREFIX "scalar:";
+        prefix = (char*)TAG_PERL_PREFIX "scalar:";
         if (*tag == '!')
-            prefix = "!";
+            prefix = (char*)"!";
         else if (strlen(tag) <= strlen(prefix) ||
             ! strnEQ(tag, prefix, strlen(prefix))
         ) croak("%sbad tag found for scalar: '%s'", ERRMSG, tag);
-        class = tag + strlen(prefix);
-        scalar = sv_setref_pvn(newSV(0), class, string, strlen(string));
+        klass = tag + strlen(prefix);
+        scalar = sv_setref_pvn(newSV(0), klass, string, strlen(string));
         SvUTF8_on(scalar);
     return scalar;
     }
 
     if (loader->event.data.scalar.style == YAML_PLAIN_SCALAR_STYLE) {
-        if (strEQ(string, "~"))
+        if (strEQc(string, "~"))
             return newSV(0);
-        else if (strEQ(string, ""))
+        else if (strEQc(string, ""))
             return newSV(0);
-        else if (strEQ(string, "null"))
+        else if (strEQc(string, "null"))
             return newSV(0);
-        else if (strEQ(string, "true"))
+        else if (strEQc(string, "true"))
             return &PL_sv_yes;
-        else if (strEQ(string, "false"))
+        else if (strEQc(string, "false"))
             return &PL_sv_no;
     }
 
@@ -418,7 +584,7 @@ load_scalar(perl_yaml_loader_t *loader)
 
     (void)sv_utf8_decode(scalar);
     if (anchor)
-        hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(scalar), 0);
+      (void)hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(scalar), 0);
     return scalar;
 }
 
@@ -426,7 +592,7 @@ load_scalar(perl_yaml_loader_t *loader)
  * This operation is less common and is tricky, so doing it in Perl code for
  * now.
  */
-SV *
+static SV *
 load_regexp(perl_yaml_loader_t * loader)
 {
     dSP;
@@ -434,7 +600,7 @@ load_regexp(perl_yaml_loader_t * loader)
     STRLEN length = (STRLEN)loader->event.data.scalar.length;
     char *anchor = (char *)loader->event.data.scalar.anchor;
     char *tag = (char *)loader->event.data.scalar.tag;
-    char *prefix = TAG_PERL_PREFIX "regexp:";
+    char *prefix = (char*)TAG_PERL_PREFIX "regexp:";
 
     SV *regexp = newSVpvn(string, length);
     SvUTF8_on(regexp);
@@ -449,19 +615,19 @@ load_regexp(perl_yaml_loader_t * loader)
     regexp = newSVsv(POPs);
 
     if (strlen(tag) > strlen(prefix) && strnEQ(tag, prefix, strlen(prefix))) {
-        char *class = tag + strlen(prefix);
-        sv_bless(regexp, gv_stashpv(class, TRUE));
+        char *klass = tag + strlen(prefix);
+        sv_bless(regexp, gv_stashpv(klass, TRUE));
     }
 
     if (anchor)
-        hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(regexp), 0);
+      (void)hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(regexp), 0);
     return regexp;
 }
 
 /*
  * Load a reference to a previously loaded node.
  */
-SV *
+static SV *
 load_alias(perl_yaml_loader_t *loader)
 {
     char *anchor = (char *)loader->event.data.alias.anchor;
@@ -481,7 +647,7 @@ load_scalar_ref(perl_yaml_loader_t *loader)
     char *anchor = (char *)loader->event.data.mapping_start.anchor;
     SV *rv = newRV_noinc(&PL_sv_undef);
     if (anchor)
-        hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(rv), 0);
+      (void)hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(rv), 0);
     load_node(loader);  /* Load the single hash key (=) */
     value_node = load_node(loader);
     SvRV(rv) = value_node;
@@ -493,11 +659,11 @@ load_scalar_ref(perl_yaml_loader_t *loader)
 /*
  * Load a Perl typeglob.
  */
-SV *
+static SV *
 load_glob(perl_yaml_loader_t *loader)
 {
     /* XXX Call back a Perl sub to do something interesting here */
-    return load_mapping(loader, TAG_PERL_PREFIX "hash");
+    return load_mapping(loader, (char*)TAG_PERL_PREFIX "hash");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -505,63 +671,112 @@ load_glob(perl_yaml_loader_t *loader)
 /*
  * Set dumper options from global variables.
  */
-void
+static yaml_encoding_t
 set_dumper_options(perl_yaml_dumper_t *dumper)
 {
     GV *gv;
+    yaml_encoding_t result = YAML_UTF8_ENCODING;
     dumper->dump_code = (
-        ((gv = gv_fetchpv("YAML::XS::UseCode", TRUE, SVt_PV)) &&
-        SvTRUE(GvSV(gv)))
+        ((gv = gv_fetchpv("YAML::XS::UseCode", GV_NOADD_NOINIT, SVt_IV))
+         && SvTRUE(GvSV(gv)))
     ||
-        ((gv = gv_fetchpv("YAML::XS::DumpCode", TRUE, SVt_PV)) &&
+        ((gv = gv_fetchpv("YAML::XS::DumpCode", GV_NOADD_NOINIT, SVt_IV)) &&
         SvTRUE(GvSV(gv)))
     );
-
     dumper->quote_number_strings = (
-        ((gv = gv_fetchpv("YAML::XS::QuoteNumericStrings", TRUE, SVt_PV)) &&
+        ((gv = gv_fetchpv("YAML::XS::QuoteNumericStrings", GV_NOADD_NOINIT, SVt_IV)) &&
         SvTRUE(GvSV(gv)))
     );
-    /* dumper->emitter.open_ended = 1;
-     */
+    dumper->filename = NULL;
+
+    /* Set if unescaped non-ASCII characters are allowed. */
+    yaml_emitter_set_unicode(&dumper->emitter, 1);
+    yaml_emitter_set_indent(&dumper->emitter, 2);
+    yaml_emitter_set_width(&dumper->emitter, 80);
+
+    dumper->emitter.indentless_map =
+        ((gv = gv_fetchpv("YAML::XS::IndentlessMap", GV_NOADD_NOINIT, SVt_IV))
+          && SvTRUE(GvSV(gv))) ? 1 : 0;
+    dumper->emitter.open_ended =
+        ((gv = gv_fetchpv("YAML::XS::OpenEnded", GV_NOADD_NOINIT, SVt_IV))
+         && SvTRUE(GvSV(gv))) ? 1 : 0;
+
+    if ((gv = gv_fetchpv("YAML::XS::Encoding", GV_NOADD_NOINIT, SVt_PV))
+        && SvPOK(GvSV(gv)))
+    {
+        const char *enc = SvPVX_const(GvSV(gv));
+        if (memEQs(enc, 3, "any"))
+            yaml_emitter_set_encoding(&dumper->emitter, (result = YAML_ANY_ENCODING));
+        else if (memEQs(enc, 4, "utf8"))
+            yaml_emitter_set_encoding(&dumper->emitter, YAML_UTF8_ENCODING);
+        else if (memEQs(enc, 7, "utf16le"))
+            yaml_emitter_set_encoding(&dumper->emitter, (result = YAML_UTF16LE_ENCODING));
+        else if (memEQs(enc, 7, "utf16be"))
+            yaml_emitter_set_encoding(&dumper->emitter, (result = YAML_UTF16BE_ENCODING));
+        else
+            croak("Invalid $YAML::XS::Encoding %s. Valid: any, utf8, utf16le, utf16be", enc);
+    }
+    if ((gv = gv_fetchpv("YAML::XS::LineBreak", GV_NOADD_NOINIT, SVt_PV))
+        && SvPOK(GvSV(gv)))
+    {
+        const char *lb = SvPVX_const(GvSV(gv));
+        if (memEQs(lb, 3, "any"))
+            yaml_emitter_set_break(&dumper->emitter, YAML_ANY_BREAK);
+        else if (memEQs(lb, 2, "cr"))
+            yaml_emitter_set_break(&dumper->emitter, YAML_CR_BREAK);
+        else if (memEQs(lb, 2, "ln"))
+            yaml_emitter_set_break(&dumper->emitter, YAML_LN_BREAK);
+        else if (memEQs(lb, 4, "crln"))
+            yaml_emitter_set_break(&dumper->emitter, YAML_CRLN_BREAK);
+        else
+            croak("Invalid $YAML::XS::LineBreak %s. Valid: any, ln, cr, crln", lb);
+    }
+
+#define IVCHK(name,field) \
+    if ((gv = gv_fetchpv("YAML::XS::" name, GV_NOADD_NOINIT, SVt_IV)) \
+        && SvIOK(GvSV(gv)))                                           \
+        yaml_emitter_set_##field(&dumper->emitter, SvIV(GvSV(gv)))
+
+    IVCHK("Indent", indent);
+    IVCHK("BestWidth", width);
+    IVCHK("Canonical", canonical);
+    IVCHK("Unicode", unicode);
+
+#undef IVCHK
+    return result;
 }
 
 /*
  * This is the main Dump function.
  * Take zero or more Perl objects and return a YAML stream (as a string)
+ * Does take options only via globals.
  */
-void
-Dump(SV *dummy, ...)
+int
+Dump()
 {
     dXSARGS;
     perl_yaml_dumper_t dumper;
     yaml_event_t event_stream_start;
     yaml_event_t event_stream_end;
+    yaml_encoding_t encoding;
     int i;
     SV *yaml = sv_2mortal(newSVpvn("", 0));
-    sp = mark;
 
-    set_dumper_options(&dumper);
+    sp = mark;
 
     /* Set up the emitter object and begin emitting */
     yaml_emitter_initialize(&dumper.emitter);
-    yaml_emitter_set_unicode(&dumper.emitter, 1);
-    yaml_emitter_set_width(&dumper.emitter, 2);
-    yaml_emitter_set_output(
-        &dumper.emitter,
+    encoding = set_dumper_options(&dumper);
+    yaml_emitter_set_output(&dumper.emitter,
         &append_output,
-        (void *) yaml
+        (void *)yaml
     );
-    yaml_stream_start_event_initialize(
-        &event_stream_start,
-        YAML_UTF8_ENCODING
-    );
+
+    yaml_stream_start_event_initialize(&event_stream_start, encoding);
     yaml_emitter_emit(&dumper.emitter, &event_stream_start);
 
-    dumper.anchors = newHV();
-    dumper.shadows = newHV();
-
-    sv_2mortal((SV *)dumper.anchors);
-    sv_2mortal((SV *)dumper.shadows);
+    dumper.anchors = (HV *)sv_2mortal((SV *)newHV());
+    dumper.shadows = (HV *)sv_2mortal((SV *)newHV());
 
     for (i = 0; i < items; i++) {
         dumper.anchor = 0;
@@ -582,8 +797,119 @@ Dump(SV *dummy, ...)
     if (yaml) {
         SvUTF8_off(yaml);
         XPUSHs(yaml);
+        PUTBACK;
+        return 1;
+    } else {
+        PUTBACK;
+        return 0;
     }
+}
+
+/*
+ * Dump zero or more Perl objects into the file
+ */
+int
+DumpFile(SV *sv_file)
+{
+    dXSARGS;
+    perl_yaml_dumper_t dumper;
+    yaml_event_t event_stream_start;
+    yaml_event_t event_stream_end;
+    yaml_encoding_t encoding;
+    FILE *file = NULL;
+    const char *fname;
+    STRLEN len;
+    long i;
+
+    sp = mark;
+
+    yaml_emitter_initialize(&dumper.emitter);
+    encoding = set_dumper_options(&dumper);
+
+    if (SvROK(sv_file)) { /* pv mg or io or gv */
+        SV *rv = SvRV(sv_file);
+
+        if (SvTYPE(rv) == SVt_PVIO) {
+            dumper.perlio = IoOFP(rv);
+            yaml_emitter_set_output(&dumper.emitter,
+                                    &yaml_perlio_write_handler,
+                                    &dumper);
+        } else if (SvTYPE(rv) == SVt_PVGV && GvIO(rv)) {
+            dumper.perlio = IoOFP(GvIOp(SvRV(sv_file)));
+            yaml_emitter_set_output(&dumper.emitter,
+                                    &yaml_perlio_write_handler,
+                                    &dumper);
+        } else if (SvMAGIC(rv)) {
+            mg_get(rv);
+            fname = SvPV_const(rv, len);
+            goto pv_dump;
+        } else if (SvAMAGIC(sv_file)) {
+            fname = SvPV_const(sv_file, len);
+            goto pv_dump;
+        } else {
+            croak("Invalid argument type: ref of %u", SvTYPE(rv));
+            return 0;
+        }
+    }
+    else if (SvPOK(sv_file)) {
+        fname = (const char *)SvPV_const(sv_file, len);
+    pv_dump:
+        file = fopen(fname, "wb");
+        if (!file) {
+            croak("Can't open '%s' for output", fname);
+            return 0;
+        }
+        dumper.filename = (char *)fname;
+        yaml_emitter_set_output_file(&dumper.emitter, file);
+    } else if (SvTYPE(sv_file) == SVt_PVIO) {
+        dumper.perlio = IoOFP(sv_file);
+        yaml_emitter_set_output(&dumper.emitter,
+                                &yaml_perlio_write_handler,
+                                &dumper);
+    } else if (SvTYPE(sv_file) == SVt_PVGV && GvIO(sv_file)) {
+        dumper.perlio = IoOFP(GvIOp(sv_file));
+        yaml_emitter_set_output(&dumper.emitter,
+                                &yaml_perlio_write_handler,
+                                &dumper);
+    } else {
+        croak("Invalid argument type: %u", SvTYPE(sv_file));
+        return 0;
+    }
+
+    yaml_stream_start_event_initialize(&event_stream_start, encoding);
+    if (!yaml_emitter_emit(&dumper.emitter, &event_stream_start)) {
+        PUTBACK;
+        return 0;
+    }
+
+    dumper.anchors = (HV *)sv_2mortal((SV *)newHV());
+    dumper.shadows = (HV *)sv_2mortal((SV *)newHV());
+
+    /* ST(0) is the file */
+    for (i = 1; i < items; i++) {
+        dumper.anchor = 0;
+
+        dump_prewalk(&dumper, ST(i));
+        dump_document(&dumper, ST(i));
+
+        hv_clear(dumper.anchors);
+        hv_clear(dumper.shadows);
+    }
+
+    /* End emitting and destroy the emitter object */
+    yaml_stream_end_event_initialize(&event_stream_end);
+    if (!yaml_emitter_emit(&dumper.emitter, &event_stream_end)) {
+        PUTBACK;
+        return 0;
+    }
+    yaml_emitter_delete(&dumper.emitter);
+    if (file)
+        fclose(file);
+    else if (SvTYPE(sv_file) == SVt_PVIO)
+        PerlIO_close(IoOFP(sv_file));
+
     PUTBACK;
+    return 1;
 }
 
 /*
@@ -592,30 +918,26 @@ Dump(SV *dummy, ...)
  * seen twice you can stop walking it. That way we can handle circular refs.
  * All the node information is stored in an HV.
  */
-void
+static void
 dump_prewalk(perl_yaml_dumper_t *dumper, SV *node)
 {
-    int i, len;
+    int i;
     U32 ref_type;
 
     if (! (SvROK(node) || SvTYPE(node) == SVt_PVGV)) return;
 
     {
         SV *object = SvROK(node) ? SvRV(node) : node;
-        SV **seen =
-            hv_fetch(dumper->anchors, (char *)&object, sizeof(object), 0);
+        SV **seen = hv_fetch(dumper->anchors, (char *)&object, sizeof(object), 0);
         if (seen) {
             if (*seen == &PL_sv_undef) {
-                hv_store(
-                    dumper->anchors, (char *)&object, sizeof(object),
-                    &PL_sv_yes, 0
-                );
+              (void)hv_store(dumper->anchors, (char *)&object, sizeof(object),
+                             &PL_sv_yes, 0);
             }
             return;
         }
-        hv_store(
-            dumper->anchors, (char *)&object, sizeof(object), &PL_sv_undef, 0
-        );
+        (void)hv_store(dumper->anchors, (char *)&object, sizeof(object),
+                       &PL_sv_undef, 0);
     }
 
     if (SvTYPE(node) == SVt_PVGV) {
@@ -648,7 +970,7 @@ dump_prewalk(perl_yaml_dumper_t *dumper, SV *node)
     }
 }
 
-void
+static void
 dump_document(perl_yaml_dumper_t *dumper, SV *node)
 {
     yaml_event_t event_document_start;
@@ -662,18 +984,18 @@ dump_document(perl_yaml_dumper_t *dumper, SV *node)
     yaml_emitter_emit(&dumper->emitter, &event_document_end);
 }
 
-void
+static void
 dump_node(perl_yaml_dumper_t *dumper, SV *node)
 {
     yaml_char_t *anchor = NULL;
     yaml_char_t *tag = NULL;
-    const char *class = NULL;
+    const char *klass = NULL;
 
     if (SvTYPE(node) == SVt_PVGV) {
         SV **svr;
         tag = (yaml_char_t *)TAG_PERL_PREFIX "glob";
         anchor = get_yaml_anchor(dumper, node);
-        if (anchor && strEQ((char *)anchor, "")) return;
+        if (anchor && strEQc((char *)anchor, "")) return;
         svr = hv_fetch(dumper->shadows, (char *)&node, sizeof(node), 0);
         if (svr) {
             node = SvREFCNT_inc(*svr);
@@ -697,9 +1019,9 @@ dump_node(perl_yaml_dumper_t *dumper, SV *node)
             if (SvMAGICAL(rnode)) {
                 if ((mg = mg_find(rnode, PERL_MAGIC_qr))) {
                     tag = (yaml_char_t *)form(TAG_PERL_PREFIX "regexp");
-                    class = sv_reftype(rnode, TRUE);
-                    if (!strEQ(class, "Regexp"))
-                        tag = (yaml_char_t *)form("%s:%s", tag, class);
+                    klass = sv_reftype(rnode, TRUE);
+                    if (!strEQc(klass, "Regexp"))
+                        tag = (yaml_char_t *)form("%s:%s", tag, klass);
                 }
             }
             else {
@@ -711,12 +1033,12 @@ dump_node(perl_yaml_dumper_t *dumper, SV *node)
             }
             dump_scalar(dumper, node, tag);
         }
-#if PERL_REVISION > 5 || (PERL_REVISION == 5 && PERL_VERSION >= 11)
+#if PERL_VERSION >= 11
         else if (ref_type == SVt_REGEXP) {
             yaml_char_t *tag = (yaml_char_t *)form(TAG_PERL_PREFIX "regexp");
-            class = sv_reftype(rnode, TRUE);
-                if (!strEQ(class, "Regexp"))
-                     tag = (yaml_char_t *)form("%s:%s", tag, class);
+            klass = sv_reftype(rnode, TRUE);
+            if (!strEQc(klass, "Regexp"))
+                tag = (yaml_char_t *)form("%s:%s", tag, klass);
             dump_scalar(dumper, node, tag);
         }
 #endif
@@ -733,7 +1055,7 @@ dump_node(perl_yaml_dumper_t *dumper, SV *node)
     }
 }
 
-yaml_char_t *
+static yaml_char_t *
 get_yaml_anchor(perl_yaml_dumper_t *dumper, SV *node)
 {
     yaml_event_t event_alias;
@@ -743,7 +1065,7 @@ get_yaml_anchor(perl_yaml_dumper_t *dumper, SV *node)
         if (*seen == &PL_sv_yes) {
             dumper->anchor++;
             iv = newSViv(dumper->anchor);
-            hv_store(dumper->anchors, (char *)&node, sizeof(node), iv, 0);
+            (void)hv_store(dumper->anchors, (char *)&node, sizeof(node), iv, 0);
             return (yaml_char_t*)SvPV_nolen(iv);
         }
         else {
@@ -756,48 +1078,54 @@ get_yaml_anchor(perl_yaml_dumper_t *dumper, SV *node)
     return NULL;
 }
 
-yaml_char_t *
+static yaml_char_t *
 get_yaml_tag(SV *node)
 {
-    yaml_char_t *tag;
-    const char *class;
-    const char *kind = "";
-    if (! (
-        sv_isobject(node) ||
-        (SvRV(node) && ( SvTYPE(SvRV(node)) == SVt_PVCV))
-    )) return NULL;
-    class = sv_reftype(SvRV(node), TRUE);
+    yaml_char_t *tag = NULL;
+    char *kind = (char*)"";
+    char *klass;
+
+    if (! (sv_isobject(node)
+           || (SvRV(node) && ( SvTYPE(SvRV(node)) == SVt_PVCV))))
+        return NULL;
+    klass = (char *)sv_reftype(SvRV(node), TRUE);
 
     switch (SvTYPE(SvRV(node))) {
-        case SVt_PVAV: { kind = "array"; break; }
-        case SVt_PVHV: { kind = "hash"; break; }
-        case SVt_PVCV: { kind = "code"; break; }
+        case SVt_PVAV:
+          tag = (yaml_char_t *)form("%s%s:%s", TAG_PERL_PREFIX, "array", klass);
+          break;
+        case SVt_PVHV:
+          tag = (yaml_char_t *)form("%s%s:%s", TAG_PERL_PREFIX, "hash", klass);
+          break;
+        case SVt_PVCV:
+          kind = (char*)"code";
+          if (strEQc(klass, "CODE"))
+            tag = (yaml_char_t *)form("%s%s", TAG_PERL_PREFIX, kind);
+          break;
+        default:
+          tag = (yaml_char_t *)form("%s%s", TAG_PERL_PREFIX, klass);
+          break;
     }
-    if ((strlen(kind) == 0))
-        tag = (yaml_char_t *)form("%s%s", TAG_PERL_PREFIX, class);
-    else if (SvTYPE(SvRV(node)) == SVt_PVCV && strEQ(class, "CODE"))
-        tag = (yaml_char_t *)form("%s%s", TAG_PERL_PREFIX, kind);
-    else
-        tag = (yaml_char_t *)form("%s%s:%s", TAG_PERL_PREFIX, kind, class);
+    if (!tag)
+      tag = (yaml_char_t *)form("%s%s:%s", TAG_PERL_PREFIX, kind, klass);
     return tag;
 }
 
-void
+static void
 dump_hash(
     perl_yaml_dumper_t *dumper, SV *node,
     yaml_char_t *anchor, yaml_char_t *tag)
 {
     yaml_event_t event_mapping_start;
     yaml_event_t event_mapping_end;
-    int i;
-    int len;
+    STRLEN i, len;
     AV *av;
     HV *hash = (HV *)SvRV(node);
     HE *he;
 
     if (!anchor)
         anchor = get_yaml_anchor(dumper, (SV *)hash);
-    if (anchor && strEQ((char*)anchor, "")) return;
+    if (anchor && strEQc((char*)anchor, "")) return;
 
     if (!tag)
         tag = get_yaml_tag(node);
@@ -831,25 +1159,25 @@ dump_hash(
     yaml_emitter_emit(&dumper->emitter, &event_mapping_end);
 }
 
-void
+static void
 dump_array(perl_yaml_dumper_t *dumper, SV *node)
 {
     yaml_event_t event_sequence_start;
     yaml_event_t event_sequence_end;
-    int i;
     yaml_char_t *tag;
     AV *array = (AV *)SvRV(node);
-    int array_size = av_len(array) + 1;
+    STRLEN i;
+    STRLEN array_size = av_len(array) + 1;
 
     yaml_char_t *anchor = get_yaml_anchor(dumper, (SV *)array);
-    if (anchor && strEQ((char *)anchor, "")) return;
+    if (anchor && strEQc((char *)anchor, "")) return;
     tag = get_yaml_tag(node);
 
     yaml_sequence_start_event_initialize(
         &event_sequence_start, anchor, tag, 0, YAML_BLOCK_SEQUENCE_STYLE
     );
-
     yaml_emitter_emit(&dumper->emitter, &event_sequence_start);
+
     for (i = 0; i < array_size; i++) {
         SV **entry = av_fetch(array, i, 0);
         if (entry == NULL)
@@ -861,7 +1189,7 @@ dump_array(perl_yaml_dumper_t *dumper, SV *node)
     yaml_emitter_emit(&dumper->emitter, &event_sequence_end);
 }
 
-void
+static void
 dump_scalar(perl_yaml_dumper_t *dumper, SV *node, yaml_char_t *tag)
 {
     yaml_event_t event_scalar;
@@ -898,29 +1226,30 @@ dump_scalar(perl_yaml_dumper_t *dumper, SV *node, yaml_char_t *tag)
         string = SvPV_nomg(node, string_len);
         if (
             (string_len == 0) ||
-            strEQ(string, "~") ||
-            strEQ(string, "true") ||
-            strEQ(string, "false") ||
-            strEQ(string, "null") ||
+            strEQc(string, "~") ||
+            strEQc(string, "true") ||
+            strEQc(string, "false") ||
+            strEQc(string, "null") ||
             (SvTYPE(node) >= SVt_PVGV) ||
             ( dumper->quote_number_strings && !SvNIOK(node) && looks_like_number(node) )
         ) {
             style = YAML_SINGLE_QUOTED_SCALAR_STYLE;
         } else {
             if (!SvUTF8(node)) {
-            /* copy to new SV and promote to utf8 */
-            SV *utf8sv = sv_mortalcopy(node);
+                /* copy to new SV and promote to utf8 */
+                SV *utf8sv = sv_mortalcopy(node);
 
-            /* get string and length out of utf8 */
-            string = SvPVutf8(utf8sv, string_len);
+                /* get string and length out of utf8 */
+                string = SvPVutf8(utf8sv, string_len);
             }
             if(strchr(string, '\n'))
-               style = (string_len > 30) ? YAML_LITERAL_SCALAR_STYLE : YAML_DOUBLE_QUOTED_SCALAR_STYLE;
+               style = (string_len > 30) ? YAML_LITERAL_SCALAR_STYLE
+                                         : YAML_DOUBLE_QUOTED_SCALAR_STYLE;
         }
     }
     yaml_scalar_event_initialize(
         &event_scalar,
-        NULL,
+        NULL, /* anchor */
         tag,
         (unsigned char *) string,
         (int) string_len,
@@ -935,7 +1264,7 @@ dump_scalar(perl_yaml_dumper_t *dumper, SV *node, yaml_char_t *tag)
         );
 }
 
-void
+static void
 dump_code(perl_yaml_dumper_t *dumper, SV *node)
 {
     yaml_event_t event_scalar;
@@ -960,7 +1289,7 @@ dump_code(perl_yaml_dumper_t *dumper, SV *node)
 
     yaml_scalar_event_initialize(
         &event_scalar,
-        NULL,
+        NULL, /* anchor */
         tag,
         (unsigned char *)string,
         strlen(string),
@@ -972,7 +1301,7 @@ dump_code(perl_yaml_dumper_t *dumper, SV *node)
     yaml_emitter_emit(&dumper->emitter, &event_scalar);
 }
 
-SV *
+static SV *
 dump_glob(perl_yaml_dumper_t *dumper, SV *node)
 {
     SV *result;
@@ -981,15 +1310,13 @@ dump_glob(perl_yaml_dumper_t *dumper, SV *node)
     av_push(args, SvREFCNT_inc(node));
     args = (AV *)sv_2mortal((SV *)args);
     result = call_coderef(code, args);
-    hv_store(
-        dumper->shadows, (char *)&node, sizeof(node),
-        result, 0
-    );
+    (void)hv_store(dumper->shadows, (char *)&node, sizeof(node),
+                   result, 0);
     return result;
 }
 
 /* XXX Refo this to just dump a special map */
-void
+static void
 dump_ref(perl_yaml_dumper_t *dumper, SV *node)
 {
     yaml_event_t event_mapping_start;
@@ -998,7 +1325,7 @@ dump_ref(perl_yaml_dumper_t *dumper, SV *node)
     SV *referent = SvRV(node);
 
     yaml_char_t *anchor = get_yaml_anchor(dumper, referent);
-    if (anchor && strEQ((char *)anchor, "")) return;
+    if (anchor && strEQc((char *)anchor, "")) return;
 
     yaml_mapping_start_event_initialize(
         &event_mapping_start, anchor,
@@ -1009,7 +1336,8 @@ dump_ref(perl_yaml_dumper_t *dumper, SV *node)
 
     yaml_scalar_event_initialize(
         &event_scalar,
-        NULL, NULL,
+        NULL, /* anchor */
+        NULL, /* tag */
         (unsigned char *)"=", 1,
         1, 1,
         YAML_PLAIN_SCALAR_STYLE
@@ -1021,11 +1349,27 @@ dump_ref(perl_yaml_dumper_t *dumper, SV *node)
     yaml_emitter_emit(&dumper->emitter, &event_mapping_end);
 }
 
-int
-append_output(void *yaml, unsigned char *buffer, size_t size)
+static int
+append_output(void *sv, unsigned char *buffer, size_t size)
 {
-    sv_catpvn((SV *)yaml, (const char *)buffer, (STRLEN)size);
+    sv_catpvn((SV *)sv, (const char *)buffer, (STRLEN)size);
     return 1;
+}
+
+static int
+yaml_perlio_read_handler(void *data, unsigned char *buffer, size_t size, size_t *size_read)
+{
+    perl_yaml_loader_t *loader = (perl_yaml_loader_t *)data;
+
+    *size_read = PerlIO_read(loader->perlio, buffer, size);
+    return !PerlIO_error(loader->perlio);
+}
+
+static int
+yaml_perlio_write_handler(void *data, unsigned char *buffer, size_t size)
+{
+    perl_yaml_dumper_t *dumper = (perl_yaml_dumper_t *)data;
+    return (PerlIO_write(dumper->perlio, (char*)buffer, (long)size) == (SSize_t)size);
 }
 
 /* XXX Make -Wall not complain about 'local_patches' not being used. */

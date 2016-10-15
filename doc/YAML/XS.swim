@@ -12,36 +12,137 @@ Perl YAML Serialization using XS and libyaml
   my $yaml = Dump [ 1..4 ];
   my $array = Load $yaml;
 
+  my $yaml = DumpFile ("my.yml", [ 1..4 ]);
+  my $array = LoadFile "my.yml";
+
 = Description
 
-Kirill Siminov's `libyaml` is arguably the best YAML implementation.  The C
-library is written precisely to the YAML 1.1 specification. It was originally
-bound to Python and was later bound to Ruby.
+Kirill Siminov's `libyaml` is a good YAML library implementation. The
+C library is written precisely to the YAML 1.1 specification, and
+offers YAML 1.2 support. It was originally bound to Python and was
+later bound to Ruby. `libsyck` is written a bit more elegant, has less
+bugs, is not as strict as libyaml, but misses some YAML features. It
+can only do YAML 1.1
 
-This module is a Perl XS binding to libyaml which offers Perl the best YAML
-support to date.
+This module is a Perl XS binding to libyaml which offers Perl somewhat
+acceptable YAML support to date.
 
-This module exports the functions `Dump`, `Load`, `DumpFile` and `LoadFile`.
-These functions are intended to work exactly like `YAML.pm`'s corresponding
-functions.
+This module exports the functions `Dump`, `Load`, `DumpFile` and
+`LoadFile`. These functions are intended to work exactly like `YAML.pm`'s
+corresponding functions.
+
+If you set the option `$YAML::XS::IndentlessMap` to 0 or undef,
+`YAML::XS` will behave like with version E<lt> 0.70, which creates yml
+files which cannot be read by `YAML.pm`
+
+However the loader is stricter than `YAML`, `YAML::Syck` and
+`CPAN::Meta::YAML` i.e. `YAML::Tiny` as used in core.  Set the
+variable `$YAML::XS::NonStrict` to allow certain reader errors to
+pass the `CPAN::Meta` validation testsuite.
 
 = Configuration
 
-- `$YAML::XS::UseCode`
+== Loader Options
 
-- `$YAML::XS::DumpCode`
+via globals variables only, so far. Affecting Load and LoadFile.
 
-- `$YAML::XS::LoadCode`
+-- `$YAML::XS::NonStrict`
 
-  If enabled supports deparsing and evaling of code blocks.
+Permit certain reader errors to loosely match other YAML module
+semantics.  In detail: Allow `"control characters are not allowed"`.
+Note that any error is stored and returned, just not immediately.
 
-- `$YAML::XS::QuoteNumericStrings`
+However the reader error `"invalid trailing UTF-8 octet"` and all other utf8
+strictness violations are still fatal.
 
-  When true (the default) strings that look like numbers but have not been
-  numified will be quoted when dumping.
+And if the structure of the YAML document cannot be parsed, i.e. a
+required value consists only of invalid control characters, the loader
+returns an error, unlike with non-strict YAML modules.
 
-  This ensures leading that things like leading zeros and other formatting are
-  preserved.
+-- `$YAML::XS::LoadCode`
+
+Ignored.
+If enabled supports deparsing and evaling of code blocks.
+
+== Dumper Options
+
+via globals variables only, so far. Affecting Dump and DumpFile
+
+-- `$YAML::XS::UseCode`
+
+If enabled supports Dump of CV code blocks via `YAML::XS::coderef2text()`.
+
+-- `$YAML::XS::DumpCode`
+
+If enabled supports Dump of CV code blocks via `YAML::XS::coderef2text()`.
+
+-- `$YAML::XS::QuoteNumericStrings`
+
+When true (the default) strings that look like numbers but have not been
+numified will be quoted when dumping.
+
+This ensures leading that things like leading zeros and other formatting are
+preserved.
+
+-- `$YAML::XS::IndentlessMap`
+
+Default 0
+
+Set to 1 or a true value to fallback to the old `YAML::XS` behavior to
+omit the indentation of map keys, which arguably violates the YAML
+spec, is different to all other YAML libraries and causes `YAML.pm` to
+fail.
+
+With 0
+
+   authors:
+     - this author
+
+With 1
+
+   authors:
+   - this author
+
+-- `$YAML::XS::Indent`
+
+Default 2
+
+-- `$YAML::XS::BestWidth`
+
+Default 80
+
+Control text wrapping.
+
+-- `$YAML::XS::Canonical`
+
+Default 1
+
+Set to undef or 0 to disable sorting map keys.
+
+-- `$YAML::XS::Unicode`
+
+Default 1
+
+Set to undef or 0 to disallow unescaped non-ASCII characters.
+
+-- `$YAML::XS::Encoding`
+
+Default utf8
+
+Set to any, utf8, utf16le or utf16be
+
+-- `$YAML::XS::LineBreak`
+
+Default ln
+
+Set to any, cr, ln or crln.
+
+-- `$YAML::XS::OpenEnded`
+
+Default 0
+
+Set to 1 or a true value to embed the yaml into "...".
+If an explicit document end is required.
 
 = Using YAML::XS with Unicode
 
@@ -59,5 +160,6 @@ are having problems, use Devel::Peek on all the possible data points.
 * YAML.pm
 * YAML::Syck
 * YAML::Tiny
+* CPAN::Meta::YAML
 
 <<<cpan-tail>>>

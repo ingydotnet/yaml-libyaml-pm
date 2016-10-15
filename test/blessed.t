@@ -1,4 +1,6 @@
 use t::TestYAMLTests tests => 10;
+no warnings 'once';
+$YAML::XS::IndentlessMap = 1;
 
 filters {
     perl => 'eval',
