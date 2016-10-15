@@ -13,6 +13,27 @@
 #define NEED_sv_2pv_nolen
 #define NEED_sv_2pvbyte
 #include "ppport.h"
+
+#ifndef GV_NOADD_NOINIT
+#define GV_NOADD_NOINIT 0
+#endif
+#ifndef SvIV_please
+#define SvIV_please(sv) \
+  STMT_START {if (!SvIOKp(sv) && (SvFLAGS(sv) & (SVf_NOK|SVf_POK))) \
+      (void) SvIV(sv); } STMT_END
+#endif
+#ifndef memEQs
+/* checks length before. */
+#define memEQs(s1, l, s2) \
+	(sizeof(s2)-1 == l && memEQ(s1, ("" s2 ""), (sizeof(s2)-1)))
+#endif
+/* cperl optims */
+#ifndef strEQc
+/* the buffer ends with \0, includes comparison of the \0.
+   better than strEQ as it uses memcmp, word-wise comparison. */
+#define strEQc(s, c) memEQ(s, ("" c ""), sizeof(c))
+#endif
+
 #include <yaml.h>
 #include <ppport_sort.h>
 
@@ -22,14 +43,18 @@
 #define TAG_PERL_GLOB TAG_PERL_PREFIX "glob"
 #define ERRMSG "YAML::XS Error: "
 #define LOADERRMSG "YAML::XS::Load Error: "
+#define LOADFILEERRMSG "YAML::XS::LoadFile Error: "
 #define DUMPERRMSG "YAML::XS::Dump Error: "
 
 typedef struct {
     yaml_parser_t parser;
     yaml_event_t event;
     HV *anchors;
-    int load_code;
     int document;
+    char *filename;
+    PerlIO *perlio;
+    unsigned disable_code     : 1;	/** security: disable loading code */
+    unsigned disable_blessed  : 1;	/** security: disable blessing objects */
 } perl_yaml_loader_t;
 
 typedef struct {
@@ -37,91 +62,21 @@ typedef struct {
     long anchor;
     HV *anchors;
     HV *shadows;
-    int dump_code;
-    int quote_number_strings;
+    char *filename;
+    PerlIO *perlio;
+    unsigned dump_code : 1;		/** security: disable dumping code */
+    unsigned quote_number_strings : 1;
 } perl_yaml_dumper_t;
 
-static SV *
-call_coderef(SV *, AV *);
-
-static SV *
-fold_results(I32);
-
-static SV *
-find_coderef(char *);
-
-void
-set_dumper_options(perl_yaml_dumper_t *);
-
-void
-set_loader_options(perl_yaml_dumper_t *);
-
-void
-Dump(SV *, ...);
-
-void
-Load(SV *);
-
-SV *
-load_node(perl_yaml_loader_t *);
-
-SV *
-load_mapping(perl_yaml_loader_t *, char *);
-
-SV *
-load_sequence(perl_yaml_loader_t *);
-
-SV *
-load_scalar(perl_yaml_loader_t *);
-
-SV *
-load_alias(perl_yaml_loader_t *);
-
-SV *
-load_scalar_ref(perl_yaml_loader_t *);
-
-SV *
-load_regexp(perl_yaml_loader_t *);
-
-SV *
-load_glob(perl_yaml_loader_t *);
-
-
-void
-dump_prewalk(perl_yaml_dumper_t *, SV *);
-
-void
-dump_document(perl_yaml_dumper_t *, SV *);
-
-void
-dump_node(perl_yaml_dumper_t *, SV *);
-
-void
-dump_hash(perl_yaml_dumper_t *, SV *, yaml_char_t *, yaml_char_t *);
-
-void
-dump_array(perl_yaml_dumper_t *, SV *);
-
-void
-dump_scalar(perl_yaml_dumper_t *, SV *, yaml_char_t *);
-
-void
-dump_ref(perl_yaml_dumper_t *, SV *);
-
-void
-dump_code(perl_yaml_dumper_t *, SV *);
-
-SV*
-dump_glob(perl_yaml_dumper_t *, SV *);
-
-
-yaml_char_t *
-get_yaml_anchor(perl_yaml_dumper_t *, SV *);
-
-yaml_char_t *
-get_yaml_tag(SV *);
-
+int
+Dump();
 
 int
-append_output(void *, unsigned char *, size_t size);
+DumpFile(SV *);
+
+int
+Load(SV *);
+
+int
+LoadFile(SV *);
 
