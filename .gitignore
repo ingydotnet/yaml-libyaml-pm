@@ -47,3 +47,4 @@ Makefile.old
 YAML-LibYAML-*.tar.gz
 inc/
 lib/YAML/LibYAML.pod
+.dir-locals.el

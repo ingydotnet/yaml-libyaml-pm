@@ -1,4 +1,9 @@
 ---
+version: 0.75
+date:    Sat Oct 15 13:08:01 2016 rurban
+changes:
+- implement $DisableBlessed disabling blessing of custom tags.
+---
 version: 0.74
 date:    Fri Oct 14 22:33:08 2016 rurban
 changes:

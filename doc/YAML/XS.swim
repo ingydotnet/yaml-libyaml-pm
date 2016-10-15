@@ -15,6 +15,11 @@ Perl YAML Serialization using XS and libyaml
   my $yaml = DumpFile ("my.yml", [ 1..4 ]);
   my $array = LoadFile "my.yml";
 
+  { # security, disable custom tags
+    local $YAML::XS::DisableBlessed = 1;
+    my $array = LoadFile("META.yml");
+  }
+
 = Description
 
 Kirill Siminov's `libyaml` is a good YAML library implementation. The
@@ -33,7 +38,7 @@ corresponding functions.
 
 If you set the option `$YAML::XS::IndentlessMap` to 0 or undef,
 `YAML::XS` will behave like with version E<lt> 0.70, which creates yml
-files which cannot be read by `YAML.pm`
+files which cannot be read by `YAML.pm`.
 
 However the loader is stricter than `YAML`, `YAML::Syck` and
 `CPAN::Meta::YAML` i.e. `YAML::Tiny` as used in core.  Set the
@@ -46,7 +51,7 @@ pass the `CPAN::Meta` validation testsuite.
 
 via globals variables only, so far. Affecting Load and LoadFile.
 
--- `$YAML::XS::NonStrict`
+* `$YAML::XS::NonStrict`
 
 Permit certain reader errors to loosely match other YAML module
 semantics.  In detail: Allow `"control characters are not allowed"`.
@@ -59,24 +64,29 @@ And if the structure of the YAML document cannot be parsed, i.e. a
 required value consists only of invalid control characters, the loader
 returns an error, unlike with non-strict YAML modules.
 
--- `$YAML::XS::LoadCode`
+* `$YAML::XS::DisableCode`
 
-Ignored.
-If enabled supports deparsing and evaling of code blocks.
+Not yet implemented.
+Disables support for deparsing and evaling of code blocks while loading.
+
+* `$YAML::XS::DisableBlessed`
+
+Disables support for blessing custom tags while loading, but allows
+pure perl tags, such as array, hash and scalar.
 
 == Dumper Options
 
 via globals variables only, so far. Affecting Dump and DumpFile
 
--- `$YAML::XS::UseCode`
+* `$YAML::XS::UseCode`
 
 If enabled supports Dump of CV code blocks via `YAML::XS::coderef2text()`.
 
--- `$YAML::XS::DumpCode`
+* `$YAML::XS::DumpCode`
 
 If enabled supports Dump of CV code blocks via `YAML::XS::coderef2text()`.
 
--- `$YAML::XS::QuoteNumericStrings`
+* `$YAML::XS::QuoteNumericStrings`
 
 When true (the default) strings that look like numbers but have not been
 numified will be quoted when dumping.
@@ -84,7 +94,7 @@ numified will be quoted when dumping.
 This ensures leading that things like leading zeros and other formatting are
 preserved.
 
--- `$YAML::XS::IndentlessMap`
+* `$YAML::XS::IndentlessMap`
 
 Default 0
 
@@ -103,41 +113,41 @@ With 1
    authors:
    - this author
 
--- `$YAML::XS::Indent`
+* `$YAML::XS::Indent`
 
 Default 2
 
--- `$YAML::XS::BestWidth`
+* `$YAML::XS::BestWidth`
 
 Default 80
 
 Control text wrapping.
 
--- `$YAML::XS::Canonical`
+* `$YAML::XS::Canonical`
 
 Default 1
 
 Set to undef or 0 to disable sorting map keys.
 
--- `$YAML::XS::Unicode`
+* `$YAML::XS::Unicode`
 
 Default 1
 
 Set to undef or 0 to disallow unescaped non-ASCII characters.
 
--- `$YAML::XS::Encoding`
+* `$YAML::XS::Encoding`
 
 Default utf8
 
 Set to any, utf8, utf16le or utf16be
 
--- `$YAML::XS::LineBreak`
+* `$YAML::XS::LineBreak`
 
 Default ln
 
 Set to any, cr, ln or crln.
 
--- `$YAML::XS::OpenEnded`
+* `$YAML::XS::OpenEnded`
 
 Default 0
 

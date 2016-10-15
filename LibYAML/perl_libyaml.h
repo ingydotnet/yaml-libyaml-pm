@@ -50,10 +50,11 @@ typedef struct {
     yaml_parser_t parser;
     yaml_event_t event;
     HV *anchors;
-    int load_code;
     int document;
     char *filename;
     PerlIO *perlio;
+    unsigned disable_code     : 1;	/** security: disable loading code */
+    unsigned disable_blessed  : 1;	/** security: disable blessing objects */
 } perl_yaml_loader_t;
 
 typedef struct {
@@ -61,10 +62,10 @@ typedef struct {
     long anchor;
     HV *anchors;
     HV *shadows;
-    int dump_code;
-    int quote_number_strings;
     char *filename;
     PerlIO *perlio;
+    unsigned dump_code : 1;		/** security: disable dumping code */
+    unsigned quote_number_strings : 1;
 } perl_yaml_dumper_t;
 
 int
