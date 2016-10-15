@@ -14,6 +14,19 @@
 #define NEED_sv_2pvbyte
 #include "ppport.h"
 
+#ifndef GV_NOADD_NOINIT
+#define GV_NOADD_NOINIT 0
+#endif
+#ifndef SvIV_please
+#define SvIV_please(sv) \
+  STMT_START {if (!SvIOKp(sv) && (SvFLAGS(sv) & (SVf_NOK|SVf_POK))) \
+      (void) SvIV(sv); } STMT_END
+#endif
+#ifndef memEQs
+/* checks length before. */
+#define memEQs(s1, l, s2) \
+	(sizeof(s2)-1 == l && memEQ(s1, ("" s2 ""), (sizeof(s2)-1)))
+#endif
 /* cperl optims */
 #ifndef strEQc
 /* the buffer ends with \0, includes comparison of the \0.
