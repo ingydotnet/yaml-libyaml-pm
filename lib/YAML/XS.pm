@@ -50,15 +50,11 @@ sub LoadFile {
     return YAML::XS::LibYAML::Load(do { local $/; local $_ = <$IN> });
 }
 
-# XXX Figure out how to lazily load this module.
-# So far I've tried using the C function:
-#      load_module(PERL_LOADMOD_NOIMPORT, newSVpv("B::Deparse", 0), NULL);
-# But it didn't seem to work.
-use B::Deparse;
 
 # XXX The following code should be moved from Perl to C.
 $YAML::XS::coderef2text = sub {
     my $coderef = shift;
+    require B::Deparse;
     my $deparse = B::Deparse->new();
     my $text;
     eval {
