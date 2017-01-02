@@ -23,11 +23,13 @@ perl:
 install:
 - perlbrew install-cpanm -f
 - git clone https://github.com/ingydotnet/test-base-pm
-  ../test-base-pm
+    ../test-base-pm
+# Travis Dist::Zilla was out of date on Jan 2, 2017
+# Remove 'Dist::Zilla' after fixed.
 - cpanm --quiet --notest
-  Test::Base
-  Zilla::Dist
-  Dist::Zilla
+    Test::Base
+    Zilla::Dist
+    Dist::Zilla
 
 script:
 - zild disttest
