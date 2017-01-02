@@ -25,7 +25,7 @@ install:
 - cpanm --quiet --notest
   Test::Base
   Zilla::Dist
-- cpanm -n Path::Class
+- cpanm -n -f Dist::Zilla::Plugin::ReadmeFromPod
 
 script:
 - zild disttest
