@@ -25,6 +25,7 @@ install:
 - cpanm --quiet --notest
   Test::Base
   Zilla::Dist
+- cpanm -n Path::Class
 
 script:
 - zild disttest
