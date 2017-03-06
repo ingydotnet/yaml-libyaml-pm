@@ -14,9 +14,9 @@ use Tie::Hash;
 
 my $yaml1 = <<'...';
 ---
-- 'foo'
-- 'bar'
-- 'baz'
+- foo
+- bar
+- baz
 ...
 
 {
@@ -29,9 +29,9 @@ my $yaml1 = <<'...';
 
 my $yaml2 = <<'...';
 ---
-bar: 'bar'
-baz: 'baz'
-foo: 'foo'
+bar: bar
+baz: baz
+foo: foo
 ...
 
 {
