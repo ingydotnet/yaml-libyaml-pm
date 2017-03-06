@@ -895,21 +895,22 @@ dump_scalar(perl_yaml_dumper_t *dumper, SV *node, yaml_char_t *tag)
         style = YAML_PLAIN_SCALAR_STYLE;
     }
     else {
-        string = SvPV_nomg(node, string_len);
+        SV *node_clone = sv_mortalcopy(node);
+        string = SvPV_nomg(node_clone, string_len);
         if (
             (string_len == 0) ||
             strEQ(string, "~") ||
             strEQ(string, "true") ||
             strEQ(string, "false") ||
             strEQ(string, "null") ||
-            (SvTYPE(node) >= SVt_PVGV) ||
-            ( dumper->quote_number_strings && !SvNIOK(node) && looks_like_number(node) )
+            (SvTYPE(node_clone) >= SVt_PVGV) ||
+            ( dumper->quote_number_strings && !SvNIOK(node_clone) && looks_like_number(node_clone) )
         ) {
             style = YAML_SINGLE_QUOTED_SCALAR_STYLE;
         } else {
-            if (!SvUTF8(node)) {
+            if (!SvUTF8(node_clone)) {
             /* copy to new SV and promote to utf8 */
-            SV *utf8sv = sv_mortalcopy(node);
+            SV *utf8sv = sv_mortalcopy(node_clone);
 
             /* get string and length out of utf8 */
             string = SvPVutf8(utf8sv, string_len);
