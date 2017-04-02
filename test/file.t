@@ -1,4 +1,6 @@
-use t::TestYAML tests => 7;
+use FindBin '$Bin';
+use lib $Bin;
+use TestYAML tests => 7;
 
 use YAML::XS qw'LoadFile';
 

@@ -1,4 +1,6 @@
-use t::TestYAMLTests tests => 3;
+use FindBin '$Bin';
+use lib $Bin;
+use TestYAMLTests tests => 3;
 
 #-------------------------------------------------------------------------------
 my $sub = sub { print "Hi.\n" };

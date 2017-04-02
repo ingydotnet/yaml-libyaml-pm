@@ -1,4 +1,6 @@
-use t::TestYAMLTests tests => 11;
+use FindBin '$Bin';
+use lib $Bin;
+use TestYAMLTests tests => 11;
 
 run {
     my $block = shift;

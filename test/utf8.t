@@ -1,4 +1,6 @@
-use t::TestYAMLTests tests => 8;
+use FindBin '$Bin';
+use lib $Bin;
+use TestYAMLTests tests => 8;
 use utf8;
 
 is Dump("\x{100}"), "--- \xC4\x80\n", 'Dumping wide char works';

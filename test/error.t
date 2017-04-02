@@ -1,4 +1,6 @@
-use t::TestYAMLTests tests => 25;
+use FindBin '$Bin';
+use lib $Bin;
+use TestYAMLTests tests => 25;
 
 filters {
     error => ['lines', 'chomp'],

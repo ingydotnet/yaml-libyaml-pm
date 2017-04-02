@@ -1,4 +1,6 @@
-use t::TestYAMLTests tests => 4;
+use FindBin '$Bin';
+use lib $Bin;
+use TestYAMLTests tests => 4;
 
 y2n("Explicit tag on array");
 y2n("Very explicit tag on array");

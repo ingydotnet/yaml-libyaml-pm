@@ -1,4 +1,6 @@
-use t::TestYAMLTests tests => 7;
+use FindBin '$Bin';
+use lib $Bin;
+use TestYAMLTests tests => 7;
 
 is utf8::is_utf8(Load("--- Foo\n")), !!0, 'ASCII string does not have UTF8 flag on';
 

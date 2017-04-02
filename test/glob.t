@@ -1,4 +1,6 @@
-use t::TestYAMLTests tests => 2;
+use FindBin '$Bin';
+use lib $Bin;
+use TestYAMLTests tests => 2;
 no warnings 'once';
 
 $main::G1 = "Hello";

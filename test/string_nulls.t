@@ -1,4 +1,6 @@
-use t::TestYAMLTests tests => 2;
+use FindBin '$Bin';
+use lib $Bin;
+use TestYAMLTests tests => 2;
 
 my $yaml = Dump "foo\0bar";
 

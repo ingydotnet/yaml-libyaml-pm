@@ -1,7 +1,9 @@
+use FindBin '$Bin';
+use lib $Bin;
 use strict;
 use warnings;
 
-use t::TestYAML tests => 2;
+use TestYAML tests => 2;
 use YAML::XS qw/ DumpFile LoadFile /;
 
 my $pc = eval "use Path::Class; 1";

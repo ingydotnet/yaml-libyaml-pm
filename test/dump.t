@@ -1,4 +1,6 @@
-use t::TestYAMLTests tests => 4;
+use FindBin '$Bin';
+use lib $Bin;
+use TestYAMLTests tests => 4;
 
 spec_file('t/data/basic.yml');
 filters {

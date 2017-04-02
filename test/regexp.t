@@ -1,4 +1,6 @@
-use t::TestYAMLTests tests => 18;
+use FindBin '$Bin';
+use lib $Bin;
+use TestYAMLTests tests => 18;
 use Devel::Peek();
 
 my $rx1 = qr/5050/;

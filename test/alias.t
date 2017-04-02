@@ -1,4 +1,6 @@
-use t::TestYAMLTests tests => 10;
+use FindBin '$Bin';
+use lib $Bin;
+use TestYAMLTests tests => 10;
 
 my ($a, $b) = Load(<<'...');
 ---

@@ -1,12 +1,13 @@
+use FindBin '$Bin';
+use lib $Bin;
 use strict;
-use lib -e 't' ? 't' : 'test';
-my $t = -e 't' ? 't' : 'test';
+my $t = $Bin;
 
 use utf8;
 use Encode;
 use IO::Pipe;
 use IO::File;
-use t::TestYAML tests => 6;
+use TestYAML tests => 6;
 use YAML::XS qw/DumpFile LoadFile/;;
 
 my $testdata = 'El país es medible. La patria es del tamaño del corazón de quien la quiere.';
