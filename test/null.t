@@ -1,5 +1,6 @@
-use lib '.';
-use t::TestYAMLTests tests => 5;
+use FindBin '$Bin';
+use lib $Bin;
+use TestYAMLTests tests => 5;
 
 my $array = [
     undef,

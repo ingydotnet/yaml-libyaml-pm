@@ -1,5 +1,6 @@
-use lib '.';
-use t::TestYAMLTests tests => 2;
+use FindBin '$Bin';
+use lib $Bin;
+use TestYAMLTests tests => 2;
 use utf8;
 
 is Dump("1234567890\n1234567890\n1234567890\n"), "--- |

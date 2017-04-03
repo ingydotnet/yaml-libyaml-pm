@@ -1,4 +1,4 @@
-package t::TestYAML;
+package TestYAML;
 use lib 'inc';
 use Test::Base -Base;
 use blib;

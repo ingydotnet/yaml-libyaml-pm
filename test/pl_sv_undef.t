@@ -1,5 +1,6 @@
-use lib '.';
-use t::TestYAML tests => 8;
+use FindBin '$Bin';
+use lib $Bin;
+use TestYAML tests => 8;
 
 use YAML::XS qw(Dump Load);
 

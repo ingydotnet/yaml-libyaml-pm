@@ -1,5 +1,6 @@
-use lib '.';
-use t::TestYAML tests => 20;
+use FindBin '$Bin';
+use lib $Bin;
+use TestYAML tests => 20;
 
 package A;
 use YAML::XS;

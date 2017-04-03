@@ -1,5 +1,6 @@
-use lib '.';
-use t::TestYAMLTests tests => 1;
+use FindBin '$Bin';
+use lib $Bin;
+use TestYAMLTests tests => 1;
 
 my $yaml = <<"...";
 ---

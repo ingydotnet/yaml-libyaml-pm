@@ -1,5 +1,6 @@
-use lib '.';
-use t::TestYAMLTests;
+use FindBin '$Bin';
+use lib $Bin;
+use TestYAMLTests;
 
 BEGIN {
     if ($] < 5.010000) {
