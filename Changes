@@ -1,4 +1,10 @@
 ---
+version: 0.63_002
+date:    Mon  3 Apr 20:55:51 CEST 2017
+changes:
+- use lib FindBin::Bin in tests, preparing for perl 5.26 where '.'
+  gets removed from @INC. Fixes issue #54
+---
 version: 0.63_001
 date:    Tue Jan  3 05:09:14 CET 2017
 changes:
