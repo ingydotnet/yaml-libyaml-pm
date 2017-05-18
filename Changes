@@ -1,4 +1,10 @@
 ---
+version: 0.65
+date:    Thu 18 May 23:09:38 CEST 2017
+changes:
+- Prevent warning about unused variables (see issue#59)
+- Clarify documentation about exported functions
+---
 version: 0.64
 date:    Fri  7 Apr 20:32:01 CEST 2017
 changes:

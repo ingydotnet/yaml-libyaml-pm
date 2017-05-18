@@ -31,7 +31,7 @@ support to date.
 
 This module exports the functions C<Dump>, C<Load>, C<DumpFile> and
 C<LoadFile>. These functions are intended to work exactly like C<YAML.pm>'s
-corresponding functions.
+corresponding functions. Only C<Load> and C<Dump> are exported by default.
 
 =head1 Configuration
 
