@@ -1,6 +1,6 @@
 ---
 version: 0.65_001
-date:    Sun Aug 13 01:10:04 CEST 2017
+date:    Sun Aug 13 13:48:47 CEST 2017
 changes:
 - Apply PR#55 (@vti++)
 - Dump() was modifying original data, adding a PV to numbers
