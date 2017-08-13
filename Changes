@@ -1,4 +1,11 @@
 ---
+version: 0.65_001
+date:    Sun Aug 13 01:10:04 CEST 2017
+changes:
+- Apply PR#55 (@vti++)
+- Dump() was modifying original data, adding a PV to numbers
+- Added a test for this (TINITA++)
+---
 version: 0.65
 date:    Thu 18 May 23:09:38 CEST 2017
 changes:
