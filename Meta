@@ -23,6 +23,33 @@ devel:
 
 requires:
   perl: 5.8.1
+  B::Deparse        : 0
+  Exporter          : 0
+  Scalar::Util      : 0
+  base              : 0
+  constant          : 0
+  strict            : 0
+  warnings          : 0
+
+test:
+  requires:
+    B                  : 0
+    B::Deparse         : 0
+    Devel::Peek        : 0
+    Encode             : 0
+    File::Path         : 0
+    FindBin            : 0
+    IO::File           : 0
+    IO::Pipe           : 0
+    Scalar::Util       : 0
+    Test::More         : 0
+    Tie::Array         : 0
+    Tie::Hash          : 0
+    blib               : 0
+    lib                : 0
+    strict             : 0
+    utf8               : 0
+    warnings           : 0
 
 =zild:
   libname: YAML::XS
