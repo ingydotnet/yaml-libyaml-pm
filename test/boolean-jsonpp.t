@@ -13,7 +13,7 @@ stringfalse: 'false'
 
 
 my $hash = eval { Load $yaml };
-if ($@ and $@ =~ m/JSON::PP/) {
+if ($@ and $@ =~ m{JSON/PP}) {
     plan skip_all => "JSON::PP not installed";
     exit;
 }
