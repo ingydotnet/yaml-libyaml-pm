@@ -4,11 +4,11 @@ use TestYAMLTests;
 
 local $YAML::XS::Booleans = 1;
 my $jsonpp = eval {
-    require JSON::PP::Boolean;
+    require JSON::PP;
     1;
 };
 unless ($jsonpp) {
-    plan skip_all => "JSON::PP::Boolean not installed";
+    plan skip_all => "JSON::PP not installed";
     exit;
 }
 plan tests => 5;
