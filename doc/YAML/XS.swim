@@ -43,6 +43,21 @@ functions. Only `Load` and `Dump` are exported by default.
   This ensures leading that things like leading zeros and other formatting are
   preserved.
 
+- `$YAML::XS::Booleans`
+
+  When true (default is false) the plain strings "true" and "false" will be
+  loaded as JSON::PP::Boolean objects. Those objects will be dumped again
+  as plain "true" or "false".
+
+  Note that you have to load JSON::PP yourself.
+
+      local $YAML::XS::Booleans = 1;
+      use JSON::PP;
+      my $bool = 0;
+      Dump { bool => $bool ? JSON::PP::true : JSON::PP::false ) };
+      # ---
+      # bool: false
+
 = Using YAML::XS with Unicode
 
 Handling unicode properly in Perl can be a pain. YAML::XS only deals with
