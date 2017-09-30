@@ -49,10 +49,9 @@ functions. Only `Load` and `Dump` are exported by default.
   loaded as JSON::PP::Boolean objects. Those objects will be dumped again
   as plain "true" or "false".
 
-  Note that you have to load JSON::PP yourself.
+  It will try to load JSON::PP and die if it can't be loaded.
 
       local $YAML::XS::Booleans = 1;
-      use JSON::PP;
       my $bool = 0;
       Dump { bool => $bool ? JSON::PP::true : JSON::PP::false ) };
       # ---

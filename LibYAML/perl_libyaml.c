@@ -131,6 +131,9 @@ Load(SV *yaml_sv)
         (gv = gv_fetchpv("YAML::XS::Booleans", TRUE, SVt_PV)) &&
         SvTRUE(GvSV(gv))
     );
+    if (loader.load_bool) {
+        load_module(PERL_LOADMOD_NOIMPORT, newSVpv("JSON::PP", 0), Nullsv);
+    }
 
     yaml_str = (const unsigned char *)SvPV_const(yaml_sv, yaml_len);
 
@@ -551,6 +554,9 @@ set_dumper_options(perl_yaml_dumper_t *dumper)
         (gv = gv_fetchpv("YAML::XS::Booleans", TRUE, SVt_PV)) &&
         SvTRUE(GvSV(gv))
     );
+    if (dumper->dump_bool) {
+        load_module(PERL_LOADMOD_NOIMPORT, newSVpv("JSON::PP", 0), Nullsv);
+    }
 
     /* dumper->emitter.open_ended = 1;
      */

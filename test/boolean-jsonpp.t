@@ -3,15 +3,6 @@ use lib $Bin;
 use TestYAMLTests;
 
 local $YAML::XS::Booleans = 1;
-my $jsonpp = eval {
-    require JSON::PP;
-    1;
-};
-unless ($jsonpp) {
-    plan skip_all => "JSON::PP not installed";
-    exit;
-}
-plan tests => 5;
 
 my $yaml = <<'...';
 ---
@@ -20,7 +11,14 @@ booltrue: true
 stringfalse: 'false'
 ...
 
-my $hash = Load $yaml;
+
+my $hash = eval { Load $yaml };
+if ($@ and $@ =~ m/JSON::PP/) {
+    plan skip_all => "JSON::PP not installed";
+    exit;
+}
+
+plan tests => 5;
 
 isa_ok($hash->{booltrue}, 'JSON::PP::Boolean',
     "boolean true loads as JSON::PP::Boolean");
