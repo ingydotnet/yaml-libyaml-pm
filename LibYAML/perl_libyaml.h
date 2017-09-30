@@ -29,6 +29,8 @@ typedef struct {
     yaml_event_t event;
     HV *anchors;
     int load_code;
+    int load_bool_jsonpp;
+    int load_bool_boolean;
     int document;
 } perl_yaml_loader_t;
 
@@ -38,6 +40,8 @@ typedef struct {
     HV *anchors;
     HV *shadows;
     int dump_code;
+    int dump_bool_jsonpp;
+    int dump_bool_boolean;
     int quote_number_strings;
 } perl_yaml_dumper_t;
 

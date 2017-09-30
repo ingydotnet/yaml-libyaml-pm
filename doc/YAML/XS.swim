@@ -43,6 +43,40 @@ functions. Only `Load` and `Dump` are exported by default.
   This ensures leading that things like leading zeros and other formatting are
   preserved.
 
+- `$YAML::XS::Boolean` (since v0.67)
+
+  Default is undef.
+
+  When set to `"JSON::PP"` or `"boolean"`, the plain (unquoted) strings `true`
+  and `false` will be loaded as `JSON::PP::Boolean` or `boolean.pm` objects.
+  Those objects will be dumped again as plain "true" or "false".
+
+  It will try to load L<JSON::PP> or L<boolean> and die if it can't be loaded.
+
+  With that it's possible to add new "real" booleans to a data structure:
+
+      local $YAML::XS::Boolean = "JSON::PP"; # or "boolean"
+      my $data = Load("booltrue: true");
+      $data->{boolfalse} = JSON::PP::false;
+      my $yaml = Dump($data);
+      # boolfalse: false
+      # booltrue: true
+
+  It also allows to let booleans survive when loading YAML via YAML::XS and
+  encode it in JSON via one of the various JSON encoders, which mostly support
+  JSON::PP booleans.
+
+  Please note that JSON::PP::Booolean and boolean.pm behave a bit differently.
+  Ideally you should only use them in boolean context.
+
+  If not set, booleans are loaded as special perl variables `PL_sv_yes` and
+  `PL_sv_no`, which have the disadvantage that they are readonly, and you can't
+  add those to an existing data structure with pure perl.
+
+  If you simply need to load "perl booleans" that are true or false in boolean
+  context, you will be fine with the default setting.
+
+
 = Using YAML::XS with Unicode
 
 Handling unicode properly in Perl can be a pain. YAML::XS only deals with
