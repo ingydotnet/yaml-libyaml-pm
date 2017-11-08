@@ -2,7 +2,7 @@ use FindBin '$Bin';
 use lib $Bin;
 use TestYAMLTests;
 
-local $YAML::XS::Boolean = "JSON::PP";
+local $YAML::XS::Boolean = "boolean";
 
 my $yaml = <<'...';
 ---
@@ -14,15 +14,16 @@ stringfalse: 'false'
 
 my $hash = eval { Load $yaml };
 
-if ($@ and $@ =~ m{JSON/PP}) {
-    plan skip_all => "JSON::PP not installed";
+if ($@ and $@ =~ m{boolean}) {
+    plan skip_all => "boolean not installed";
     exit;
 }
 
 plan tests => 5;
 
-isa_ok($hash->{booltrue}, 'JSON::PP::Boolean');
-isa_ok($hash->{boolfalse}, 'JSON::PP::Boolean');
+local $YAML::XS::Boolean = "boolean";
+isa_ok($hash->{booltrue}, 'boolean');
+isa_ok($hash->{boolfalse}, 'boolean');
 
 cmp_ok($hash->{booltrue}, '==', 1, "boolean true is true");
 cmp_ok($hash->{boolfalse}, '==', 0, "boolean false is false");
