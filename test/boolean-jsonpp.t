@@ -2,7 +2,7 @@ use FindBin '$Bin';
 use lib $Bin;
 use TestYAMLTests;
 
-local $YAML::XS::Booleans = 1;
+local $YAML::XS::Boolean = 1;
 
 my $yaml = <<'...';
 ---

@@ -128,7 +128,7 @@ Load(SV *yaml_sv)
 
     GV *gv;
     loader.load_bool = (
-        (gv = gv_fetchpv("YAML::XS::Booleans", TRUE, SVt_PV)) &&
+        (gv = gv_fetchpv("YAML::XS::Boolean", TRUE, SVt_PV)) &&
         SvTRUE(GvSV(gv))
     );
     if (loader.load_bool) {
@@ -551,7 +551,7 @@ set_dumper_options(perl_yaml_dumper_t *dumper)
     );
 
     dumper->dump_bool = (
-        (gv = gv_fetchpv("YAML::XS::Booleans", TRUE, SVt_PV)) &&
+        (gv = gv_fetchpv("YAML::XS::Boolean", TRUE, SVt_PV)) &&
         SvTRUE(GvSV(gv))
     );
     if (dumper->dump_bool) {
