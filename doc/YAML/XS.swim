@@ -43,15 +43,15 @@ functions. Only `Load` and `Dump` are exported by default.
   This ensures leading that things like leading zeros and other formatting are
   preserved.
 
-- `$YAML::XS::Boolean`
+- `$YAML::XS::Boolean` (since v0.67)
 
-  When true (default is false) the plain strings "true" and "false" will be
-  loaded as JSON::PP::Boolean objects. Those objects will be dumped again
-  as plain "true" or "false".
+  When set to C<"JSON::PP"> or C<"boolean"> the plain (unquoted) strings "true"
+  and "false" will be loaded as C<JSON::PP::Boolean> or C<boolean.pm> objects.
+  Those objects will be dumped again as plain "true" or "false".
 
-  It will try to load JSON::PP and die if it can't be loaded.
+  It will try to load L<JSON::PP> or L<boolean> and die if it can't be loaded.
 
-      local $YAML::XS::Boolean = 1;
+      local $YAML::XS::Boolean = "JSON::PP"; # or "boolean"
       my $bool = 0;
       Dump { bool => $bool ? JSON::PP::true : JSON::PP::false ) };
       # ---
