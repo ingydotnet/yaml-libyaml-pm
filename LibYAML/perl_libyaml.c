@@ -128,18 +128,22 @@ Load(SV *yaml_sv)
 
     GV *gv = gv_fetchpv("YAML::XS::Boolean", FALSE, SVt_PV);
     char* boolean = "";
-    if (SvTRUE(GvSV(gv))) {
-        boolean = SvPV_nolen(GvSV(gv));
-    }
     loader.load_bool_jsonpp = 0;
     loader.load_bool_boolean = 0;
-    if (strEQ(boolean, "JSON::PP")) {
-        loader.load_bool_jsonpp = 1;
-        load_module(PERL_LOADMOD_NOIMPORT, newSVpv("JSON::PP", 0), Nullsv);
-    }
-    else if (strEQ(boolean, "boolean")) {
-        loader.load_bool_boolean = 1;
-        load_module(PERL_LOADMOD_NOIMPORT, newSVpv("boolean", 0), Nullsv);
+    if (SvTRUE(GvSV(gv))) {
+        boolean = SvPV_nolen(GvSV(gv));
+        if (strEQ(boolean, "JSON::PP")) {
+            loader.load_bool_jsonpp = 1;
+            load_module(PERL_LOADMOD_NOIMPORT, newSVpv("JSON::PP", 0), Nullsv);
+        }
+        else if (strEQ(boolean, "boolean")) {
+            loader.load_bool_boolean = 1;
+            load_module(PERL_LOADMOD_NOIMPORT, newSVpv("boolean", 0), Nullsv);
+        }
+        else {
+            croak("%s",
+                "$YAML::XS::Boolean only accepts 'JSON::PP', 'boolean' or a false value");
+        }
     }
 
     yaml_str = (const unsigned char *)SvPV_const(yaml_sv, yaml_len);
@@ -575,14 +579,18 @@ set_dumper_options(perl_yaml_dumper_t *dumper)
     dumper->dump_bool_boolean = 0;
     if (SvTRUE(GvSV(gv))) {
         boolean = SvPV_nolen(GvSV(gv));
-    }
-    if (strEQ(boolean, "JSON::PP")) {
-        dumper->dump_bool_jsonpp = 1;
-        load_module(PERL_LOADMOD_NOIMPORT, newSVpv("JSON::PP", 0), Nullsv);
-    }
-    else if (strEQ(boolean, "boolean")) {
-        dumper->dump_bool_boolean = 1;
-        load_module(PERL_LOADMOD_NOIMPORT, newSVpv("boolean", 0), Nullsv);
+        if (strEQ(boolean, "JSON::PP")) {
+            dumper->dump_bool_jsonpp = 1;
+            load_module(PERL_LOADMOD_NOIMPORT, newSVpv("JSON::PP", 0), Nullsv);
+        }
+        else if (strEQ(boolean, "boolean")) {
+            dumper->dump_bool_boolean = 1;
+            load_module(PERL_LOADMOD_NOIMPORT, newSVpv("boolean", 0), Nullsv);
+        }
+        else {
+            croak("%s",
+                "$YAML::XS::Boolean only accepts 'JSON::PP', 'boolean' or a false value");
+        }
     }
 
     /* dumper->emitter.open_ended = 1;
