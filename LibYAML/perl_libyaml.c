@@ -768,12 +768,13 @@ dump_node(perl_yaml_dumper_t *dumper, SV *node)
                 dump_scalar(dumper, node, tag);
             }
             else {
+                class = sv_reftype(rnode, TRUE);
                 if (
                         dumper->dump_bool_jsonpp
-                        && strEQ(sv_reftype(rnode, TRUE), "JSON::PP::Boolean")
+                        && strEQ(class, "JSON::PP::Boolean")
                     ||
                         dumper->dump_bool_boolean
-                        && strEQ(sv_reftype(rnode, TRUE), "boolean")
+                        && strEQ(class, "boolean")
                     ) {
                     if (SvIV(node)) {
                         dump_scalar(dumper, &PL_sv_yes, NULL);
@@ -785,7 +786,7 @@ dump_node(perl_yaml_dumper_t *dumper, SV *node)
                 else {
                     tag = (yaml_char_t *)form(
                         TAG_PERL_PREFIX "scalar:%s",
-                        sv_reftype(rnode, TRUE)
+                        class
                     );
                     node = rnode;
                     dump_scalar(dumper, node, tag);
