@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use FindBin '$Bin';
 use lib $Bin;
-use TestYAMLTests tests => 19;
+use TestYAMLTests tests => 20;
 use B ();
 
 my $yaml = <<"EOM";
@@ -30,3 +30,17 @@ for my $i (0 .. $#flags) {
     ok(not($flags & B::SVp_IOK), "data[$i] does not have int flag");
 }
 
+my $yaml2 = <<"EOM";
+- !!map
+  a: b
+- !!seq
+  - a
+  - b
+EOM
+
+my $data2 = Load $yaml2;
+my $exp = [
+    { a => 'b' },
+    [ 'a', 'b' ],
+];
+is_deeply($data2, $exp, "Standard tags !!map and !!seq work");

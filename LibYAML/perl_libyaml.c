@@ -339,21 +339,25 @@ load_mapping(perl_yaml_loader_t *loader, char *tag)
     }
 
     /* Deal with possibly blessing the hash if the YAML tag has a class */
-    if (tag && strEQ(tag, TAG_PERL_PREFIX "hash"))
-        tag = NULL;
     if (tag) {
-        char *class;
-        char *prefix = TAG_PERL_PREFIX "hash:";
-        if (*tag == '!') {
-            prefix = "!";
+        if (strEQ(tag, TAG_PERL_PREFIX "hash")) {
         }
-        else if (strlen(tag) <= strlen(prefix) ||
-            ! strnEQ(tag, prefix, strlen(prefix))
-        ) croak("%s",
-            loader_error_msg(loader, form("bad tag found for hash: '%s'", tag))
-        );
-        class = tag + strlen(prefix);
-        sv_bless(hash_ref, gv_stashpv(class, TRUE));
+        else if (strEQ(tag, YAML_MAP_TAG)) {
+        }
+        else {
+            char *class;
+            char *prefix = TAG_PERL_PREFIX "hash:";
+            if (*tag == '!') {
+                prefix = "!";
+            }
+            else if (strlen(tag) <= strlen(prefix) ||
+                ! strnEQ(tag, prefix, strlen(prefix))
+            ) croak("%s",
+                loader_error_msg(loader, form("bad tag found for hash: '%s'", tag))
+            );
+            class = tag + strlen(prefix);
+            sv_bless(hash_ref, gv_stashpv(class, TRUE));
+        }
     }
 
     return hash_ref;
@@ -373,20 +377,24 @@ load_sequence(perl_yaml_loader_t *loader)
     while ((node = load_node(loader))) {
         av_push(array, node);
     }
-    if (tag && strEQ(tag, TAG_PERL_PREFIX "array"))
-        tag = NULL;
     if (tag) {
-        char *class;
-        char *prefix = TAG_PERL_PREFIX "array:";
-        if (*tag == '!')
-            prefix = "!";
-        else if (strlen(tag) <= strlen(prefix) ||
-            ! strnEQ(tag, prefix, strlen(prefix))
-        ) croak("%s",
-            loader_error_msg(loader, form("bad tag found for array: '%s'", tag))
-        );
-        class = tag + strlen(prefix);
-        sv_bless(array_ref, gv_stashpv(class, TRUE));
+        if (strEQ(tag, TAG_PERL_PREFIX "array")) {
+        }
+        else if (strEQ(tag, YAML_SEQ_TAG)) {
+        }
+        else {
+            char *class;
+            char *prefix = TAG_PERL_PREFIX "array:";
+            if (*tag == '!')
+                prefix = "!";
+            else if (strlen(tag) <= strlen(prefix) ||
+                ! strnEQ(tag, prefix, strlen(prefix))
+            ) croak("%s",
+                loader_error_msg(loader, form("bad tag found for array: '%s'", tag))
+            );
+            class = tag + strlen(prefix);
+            sv_bless(array_ref, gv_stashpv(class, TRUE));
+        }
     }
     return array_ref;
 }
