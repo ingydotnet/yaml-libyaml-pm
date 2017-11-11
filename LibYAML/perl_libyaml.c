@@ -400,24 +400,30 @@ load_scalar(perl_yaml_loader_t *loader)
     STRLEN length = (STRLEN)loader->event.data.scalar.length;
     char *anchor = (char *)loader->event.data.scalar.anchor;
     char *tag = (char *)loader->event.data.scalar.tag;
+    yaml_scalar_style_t style = loader->event.data.scalar.style;
     if (tag) {
-        char *class;
-        char *prefix = TAG_PERL_PREFIX "regexp";
-        if (strnEQ(tag, prefix, strlen(prefix)))
-            return load_regexp(loader);
-        prefix = TAG_PERL_PREFIX "scalar:";
-        if (*tag == '!')
-            prefix = "!";
-        else if (strlen(tag) <= strlen(prefix) ||
-            ! strnEQ(tag, prefix, strlen(prefix))
-        ) croak("%sbad tag found for scalar: '%s'", ERRMSG, tag);
-        class = tag + strlen(prefix);
-        scalar = sv_setref_pvn(newSV(0), class, string, strlen(string));
-        SvUTF8_on(scalar);
-    return scalar;
+        if (strEQ(tag, YAML_STR_TAG)) {
+            style = YAML_SINGLE_QUOTED_SCALAR_STYLE;
+        }
+        else {
+            char *class;
+            char *prefix = TAG_PERL_PREFIX "regexp";
+            if (strnEQ(tag, prefix, strlen(prefix)))
+                return load_regexp(loader);
+            prefix = TAG_PERL_PREFIX "scalar:";
+            if (*tag == '!')
+                prefix = "!";
+            else if (strlen(tag) <= strlen(prefix) ||
+                ! strnEQ(tag, prefix, strlen(prefix))
+            ) croak("%sbad tag found for scalar: '%s'", ERRMSG, tag);
+            class = tag + strlen(prefix);
+            scalar = sv_setref_pvn(newSV(0), class, string, strlen(string));
+            SvUTF8_on(scalar);
+            return scalar;
+        }
     }
 
-    if (loader->event.data.scalar.style == YAML_PLAIN_SCALAR_STYLE) {
+    else if (style == YAML_PLAIN_SCALAR_STYLE) {
         if (strEQ(string, "~"))
             return newSV(0);
         else if (strEQ(string, ""))
@@ -462,7 +468,7 @@ load_scalar(perl_yaml_loader_t *loader)
 
     scalar = newSVpvn(string, length);
 
-    if (loader->event.data.scalar.style == YAML_PLAIN_SCALAR_STYLE && looks_like_number(scalar) ) {
+    if (style == YAML_PLAIN_SCALAR_STYLE && looks_like_number(scalar) ) {
         /* numify */
         SvIV_please(scalar);
     }
