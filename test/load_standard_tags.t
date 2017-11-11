@@ -2,22 +2,24 @@ use strict;
 use warnings;
 use FindBin '$Bin';
 use lib $Bin;
-use TestYAMLTests tests => 20;
+use TestYAMLTests tests => 22;
 use B ();
 
 my $yaml = <<"EOM";
 - !!str
-- !!str 23
 - !!str ~
+- !!str null
+- !!str 23
 - !!str true
 - !!str false
-- !!str null
 EOM
 
-my @expected = ('', "23", '~', 'true', 'false', 'null');
+my @expected = ('', '~', 'null', "23", 'true', 'false');
 my $data = Load $yaml;
 
 ok(defined $data->[0], "Empty node with !!str is defined");
+ok(defined $data->[1], "Node '!!str ~' is defined");
+ok(defined $data->[2], "Node '!!str null' is defined");
 
 for my $i (0 .. $#expected) {
     cmp_ok($data->[$i], 'eq', $expected[$i], "data[$i] equals '$expected[$i]'");
