@@ -1,4 +1,10 @@
 ---
+version: 0.66_002
+date:    Tue Nov 14 21:02:41 CET 2017
+changes:
+- Apply PR#67 (TINITA++)
+- Support standard tags !!str, !!map and !!seq instead of dying
+---
 version: 0.66_001
 date:    Fri Nov 10 22:06:20 CET 2017
 changes:
