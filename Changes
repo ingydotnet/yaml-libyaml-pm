@@ -1,15 +1,11 @@
 ---
-version: 0.66_002
-date:    Tue Nov 14 21:02:41 CET 2017
+version: 0.67
+date:    Wed Nov 15 18:59:33 CET 2017
 changes:
-- Apply PR#67 (TINITA++)
-- Support standard tags !!str, !!map and !!seq instead of dying
----
-version: 0.66_001
-date:    Fri Nov 10 22:06:20 CET 2017
-changes:
-- Apply PR#66 (TINITA++)
-- Support JSON::PP::Boolean and boolean.pm via $YAML::XS::Boolean
+- Support standard tags !!str, !!map and !!seq instead of dying.
+  PR#67 (TINITA++)
+- Support JSON::PP::Boolean and boolean.pm via $YAML::XS::Boolean.
+  PR#66 (TINITA++) Thanks also to Björn Höhrmann for SvPV_nolen()
 ---
 version: 0.66
 date:    Thu Aug 17 20:06:06 CEST 2017
