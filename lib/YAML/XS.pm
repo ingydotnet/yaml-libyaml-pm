@@ -116,13 +116,15 @@ use constant _QR_MAP => {
 };
 
 sub __qr_loader {
-    if ($_[0] =~ /\A  \(\?  ([ixsm]*)  (?:-  (?:[ixsm]*))?  : (.*) \)  \z/x) {
-        my $sub = _QR_MAP->{$1} || _QR_MAP->{''};
-        &$sub($2);
+    if ($_[0] =~ /\A  \(\?  ([\^uixsm]*)  (?:-  (?:[ixsm]*))?  : (.*) \)  \z/x) {
+        my ($flags, $re) = ($1, $2);
+        $flags =~ s/^\^//;
+        $flags =~ tr/u//d;
+        my $sub = _QR_MAP->{$flags} || _QR_MAP->{''};
+        my $qr = &$sub($re);
+        return $qr;
     }
-    else {
-        qr/$_[0]/;
-    }
+    return qr/$_[0]/;
 }
 
 1;
