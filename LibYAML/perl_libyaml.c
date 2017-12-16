@@ -513,6 +513,10 @@ load_regexp(perl_yaml_loader_t * loader)
     SPAGAIN;
     regexp = newSVsv(POPs);
 
+    PUTBACK;
+    FREETMPS;
+    LEAVE;
+
     if (strlen(tag) > strlen(prefix) && strnEQ(tag, prefix, strlen(prefix))) {
         char *class = tag + strlen(prefix);
         sv_bless(regexp, gv_stashpv(class, TRUE));
