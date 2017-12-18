@@ -1,6 +1,6 @@
 ---
-version: 0.67_001
-date:    Sat Dec 16 22:49:40 CET 2017
+version: 0.68
+date:    Mon Dec 18 20:01:05 CET 2017
 changes:
 - Fix regex roundtrip (fixes issue#69) PR#70 (TINITA++)
 - Fix loading of many regexes (fixes issue#64) PR#71 (TINITA++)
