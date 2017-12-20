@@ -1,4 +1,10 @@
 ---
+version: 0.68_001
+date:    Wed Dec 20 19:37:38 CET 2017
+changes:
+- Security fix Add $LoadBlessed option to turn on/off loading objects
+  PR#73 TINITA++
+---
 version: 0.68
 date:    Mon Dec 18 20:01:05 CET 2017
 changes:
