@@ -37,6 +37,21 @@ corresponding functions. Only C<Load> and C<Dump> are exported by default.
 
 =over
 
+=item C<$YAML::XS::LoadBlessed> (since v0.69)
+
+Default: true. The default might be changed to false in the future.
+
+When set to false, it will not bless data into objects, which can be a
+security problem, when loading YAML from an untrusted source. It will silently
+ignore the tag and just load the data unblessed.
+
+If set to true, it will load the following YAML as objects:
+
+    ---
+    local: !Foo::Bar [a]
+    perl: !!perl/hash:Foo::Bar { a: 1 }
+    regex: !!perl/regexp:Foo::Bar OK
+
 =item C<$YAML::XS::UseCode>
 
 

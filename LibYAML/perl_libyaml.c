@@ -146,6 +146,14 @@ Load(SV *yaml_sv)
         }
     }
 
+    loader.load_blessed = 1;
+    gv = gv_fetchpv("YAML::XS::LoadBlessed", FALSE, SVt_PV);
+    if (SvOK(GvSV(gv))) {
+        if (! SvTRUE(GvSV(gv))) {
+            loader.load_blessed = 0;
+        }
+    }
+
     yaml_str = (const unsigned char *)SvPV_const(yaml_sv, yaml_len);
 
     if (DO_UTF8(yaml_sv)) {
@@ -355,8 +363,10 @@ load_mapping(perl_yaml_loader_t *loader, char *tag)
             ) croak("%s",
                 loader_error_msg(loader, form("bad tag found for hash: '%s'", tag))
             );
-            class = tag + strlen(prefix);
-            sv_bless(hash_ref, gv_stashpv(class, TRUE));
+            if (loader->load_blessed) {
+                class = tag + strlen(prefix);
+                sv_bless(hash_ref, gv_stashpv(class, TRUE));
+            }
         }
     }
 
@@ -385,6 +395,7 @@ load_sequence(perl_yaml_loader_t *loader)
         else {
             char *class;
             char *prefix = TAG_PERL_PREFIX "array:";
+
             if (*tag == '!')
                 prefix = "!";
             else if (strlen(tag) <= strlen(prefix) ||
@@ -392,8 +403,10 @@ load_sequence(perl_yaml_loader_t *loader)
             ) croak("%s",
                 loader_error_msg(loader, form("bad tag found for array: '%s'", tag))
             );
-            class = tag + strlen(prefix);
-            sv_bless(array_ref, gv_stashpv(class, TRUE));
+            if (loader->load_blessed) {
+                class = tag + strlen(prefix);
+                sv_bless(array_ref, gv_stashpv(class, TRUE));
+            }
         }
     }
     return array_ref;
@@ -518,8 +531,10 @@ load_regexp(perl_yaml_loader_t * loader)
     LEAVE;
 
     if (strlen(tag) > strlen(prefix) && strnEQ(tag, prefix, strlen(prefix))) {
-        char *class = tag + strlen(prefix);
-        sv_bless(regexp, gv_stashpv(class, TRUE));
+        if (loader->load_blessed) {
+            char *class = tag + strlen(prefix);
+            sv_bless(regexp, gv_stashpv(class, TRUE));
+        }
     }
 
     if (anchor)
