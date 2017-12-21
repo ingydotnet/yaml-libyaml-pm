@@ -438,7 +438,10 @@ load_scalar(perl_yaml_loader_t *loader)
                 ! strnEQ(tag, prefix, strlen(prefix))
             ) croak("%sbad tag found for scalar: '%s'", ERRMSG, tag);
             class = tag + strlen(prefix);
-            scalar = sv_setref_pvn(newSV(0), class, string, strlen(string));
+            if (loader->load_blessed)
+                scalar = sv_setref_pvn(newSV(0), class, string, strlen(string));
+            else
+                scalar = sv_setref_pvn(newSV(0), NULL, string, strlen(string));
             SvUTF8_on(scalar);
             return scalar;
         }
