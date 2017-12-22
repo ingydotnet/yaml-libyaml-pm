@@ -1,4 +1,9 @@
 ---
+version: 0.68_002
+date:    Fri Dec 22 12:39:47 CET 2017
+changes:
+- $LoadBlessed also needs to recognize !!perl/scalar
+---
 version: 0.68_001
 date:    Wed Dec 20 19:37:38 CET 2017
 changes:
