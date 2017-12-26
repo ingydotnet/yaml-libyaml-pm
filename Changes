@@ -1,14 +1,9 @@
 ---
-version: 0.68_002
-date:    Fri Dec 22 12:39:47 CET 2017
-changes:
-- $LoadBlessed also needs to recognize !!perl/scalar
----
-version: 0.68_001
-date:    Wed Dec 20 19:37:38 CET 2017
+version: 0.69
+date:    Tue Dec 26 18:37:25 CET 2017
 changes:
 - Security fix Add $LoadBlessed option to turn on/off loading objects
-  PR#73 TINITA++
+  PR#73 PR#74 TINITA++
 ---
 version: 0.68
 date:    Mon Dec 18 20:01:05 CET 2017
