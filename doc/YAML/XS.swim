@@ -85,7 +85,7 @@ functions. Only `Load` and `Dump` are exported by default.
   encode it in JSON via one of the various JSON encoders, which mostly support
   JSON::PP booleans.
 
-  Please note that JSON::PP::Booolean and boolean.pm behave a bit differently.
+  Please note that JSON::PP::Boolean and boolean.pm behave a bit differently.
   Ideally you should only use them in boolean context.
 
   If not set, booleans are loaded as special perl variables `PL_sv_yes` and
