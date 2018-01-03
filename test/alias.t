@@ -1,6 +1,6 @@
 use FindBin '$Bin';
 use lib $Bin;
-use TestYAMLTests tests => 10;
+use TestYAMLTests tests => 13;
 
 my ($a, $b) = Load(<<'...');
 ---
@@ -83,3 +83,18 @@ bar: *rx
 $hash = Load($yaml);
 is $hash->{bar}, $hash->{foo}, 'Regexp anchor/aliases Load';
 like "falala", $hash->{bar}, 'Aliased regexp works';
+
+$yaml = <<'...';
+---
+- &seq
+  - a
+  - b
+- - c
+- *seq
+...
+
+$array = Load($yaml);
+$array->[2] = "scalar";
+cmp_ok(ref($array->[0]), 'eq', 'ARRAY', "first item is still an array");
+cmp_ok($array->[0]->[0], 'eq', 'a', "content of first item is still ok");
+cmp_ok($array->[2], 'eq', 'scalar', "item 3 was changed");

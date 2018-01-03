@@ -553,8 +553,23 @@ load_alias(perl_yaml_loader_t *loader)
 {
     char *anchor = (char *)loader->event.data.alias.anchor;
     SV **entry = hv_fetch(loader->anchors, anchor, strlen(anchor), 0);
-    if (entry)
-        return SvREFCNT_inc(*entry);
+    if (entry) {
+        const char *reftype = NULL;
+        reftype = sv_reftype(*entry, TRUE);
+        if (strEQ(reftype, "SCALAR")) {
+            return SvREFCNT_inc(*entry);
+        }
+        SV *deref = SvRV(*entry);
+        if (strEQ(reftype, "REF")) {
+            reftype = sv_reftype(deref, TRUE);
+            if (!strEQ(reftype, "ARRAY") && !strEQ(reftype, "HASH")) {
+                return SvREFCNT_inc(*entry);
+            }
+        }
+        SvREFCNT_inc(deref);
+        SV *ref = (SV *)newRV_noinc(deref);
+        return ref;
+    }
     croak("%sNo anchor for alias '%s'", ERRMSG, anchor);
 }
 
