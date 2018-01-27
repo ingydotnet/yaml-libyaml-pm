@@ -3,8 +3,8 @@ use strict;
 use Config;
 
 if (-d '../.git') {
-    system("./update.sh") == 0
-        or die "update.sh failed";
+    system("git clone https://github.com/yaml/libyaml") == 0
+        or die "'git clone https://github.com/yaml/libyaml' failed";
 }
 
 my $obj_files = join ' ', map {
@@ -25,7 +25,7 @@ WriteMakefile(
     # CCFLAGS => '-Wall',
     DEFINE => $DEFINE,
     LIBS => [''], # e.g., '-lm'
-    INC => '-I.',
+    INC => '-I. -Ilibyaml/src',
     OBJECT => $obj_files,
     ABSTRACT_FROM => 'lib/YAML/XS/LibYAML.pm',
     AUTHOR => 'Ingy döt Net <ingy@cpan.org>',
