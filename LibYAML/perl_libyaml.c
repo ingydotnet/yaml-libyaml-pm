@@ -93,19 +93,19 @@ loader_error_msg(perl_yaml_loader_t *loader, char *problem)
         loader->parser.problem_mark.line ||
         loader->parser.problem_mark.column
     )
-        msg = form("%s, line: %d, column: %d\n",
+        msg = form("%s, line: %lu, column: %lu\n",
             msg,
-            loader->parser.problem_mark.line + 1,
-            loader->parser.problem_mark.column + 1
+            (unsigned long)loader->parser.problem_mark.line + 1,
+            (unsigned long)loader->parser.problem_mark.column + 1
         );
     else
         msg = form("%s\n", msg);
     if (loader->parser.context)
-        msg = form("%s%s at line: %d, column: %d\n",
+        msg = form("%s%s at line: %lu, column: %lu\n",
             msg,
             loader->parser.context,
-            loader->parser.context_mark.line + 1,
-            loader->parser.context_mark.column + 1
+            (unsigned long)loader->parser.context_mark.line + 1,
+            (unsigned long)loader->parser.context_mark.column + 1
         );
 
     return msg;
