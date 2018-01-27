@@ -81,7 +81,7 @@ functions. Only `Load` and `Dump` are exported by default.
       # boolfalse: false
       # booltrue: true
 
-  It also allows to let booleans survive when loading YAML via YAML::XS and
+  It also lets booleans survive when loading YAML via YAML::XS and
   encode it in JSON via one of the various JSON encoders, which mostly support
   JSON::PP booleans.
 
