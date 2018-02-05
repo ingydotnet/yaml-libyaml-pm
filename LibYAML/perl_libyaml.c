@@ -596,6 +596,7 @@ void
 set_dumper_options(perl_yaml_dumper_t *dumper)
 {
     GV *gv;
+    char* boolean = "";
     dumper->dump_code = (
         ((gv = gv_fetchpv("YAML::XS::UseCode", TRUE, SVt_PV)) &&
         SvTRUE(GvSV(gv)))
@@ -610,7 +611,6 @@ set_dumper_options(perl_yaml_dumper_t *dumper)
     );
 
     gv = gv_fetchpv("YAML::XS::Boolean", FALSE, SVt_PV);
-    char* boolean = "";
     dumper->dump_bool_jsonpp = 0;
     dumper->dump_bool_boolean = 0;
     if (SvTRUE(GvSV(gv))) {
