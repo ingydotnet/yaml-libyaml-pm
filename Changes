@@ -1,4 +1,11 @@
 ---
+version: 0.69_001
+date:    Thu Jun  7 22:15:40 CEST 2018
+changes:
+- Fix format specifier/argument mismatch PR#79 @a3f++
+- 'Travis CI: Test on Perl 5.26 PR#80 @a3f++'
+- Fix a C90-compatibility issue PR#81 @stphnlyd++
+---
 version: 0.69
 date:    Tue Dec 26 18:37:25 CET 2017
 changes:
