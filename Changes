@@ -1,6 +1,6 @@
 ---
-version: 0.69_001
-date:    Thu Jun  7 22:15:40 CEST 2018
+version: 0.70
+date:    Sat Jun  9 21:53:05 CEST 2018
 changes:
 - Fix format specifier/argument mismatch PR#79 @a3f++
 - 'Travis CI: Test on Perl 5.26 PR#80 @a3f++'
