@@ -426,6 +426,13 @@ load_scalar(perl_yaml_loader_t *loader)
         if (strEQ(tag, YAML_STR_TAG)) {
             style = YAML_SINGLE_QUOTED_SCALAR_STYLE;
         }
+        else if (
+            strEQ(tag, YAML_NULL_TAG)
+            &&
+            (strEQ(string, "~") || strEQ(string, "null") || strEQ(string, ""))
+        ) {
+            return newSV(0);
+        }
         else {
             char *class;
             char *prefix = TAG_PERL_PREFIX "regexp";
