@@ -25,20 +25,20 @@ local $YAML::XS::LoadBlessed = 0;
 my $hash = Load $yaml;
 cmp_ok(ref $hash->{local_array}, 'eq', 'ARRAY', "Array not blessed (local)");
 cmp_ok(ref $hash->{local_hash}, 'eq', 'HASH', "Hash not blessed (local)");
-cmp_ok(ref $hash->{local_scalar}, 'eq', 'SCALAR', "Scalar not blessed (local)");
+cmp_ok(ref $hash->{local_scalar}, 'eq', '', "Scalar not blessed (local)");
 cmp_ok(ref $hash->{array}, 'eq', 'ARRAY', "Array not blessed");
 cmp_ok(ref $hash->{hash}, 'eq', 'HASH', "Hash not blessed");
 cmp_ok(ref $hash->{regex}, 'eq', 'Regexp', "Regexp not blessed");
-cmp_ok(ref $hash->{scalar}, 'eq', 'SCALAR', "Scalar not blessed");
+cmp_ok(ref $hash->{scalar}, 'eq', '', "Scalar not blessed");
 
 my $expected = {
     local_array => ["a"],
     local_hash => { a => 1 },
-    local_scalar => \"a",
+    local_scalar => "a",
     hash => { a => 1 },
     array => ["a"],
     regex => qr{OK},
-    scalar => \"scalar",
+    scalar => "scalar",
 };
 if ($hash->{regex} =~ m/:OK/) {
     $hash->{regex} = $expected->{regex};
