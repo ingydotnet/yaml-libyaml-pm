@@ -443,6 +443,8 @@ load_scalar(perl_yaml_loader_t *loader)
             else
                 scalar = sv_setref_pvn(newSV(0), NULL, string, strlen(string));
             SvUTF8_on(scalar);
+            if (anchor)
+                hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(scalar), 0);
             return scalar;
         }
     }
