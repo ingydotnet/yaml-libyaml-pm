@@ -444,6 +444,61 @@ load_scalar(perl_yaml_loader_t *loader)
                 hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(scalar), 0);
             return scalar;
         }
+        else if (strEQ(tag, YAML_INT_TAG)) {
+            fprintf(stderr, "---- !!int : %s\n", string);
+            UV uv;
+            int flags;
+            flags = grok_number( string, length, &uv);
+            /*
+            if (flags & IS_NUMBER_GREATER_THAN_UV_MAX) {
+                fprintf(stderr, "IS_NUMBER_GREATER_THAN_UV_MAX\n");
+            }
+            if (flags & IS_NUMBER_NOT_INT) {
+                fprintf(stderr, "IS_NUMBER_NOT_INT\n");
+            }
+            if (flags & IS_NUMBER_NEG) {
+                fprintf(stderr, "IS_NUMBER_NEG\n");
+            }
+            if (flags & IS_NUMBER_INFINITY) {
+                fprintf(stderr, "IS_NUMBER_INFINITY\n");
+            }
+            if (flags & IS_NUMBER_NAN) {
+                fprintf(stderr, "IS_NUMBER_NAN\n");
+            }
+            */
+            if (flags & IS_NUMBER_IN_UV) {
+                fprintf(stderr, "test: %u, %u\n", IV_MAX, (UV) IV_MIN);
+//                fprintf(stderr, "IS_NUMBER_IN_UV\n");
+                if (!(flags & IS_NUMBER_NEG) || (uv <= (UV) IV_MIN)) {
+                    if (uv <= IV_MAX) {
+                        if (flags & IS_NUMBER_NEG) {
+                            scalar = newSViv(-(IV)uv);
+                        }
+                        else {
+                            scalar = newSViv(uv);
+                        }
+                    }
+                    else {
+                        fprintf(stderr, "big\n");
+                        if (flags & IS_NUMBER_NEG) {
+                            scalar = newSVuv(-(UV)uv);
+                        }
+                        else {
+                            scalar = newSVuv(uv);
+                        }
+                    }
+                }
+                else {
+                    croak("Invalid !!int");
+                }
+            }
+            else {
+                croak("Invalid !!int");
+            }
+            if (anchor)
+                hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(scalar), 0);
+            return scalar;
+        }
         else {
             char *class;
             char *prefix = TAG_PERL_PREFIX "regexp";
