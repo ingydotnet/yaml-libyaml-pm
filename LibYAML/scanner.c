@@ -1186,11 +1186,9 @@ yaml_parser_increase_flow_level(yaml_parser_t *parser)
 static int
 yaml_parser_decrease_flow_level(yaml_parser_t *parser)
 {
-    yaml_simple_key_t dummy_key;    /* Used to eliminate a compiler warning. */
-
     if (parser->flow_level) {
         parser->flow_level --;
-        dummy_key = POP(parser, parser->simple_keys);
+        (void)POP(parser, parser->simple_keys);
     }
 
     return 1;
@@ -2401,7 +2399,7 @@ yaml_parser_scan_tag(yaml_parser_t *parser, yaml_token_t *token)
     {
         /* Set the handle to '' */
 
-        handle = yaml_malloc(1);
+        handle = YAML_MALLOC(1);
         if (!handle) goto error;
         handle[0] = '\0';
 
@@ -2453,7 +2451,7 @@ yaml_parser_scan_tag(yaml_parser_t *parser, yaml_token_t *token)
             /* Set the handle to '!'. */
 
             yaml_free(handle);
-            handle = yaml_malloc(2);
+            handle = YAML_MALLOC(2);
             if (!handle) goto error;
             handle[0] = '!';
             handle[1] = '\0';
@@ -3166,10 +3164,6 @@ yaml_parser_scan_flow_scalar(yaml_parser_t *parser, yaml_token_t *token,
                         *(string.pointer++) = '/';
                         break;
 
-                    case '\'':
-                        *(string.pointer++) = '\'';
-                        break;
-
                     case '\\':
                         *(string.pointer++) = '\\';
                         break;
@@ -3284,6 +3278,11 @@ yaml_parser_scan_flow_scalar(yaml_parser_t *parser, yaml_token_t *token,
 
         /* Check if we are at the end of the scalar. */
 
+        /* Fix for crash unitialized value crash
+         * Credit for the bug and input is to OSS Fuzz
+         * Credit for the fix to Alex Gaynor
+         */
+        if (!CACHE(parser, 1)) goto error;
         if (CHECK(parser->buffer, single ? '\'' : '"'))
             break;
 
