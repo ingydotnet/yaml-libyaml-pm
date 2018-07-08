@@ -1,4 +1,12 @@
 ---
+version: 0.72
+date:    Sun Jul  8 17:03:08 CEST 2018
+changes:
+- Update to libyaml 0.2.1 (tinita) It's forbidden now to escape single quotes
+  inside double quotes
+- When disabling $LoadBlessed, return scalars not refs (tinita)
+- Save anchors also for blessed scalars (tinita)
+---
 version: 0.70
 date:    Sat Jun  9 21:53:05 CEST 2018
 changes:
