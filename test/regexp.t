@@ -15,7 +15,9 @@ my $yaml3 = Dump $rx3;
 
 sub perl514 {
     # https://rt.cpan.org/Ticket/Display.html?id=62266
-    skip "perl-5.14 regexp stringification is different", shift || 1 if $] > 5.013;
+    skip "FIXME - perl-5.14 regexp stringification is different", shift || 1
+	if $] > 5.013
+	or $] < 5.010;
 }
 
 SKIP: { perl514 5;
