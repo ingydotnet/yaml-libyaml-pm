@@ -1,8 +1,9 @@
 ---
-version: 0.72_01
-date:    Fri Aug 31 08:37:24 PDT 2018
+version: 0.74
+date:    Fri Aug 31 18:06:17 PDT 2018
 changes:
 - Fix tests on older perls
+- Support back to perl.5.8.1
 ---
 version: 0.72
 date:    Sun Jul  8 17:03:08 CEST 2018
