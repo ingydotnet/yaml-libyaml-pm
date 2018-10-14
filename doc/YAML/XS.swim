@@ -54,7 +54,7 @@ functions. Only `Load` and `Dump` are exported by default.
 
   If enabled supports deparsing and evaling of code blocks.
 
-  Note that support loading code was added in version 0.75, although
+  Note that support for loading code was added in version 0.75, although
   C<$LoadCode> was documented already in earlier versions.
 
 - `$YAML::XS::QuoteNumericStrings`

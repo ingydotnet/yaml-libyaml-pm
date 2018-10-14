@@ -64,6 +64,9 @@ If set to true, it will load the following YAML as objects:
 
 If enabled supports deparsing and evaling of code blocks.
 
+Note that support for loading code was added in version 0.75, although
+C<$LoadCode> was documented already in earlier versions.
+
 =item C<$YAML::XS::QuoteNumericStrings>
 
 When true (the default) strings that look like numbers but have not been
