@@ -127,4 +127,14 @@ sub __qr_loader {
     return qr/$_[0]/;
 }
 
+sub __code_loader {
+    my ($string) = @_;
+    my $sub = eval "sub $string";
+    if ($@) {
+        warn "YAML::XS failed to load sub: $@";
+        return sub {};
+    }
+    return $sub;
+}
+
 1;

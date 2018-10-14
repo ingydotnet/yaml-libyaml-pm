@@ -86,6 +86,9 @@ SV *
 load_scalar_ref(perl_yaml_loader_t *);
 
 SV *
+load_code(perl_yaml_loader_t *);
+
+SV *
 load_regexp(perl_yaml_loader_t *);
 
 SV *

@@ -146,6 +146,14 @@ Load(SV *yaml_sv)
         }
     }
 
+    loader.load_code = (
+        ((gv = gv_fetchpv("YAML::XS::UseCode", TRUE, SVt_PV)) &&
+        SvTRUE(GvSV(gv)))
+    ||
+        ((gv = gv_fetchpv("YAML::XS::LoadCode", TRUE, SVt_PV)) &&
+        SvTRUE(GvSV(gv)))
+    );
+
     loader.load_blessed = 1;
     gv = gv_fetchpv("YAML::XS::LoadBlessed", FALSE, SVt_PV);
     if (SvOK(GvSV(gv))) {
@@ -438,6 +446,9 @@ load_scalar(perl_yaml_loader_t *loader)
             char *prefix = TAG_PERL_PREFIX "regexp";
             if (strnEQ(tag, prefix, strlen(prefix)))
                 return load_regexp(loader);
+            prefix = TAG_PERL_PREFIX "code";
+            if (strnEQ(tag, prefix, strlen(prefix)))
+                return load_code(loader);
             prefix = TAG_PERL_PREFIX "scalar:";
             if (*tag == '!')
                 prefix = "!";
@@ -553,6 +564,54 @@ load_regexp(perl_yaml_loader_t * loader)
         hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(regexp), 0);
     return regexp;
 }
+
+/* Load a scalar marked as code as a Perl code reference.
+ * This operation is less common and is tricky, so doing it in Perl code for
+ * now.
+ */
+SV*
+load_code(perl_yaml_loader_t * loader)
+{
+    dSP;
+    char *string = (char *)loader->event.data.scalar.value;
+    STRLEN length = (STRLEN)loader->event.data.scalar.length;
+    char *anchor = (char *)loader->event.data.scalar.anchor;
+    char *tag = (char *)loader->event.data.scalar.tag;
+    char *prefix = TAG_PERL_PREFIX "code:";
+
+    if (! loader->load_code) {
+        string = "{}";
+        length = 2;
+    }
+    SV *code = newSVpvn(string, length);
+    SvUTF8_on(code);
+
+
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(sp);
+    XPUSHs(code);
+    PUTBACK;
+    call_pv("YAML::XS::__code_loader", G_SCALAR);
+    SPAGAIN;
+    code = newSVsv(POPs);
+
+    PUTBACK;
+    FREETMPS;
+    LEAVE;
+
+    if (strlen(tag) > strlen(prefix) && strnEQ(tag, prefix, strlen(prefix))) {
+        if (loader->load_blessed) {
+            char *class = tag + strlen(prefix);
+            sv_bless(code, gv_stashpv(class, TRUE));
+        }
+    }
+
+    if (anchor)
+        hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(code), 0);
+    return code;
+}
+
 
 /*
  * Load a reference to a previously loaded node.
