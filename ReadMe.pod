@@ -108,6 +108,12 @@ add those to an existing data structure with pure perl.
 If you simply need to load "perl booleans" that are true or false in boolean
 context, you will be fine with the default setting.
 
+=item C<$YAML::XS::Indent> (since v0.76)
+
+Default is 2.
+
+Sets the number of spaces for indentation for C<Dump>.
+
 =back
 
 =head1 Using YAML::XS with Unicode

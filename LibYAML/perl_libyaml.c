@@ -720,6 +720,11 @@ Dump(SV *dummy, ...)
 
     /* Set up the emitter object and begin emitting */
     yaml_emitter_initialize(&dumper.emitter);
+
+    /* set indent */
+    SV* indent = get_sv("YAML::XS::Indent", GV_ADD);
+    if (SvIOK(indent)) yaml_emitter_set_indent(&dumper.emitter, SvIV(indent));
+
     yaml_emitter_set_unicode(&dumper.emitter, 1);
     yaml_emitter_set_width(&dumper.emitter, 2);
     yaml_emitter_set_output(
