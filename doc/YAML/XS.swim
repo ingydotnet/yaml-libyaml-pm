@@ -99,6 +99,15 @@ functions. Only `Load` and `Dump` are exported by default.
   context, you will be fine with the default setting.
 
 
+- `$YAML::XS::Indent` (since v0.76)
+
+  Default is 2.
+
+  Sets the number of spaces for indentation. Value will be took from 
+  `$YAML::XS::Indent` or `$YAML::Indent`. If those variables are not set - 
+  default value will be used.
+
+
 = Using YAML::XS with Unicode
 
 Handling unicode properly in Perl can be a pain. YAML::XS only deals with
