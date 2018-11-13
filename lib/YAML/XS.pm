@@ -10,7 +10,7 @@ use base 'Exporter';
 %YAML::XS::EXPORT_TAGS = (
     all => [qw(Dump Load LoadFile DumpFile)],
 );
-our ($UseCode, $DumpCode, $LoadCode, $Boolean, $LoadBlessed $YAML::XS::Indent);
+our ($UseCode, $DumpCode, $LoadCode, $Boolean, $LoadBlessed, $Indent);
 # $YAML::XS::UseCode = 0;
 # $YAML::XS::DumpCode = 0;
 # $YAML::XS::LoadCode = 0;
