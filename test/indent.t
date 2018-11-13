@@ -1,6 +1,6 @@
 use FindBin '$Bin';
 use lib $Bin;
-use TestYAMLTests tests => 4;
+use TestYAMLTests tests => 2;
 
 $YAML::XS::Indent = 4;
 is Dump({a => 1, b => 2, c => 3}), <<'...',
