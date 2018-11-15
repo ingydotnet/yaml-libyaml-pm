@@ -131,11 +131,11 @@ having problems, use Devel::Peek on all the possible data points.
 
 =over
 
-=item * YAML.pm
+=item * L<YAML>.pm
 
-=item * YAML::Syck
+=item * L<YAML::Syck>
 
-=item * YAML::Tiny
+=item * L<YAML::Tiny>
 
 =back
 

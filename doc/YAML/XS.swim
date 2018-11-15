@@ -73,7 +73,7 @@ functions. Only `Load` and `Dump` are exported by default.
   and `false` will be loaded as `JSON::PP::Boolean` or `boolean.pm` objects.
   Those objects will be dumped again as plain "true" or "false".
 
-  It will try to load L<JSON::PP> or L<boolean> and die if it can't be loaded.
+  It will try to load [JSON::PP] or [boolean] and die if it can't be loaded.
 
   With that it's possible to add new "real" booleans to a data structure:
 
@@ -119,8 +119,8 @@ are having problems, use Devel::Peek on all the possible data points.
 
 = See Also
 
-* YAML.pm
-* YAML::Syck
-* YAML::Tiny
+* [YAML].pm
+* [YAML::Syck]
+* [YAML::Tiny]
 
 <<<cpan-tail>>>
