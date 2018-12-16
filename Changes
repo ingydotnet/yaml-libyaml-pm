@@ -1,4 +1,11 @@
 ---
+version: 0.75_001
+date:    Sun Dec 16 18:27:49 CET 2018
+changes:
+- Add $Indent - number of spaces when dumping. PR#89 @zdm++
+- Fix typo in docs. PR#87 @mr-mixas++
+- Fix links in docs. @manwar++
+---
 version: 0.75
 date:    Sat Nov  3 14:17:28 CET 2018
 changes:
