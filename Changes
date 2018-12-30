@@ -1,6 +1,6 @@
 ---
-version: 0.75_001
-date:    Sun Dec 16 18:27:49 CET 2018
+version: 0.76
+date:    Sun Dec 30 20:10:16 CET 2018
 changes:
 - Add $Indent - number of spaces when dumping. PR#89 @zdm++
 - Fix typo in docs. PR#87 @mr-mixas++
@@ -9,7 +9,7 @@ changes:
 version: 0.75
 date:    Sat Nov  3 14:17:28 CET 2018
 changes:
-- Implement $LoadCode
+- Implement $LoadCode (tinita)
 ---
 version: 0.74
 date:    Fri Aug 31 18:06:17 PDT 2018
