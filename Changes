@@ -1,4 +1,11 @@
 ---
+version: 0.77
+date:    Mon 15 Apr 2019 10:55:13 PM CEST
+changes:
+- "Update libyaml to version 0.2.2. Most important change for users is that
+  plain urls in flow style can be parsed now. Example: `[ http://yaml.org ]`.
+  (tinita)"
+---
 version: 0.76
 date:    Sun Dec 30 20:10:16 CET 2018
 changes:

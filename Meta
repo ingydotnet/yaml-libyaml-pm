@@ -1,12 +1,12 @@
 =meta: 0.0.2
 
 name: YAML-LibYAML
-version: 0.76
+version: 0.77
 abstract: Perl YAML Serialization using XS and libyaml
 homepage: http://yaml.org
 language: perl
 license: perl
-copyright: 2007-2018
+copyright: 2007-2019
 
 author:
   name: Ingy döt Net
