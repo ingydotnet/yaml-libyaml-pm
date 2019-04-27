@@ -2,11 +2,6 @@ use ExtUtils::MakeMaker;
 use strict;
 use Config;
 
-if (-d '../.git') {
-    system("./update.sh") == 0
-        or die "update.sh failed";
-}
-
 my $obj_files = join ' ', map {
     my $c = $_;
     $c =~ s/\.c$/$Config::Config{_o}/;
