@@ -1,0 +1,30 @@
+---
+abstract: 'Perl YAML Serialization using XS and libyaml'
+author:
+  - 'Ingy döt Net <ingy@cpan.org>'
+build_requires:
+  Test::More: '0.88'
+configure_requires:
+  ExtUtils::MakeMaker: '0'
+dynamic_config: 0
+generated_by: 'Dist::Zilla version 6.012, CPAN::Meta::Converter version 2.150010'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: '1.4'
+name: YAML-LibYAML
+no_index:
+  directory:
+    - example
+    - inc
+    - t
+    - xt
+requires:
+  perl: v5.8.1
+resources:
+  bugtracker: https://github.com/ingydotnet/yaml-libyaml-pm/issues
+  homepage: https://github.com/ingydotnet/yaml-libyaml-pm
+  repository: https://github.com/ingydotnet/yaml-libyaml-pm.git
+version: '0.77'
+x_generated_by_perl: v5.24.1
+x_serialization_backend: 'YAML::Tiny version 1.73'

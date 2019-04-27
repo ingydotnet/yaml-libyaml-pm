@@ -1,0 +1,62 @@
+{
+   "abstract" : "Perl YAML Serialization using XS and libyaml",
+   "author" : [
+      "Ingy d\u00f6t Net <ingy@cpan.org>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Dist::Zilla version 6.012, CPAN::Meta::Converter version 2.150010",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : 2
+   },
+   "name" : "YAML-LibYAML",
+   "no_index" : {
+      "directory" : [
+         "example",
+         "inc",
+         "t",
+         "xt"
+      ]
+   },
+   "prereqs" : {
+      "configure" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : "0"
+         }
+      },
+      "develop" : {
+         "requires" : {
+            "Test::Pod" : "1.41"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "perl" : "v5.8.1"
+         }
+      },
+      "test" : {
+         "requires" : {
+            "Test::More" : "0.88"
+         }
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/ingydotnet/yaml-libyaml-pm/issues"
+      },
+      "homepage" : "https://github.com/ingydotnet/yaml-libyaml-pm",
+      "repository" : {
+         "type" : "git",
+         "url" : "https://github.com/ingydotnet/yaml-libyaml-pm.git",
+         "web" : "https://github.com/ingydotnet/yaml-libyaml-pm"
+      }
+   },
+   "version" : "0.77",
+   "x_generated_by_perl" : "v5.24.1",
+   "x_serialization_backend" : "Cpanel::JSON::XS version 4.02"
+}
+
