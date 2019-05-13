@@ -59,7 +59,7 @@
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "0.2.2"
+#define YAML_VERSION "0.2.2"
 
 /* Define the major version number. */
 #define YAML_VERSION_MAJOR 0
