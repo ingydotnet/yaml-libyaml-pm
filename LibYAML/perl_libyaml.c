@@ -1098,10 +1098,10 @@ dump_scalar(perl_yaml_dumper_t *dumper, SV *node, yaml_char_t *tag)
         string = SvPV_nomg(node_clone, string_len);
         if (
             (string_len == 0) ||
-            strEQ(string, "~") ||
-            strEQ(string, "true") ||
-            strEQ(string, "false") ||
-            strEQ(string, "null") ||
+            (string_len == 1 && strEQ(string, "~")) ||
+            (string_len == 4 && strEQ(string, "true")) ||
+            (string_len == 5 && strEQ(string, "false")) ||
+            (string_len == 4 && strEQ(string, "null")) ||
             (SvTYPE(node_clone) >= SVt_PVGV) ||
             ( dumper->quote_number_strings && !SvNIOK(node_clone) && looks_like_number(node_clone) )
         ) {
