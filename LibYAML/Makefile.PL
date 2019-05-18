@@ -2,10 +2,11 @@ use ExtUtils::MakeMaker;
 use strict;
 use Config;
 
-if (-d '../.git') {
-    system("./update.sh") == 0
-        or die "update.sh failed";
-}
+# update.sh shouldn't be used, needs fix
+#if (-d '../.git') {
+#    system("./update.sh") == 0
+#        or die "update.sh failed";
+#}
 
 my $obj_files = join ' ', map {
     my $c = $_;

@@ -1,9 +1,9 @@
 ---
-version: 0.77_001
-date:    Wed 15 May 2019 08:16:12 PM CEST
+version: 0.78
+date:    Sat 18 May 2019 06:35:21 PM CEST
 changes:
-- Fix double free/core dump when Dump()ing binary data (tinita)
-- Update config.h from libyaml
+- Fix double free/core dump when Dump()ing binary data, see issue#91 (tinita)
+- Update config.h from libyaml (tinita)
 ---
 version: 0.77
 date:    Mon 15 Apr 2019 10:55:13 PM CEST
