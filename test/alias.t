@@ -1,6 +1,6 @@
 use FindBin '$Bin';
 use lib $Bin;
-use TestYAMLTests tests => 10;
+use TestYAMLTests tests => 15;
 
 my ($a, $b) = Load(<<'...');
 ---
@@ -83,3 +83,33 @@ bar: *rx
 $hash = Load($yaml);
 is $hash->{bar}, $hash->{foo}, 'Regexp anchor/aliases Load';
 like "falala", $hash->{bar}, 'Aliased regexp works';
+
+$yaml = <<'...';
+---
+- &empty
+- *empty
+- &nulltag !!null
+- *nulltag
+- &null null
+- *null
+- &tilde ~
+- *tilde
+...
+
+$array = Load($yaml);
+is scalar @$array, 8, 'Load "null" aliases works';
+is scalar(grep defined, @$array), 0, 'Load "null" aliases returns undef';
+
+$yaml = <<'...';
+---
+- &true true
+- *true
+- &false false
+- *false
+...
+
+$array = Load($yaml);
+is scalar @$array, 4, 'Load boolean aliases works';
+is $array->[1], 1, 'Load boolean true alias';
+is $array->[3], '', 'Load boolean false alias';
+
