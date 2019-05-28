@@ -24,3 +24,12 @@ Dump (...)
         Dump(dummy);
         return;
 
+SV *
+libyaml_version()
+    CODE:
+    {
+        const char *v = yaml_get_version_string();
+        RETVAL = newSVpv(v, strlen(v));
+
+    }
+    OUTPUT: RETVAL

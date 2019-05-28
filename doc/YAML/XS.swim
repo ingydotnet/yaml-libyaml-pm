@@ -117,6 +117,12 @@ streams of utf8 octets. Just remember this:
 There are many, many places where things can go wrong with unicode.  If you
 are having problems, use Devel::Peek on all the possible data points.
 
+= libyaml
+
+You can find out (since v.079) which libyaml version this module was built with:
+
+    my $libyaml_version = YAML::XS::LibYAML::libyaml_version();
+
 = See Also
 
 * [YAML].pm
