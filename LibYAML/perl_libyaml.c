@@ -434,6 +434,22 @@ load_scalar(perl_yaml_loader_t *loader)
         if (strEQ(tag, YAML_STR_TAG)) {
             style = YAML_SINGLE_QUOTED_SCALAR_STYLE;
         }
+        else if (strEQ(tag, YAML_INT_TAG) || strEQ(tag, YAML_FLOAT_TAG)) {
+            /* TODO check int/float */
+            scalar = newSVpvn(string, length);
+            if ( looks_like_number(scalar) ) {
+                /* numify */
+                SvIV_please(scalar);
+            }
+            else {
+                croak("%s",
+                    loader_error_msg(loader, form("Invalid content found for !!int tag: '%s'", tag))
+                );
+            }
+            if (anchor)
+                hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(scalar), 0);
+            return scalar;
+        }
         else if (
             strEQ(tag, YAML_NULL_TAG)
             &&

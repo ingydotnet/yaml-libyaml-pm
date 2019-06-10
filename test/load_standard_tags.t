@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use FindBin '$Bin';
 use lib $Bin;
-use TestYAMLTests tests => 25;
+use TestYAMLTests tests => 27;
 use B ();
 
 my $yaml = <<"EOM";
@@ -15,6 +15,8 @@ my $yaml = <<"EOM";
 - !!null ~
 - !!null null
 - !!null
+- !!int 23
+- !!float 23.3
 EOM
 
 my @expected = ('', '~', 'null', "23", 'true', 'false');
@@ -31,12 +33,14 @@ for my $i (0 .. $#expected) {
     cmp_ok($data->[$i], 'eq', $expected[$i], "data[$i] equals '$expected[$i]'");
 }
 
-my @flags = map { B::svref_2object(\$_)->FLAGS } @$data[0 .. 5];
-for my $i (0 .. $#flags) {
+my @flags = map { B::svref_2object(\$_)->FLAGS } @$data;
+for my $i (0 .. 5) {
     my $flags = $flags[$i];
     ok($flags & B::SVp_POK, "data[$i] has string flag");
     ok(not($flags & B::SVp_IOK), "data[$i] does not have int flag");
 }
+ok($flags[9] & B::SVp_IOK, "data[9] has int flag");
+ok($flags[10] & B::SVp_NOK, "data[10] has num flag");
 
 my $yaml2 = <<"EOM";
 - !!map
