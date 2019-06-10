@@ -1,9 +1,14 @@
 ---
+version: 0.78_002
+date:    Mon 10 Jun 2019 01:09:39 PM CEST
+changes:
+- Support standard !!int/!!float tags instead of dying (tinita)
+---
 version: 0.78_001
 date:    Thu 30 May 2019 06:00:28 PM CEST
 changes:
 - Support aliasing scalars resolved as null or booleans (tinita)
-- Add YAML::XS::LibYAML::libyaml_version()
+- Add YAML::XS::LibYAML::libyaml_version() (tinita)
 ---
 version: 0.78
 date:    Sat 18 May 2019 06:35:21 PM CEST
