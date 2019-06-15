@@ -1,5 +1,7 @@
 # Hand made .travis.yml from pkg/travis.yml
 
+dist: trusty
+
 language: perl
 
 perl:
