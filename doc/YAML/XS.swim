@@ -128,5 +128,7 @@ You can find out (since v.079) which libyaml version this module was built with:
 * [YAML].pm
 * [YAML::Syck]
 * [YAML::Tiny]
+* [YAML::PP]
+* [YAML::PP::LibYAML]
 
 <<<cpan-tail>>>

@@ -144,6 +144,10 @@ built with:
 
 =item * L<YAML::Tiny>
 
+=item * L<YAML::PP>
+
+=item * L<YAML::PP::LibYAML>
+
 =back
 
 =head1 Author
