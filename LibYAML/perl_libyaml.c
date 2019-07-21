@@ -1139,7 +1139,7 @@ dump_scalar(perl_yaml_dumper_t *dumper, SV *node, yaml_char_t *tag)
                style = (string_len > 30) ? YAML_LITERAL_SCALAR_STYLE : YAML_DOUBLE_QUOTED_SCALAR_STYLE;
         }
     }
-    yaml_scalar_event_initialize(
+    if (! yaml_scalar_event_initialize(
         &event_scalar,
         NULL,
         tag,
@@ -1148,7 +1148,9 @@ dump_scalar(perl_yaml_dumper_t *dumper, SV *node, yaml_char_t *tag)
         plain_implicit,
         quoted_implicit,
         style
-    );
+    )) {
+        croak("Could not initialize scalar event\n");
+    }
     if (! yaml_emitter_emit(&dumper->emitter, &event_scalar))
         croak("%sEmit scalar '%s', error: %s\n",
             ERRMSG,
