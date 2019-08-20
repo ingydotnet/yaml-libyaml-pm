@@ -249,6 +249,7 @@ load_error:
 SV *
 load_node(perl_yaml_loader_t *loader)
 {
+    char *tag;
     SV* return_sv = NULL;
     /* This uses stack, but avoids (severe!) memory leaks */
     yaml_event_t uplevel_event;
@@ -275,7 +276,6 @@ load_node(perl_yaml_loader_t *loader)
 
     /* The rest all need cleanup */
     switch (loader->event.type) {
-        char *tag;
 
         /* Handle loading a mapping */
         case YAML_MAPPING_START_EVENT:
@@ -332,6 +332,7 @@ load_node(perl_yaml_loader_t *loader)
 SV *
 load_mapping(perl_yaml_loader_t *loader, char *tag)
 {
+    dXCPT;
     SV *key_node;
     SV *value_node;
     HV *hash = newHV();
@@ -345,37 +346,47 @@ load_mapping(perl_yaml_loader_t *loader, char *tag)
     if (anchor)
         hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(hash_ref), 0);
 
-    /* Get each key string and value node and put them in the hash */
-    while ((key_node = load_node(loader))) {
-        assert(SvPOK(key_node));
-        value_node = load_node(loader);
-        hv_store_ent(
-            hash, sv_2mortal(key_node), value_node, 0
-        );
-    }
+    XCPT_TRY_START {
 
-    /* Deal with possibly blessing the hash if the YAML tag has a class */
-    if (tag) {
-        if (strEQ(tag, TAG_PERL_PREFIX "hash")) {
-        }
-        else if (strEQ(tag, YAML_MAP_TAG)) {
-        }
-        else {
-            char *class;
-            char *prefix = TAG_PERL_PREFIX "hash:";
-            if (*tag == '!') {
-                prefix = "!";
-            }
-            else if (strlen(tag) <= strlen(prefix) ||
-                ! strnEQ(tag, prefix, strlen(prefix))
-            ) croak("%s",
-                loader_error_msg(loader, form("bad tag found for hash: '%s'", tag))
+        /* Get each key string and value node and put them in the hash */
+        while ((key_node = load_node(loader))) {
+            assert(SvPOK(key_node));
+            value_node = load_node(loader);
+            hv_store_ent(
+                hash, sv_2mortal(key_node), value_node, 0
             );
-            if (loader->load_blessed) {
-                class = tag + strlen(prefix);
-                sv_bless(hash_ref, gv_stashpv(class, TRUE));
+        }
+
+        /* Deal with possibly blessing the hash if the YAML tag has a class */
+        if (tag) {
+            if (strEQ(tag, TAG_PERL_PREFIX "hash")) {
+            }
+            else if (strEQ(tag, YAML_MAP_TAG)) {
+            }
+            else {
+                char *class;
+                char *prefix = TAG_PERL_PREFIX "hash:";
+                if (*tag == '!') {
+                    prefix = "!";
+                }
+                else if (strlen(tag) <= strlen(prefix) ||
+                    ! strnEQ(tag, prefix, strlen(prefix))
+                ) croak("%s",
+                    loader_error_msg(loader, form("bad tag found for hash: '%s'", tag))
+                );
+                if (loader->load_blessed) {
+                    class = tag + strlen(prefix);
+                    sv_bless(hash_ref, gv_stashpv(class, TRUE));
+                }
             }
         }
+
+    } XCPT_TRY_END
+
+    XCPT_CATCH
+    {
+        SvREFCNT_dec(hash_ref);
+        XCPT_RETHROW;
     }
 
     return hash_ref;
@@ -385,38 +396,52 @@ load_mapping(perl_yaml_loader_t *loader, char *tag)
 SV *
 load_sequence(perl_yaml_loader_t *loader)
 {
+    dXCPT;
     SV *node;
     AV *array = newAV();
     SV *array_ref = (SV *)newRV_noinc((SV *)array);
     char *anchor = (char *)loader->event.data.sequence_start.anchor;
     char *tag = (char *)loader->event.data.mapping_start.tag;
-    if (anchor)
-        hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(array_ref), 0);
-    while ((node = load_node(loader))) {
-        av_push(array, node);
-    }
-    if (tag) {
-        if (strEQ(tag, TAG_PERL_PREFIX "array")) {
-        }
-        else if (strEQ(tag, YAML_SEQ_TAG)) {
-        }
-        else {
-            char *class;
-            char *prefix = TAG_PERL_PREFIX "array:";
 
-            if (*tag == '!')
-                prefix = "!";
-            else if (strlen(tag) <= strlen(prefix) ||
-                ! strnEQ(tag, prefix, strlen(prefix))
-            ) croak("%s",
-                loader_error_msg(loader, form("bad tag found for array: '%s'", tag))
-            );
-            if (loader->load_blessed) {
-                class = tag + strlen(prefix);
-                sv_bless(array_ref, gv_stashpv(class, TRUE));
+    XCPT_TRY_START {
+
+        if (anchor)
+            hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(array_ref), 0);
+        while ((node = load_node(loader))) {
+            av_push(array, node);
+        }
+
+        if (tag) {
+            if (strEQ(tag, TAG_PERL_PREFIX "array")) {
+            }
+            else if (strEQ(tag, YAML_SEQ_TAG)) {
+            }
+            else {
+                char *class;
+                char *prefix = TAG_PERL_PREFIX "array:";
+
+                if (*tag == '!')
+                    prefix = "!";
+                else if (strlen(tag) <= strlen(prefix) ||
+                    ! strnEQ(tag, prefix, strlen(prefix))
+                ) croak("%s",
+                    loader_error_msg(loader, form("bad tag found for array: '%s'", tag))
+                );
+                if (loader->load_blessed) {
+                    class = tag + strlen(prefix);
+                    sv_bless(array_ref, gv_stashpv(class, TRUE));
+                }
             }
         }
+
+    } XCPT_TRY_END
+
+    XCPT_CATCH
+    {
+        SvREFCNT_dec(array_ref);
+        XCPT_RETHROW;
     }
+
     return array_ref;
 }
 
