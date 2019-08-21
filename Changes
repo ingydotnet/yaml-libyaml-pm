@@ -1,4 +1,9 @@
 ---
+version: 0.79_001
+date:    Wed 21 Aug 2019 06:49:07 PM CEST
+changes:
+- Fix memory leak when loading invalid YAML (PR#93 tinita)
+---
 version: 0.79
 date:    Tue 11 Jun 2019 09:35:22 PM CEST
 changes:
