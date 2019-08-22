@@ -1,7 +1,7 @@
 =meta: 0.0.2
 
 name: YAML-LibYAML
-version: 0.79_001
+version: 0.80
 abstract: Perl YAML Serialization using XS and libyaml
 homepage: http://yaml.org
 language: perl
