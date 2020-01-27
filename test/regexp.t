@@ -2,6 +2,7 @@ use FindBin '$Bin';
 use lib $Bin;
 use TestYAMLTests tests => 19;
 use Devel::Peek();
+$YAML::XS::LoadBlessed = 1;
 
 my $rx1 = qr/5050/;
 my $yaml1 = Dump $rx1;

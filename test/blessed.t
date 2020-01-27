@@ -1,6 +1,12 @@
 use FindBin '$Bin';
 use lib $Bin;
-use TestYAMLTests tests => 10;
+use TestYAMLTests tests => 11;
+use YAML::XS ();
+
+my $unblessed = YAML::XS::Load('!!perl/array:Foo [23]');
+is(ref $unblessed, 'ARRAY', "No objects by default");
+
+$YAML::XS::LoadBlessed = 1;
 
 filters {
     perl => 'eval',

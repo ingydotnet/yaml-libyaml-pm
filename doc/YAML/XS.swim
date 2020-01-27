@@ -29,7 +29,9 @@ functions. Only `Load` and `Dump` are exported by default.
 
 - `$YAML::XS::LoadBlessed` (since v0.69)
 
-  Default: true. The default might be changed to false in the future.
+  Default: false.
+
+  The default was changed in version 0.81.
 
   When set to false, it will not bless data into objects, which can be
   a security problem, when loading YAML from an untrusted source.
@@ -44,7 +46,10 @@ functions. Only `Load` and `Dump` are exported by default.
     perl: !!perl/hash:Foo::Bar { a: 1 }
     regex: !!perl/regexp:Foo::Bar pattern
 
-
+  You can create any kind of object with YAML. The creation itself is not the
+  critical part. If the class has a C<DESTROY> method, it will be called once
+  the object is deleted. An example with File::Temp removing files can be found
+  at [https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=862373]
 
 - `$YAML::XS::UseCode`
 

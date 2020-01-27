@@ -1,6 +1,7 @@
 use FindBin '$Bin';
 use lib $Bin;
 use TestYAMLTests tests => 6;
+$YAML::XS::LoadBlessed = 1;
 
 my $a = Load(<<'...');
 ---

@@ -1,6 +1,7 @@
 use FindBin '$Bin';
 use lib $Bin;
 use TestYAMLTests tests => ( 3 * ( 5 * 5 + 3 ) );
+$YAML::XS::LoadBlessed = 1;
 
 use Scalar::Util qw(weaken);
 

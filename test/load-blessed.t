@@ -1,6 +1,7 @@
 use FindBin '$Bin';
 use lib $Bin;
 use TestYAMLTests tests => 15;
+$YAML::XS::LoadBlessed = 1;
 
 my $yaml = <<"EOM";
 local_array: !Foo::Bar [a]

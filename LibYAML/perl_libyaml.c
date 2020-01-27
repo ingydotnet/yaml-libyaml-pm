@@ -154,11 +154,11 @@ Load(SV *yaml_sv)
         SvTRUE(GvSV(gv)))
     );
 
-    loader.load_blessed = 1;
+    loader.load_blessed = 0;
     gv = gv_fetchpv("YAML::XS::LoadBlessed", FALSE, SVt_PV);
     if (SvOK(GvSV(gv))) {
-        if (! SvTRUE(GvSV(gv))) {
-            loader.load_blessed = 0;
+        if (SvTRUE(GvSV(gv))) {
+            loader.load_blessed = 1;
         }
     }
 
