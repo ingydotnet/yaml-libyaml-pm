@@ -1,4 +1,11 @@
 ---
+version: 0.82
+date:    Sat 02 May 2020 08:39:03 PM CEST
+changes:
+- Updated libyaml sources to 0.2.4. Changes affecting YAML::XS are
+- Output '...' at the stream end after a block scalar with trailing empty lines
+- Accept '%YAML 1.2' directives (they are ignored and do not change behaviour though)
+---
 version: 0.81
 date:    Mon 27 Jan 2020 11:05:46 PM CET
 changes:
