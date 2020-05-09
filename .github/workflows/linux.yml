@@ -1,0 +1,112 @@
+name: Linux
+
+on:
+  push:
+    branches: [ '*' ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  # Here we install Zilla::Dist into the ~/perl directory.
+  # This will be cached, so it doesn't have to be done in every job.
+  # If you want to update dependencies, just change the cache key.
+  # Then we run tests and create a tarball. This is uploaded as an artifact
+  # that the next job can download.
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        perl-version:
+        - '5.30'
+
+    container:
+      image: perl:${{ matrix.perl-version }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Cache local lib
+      uses: actions/cache@v1
+      env:
+        cache-name: cache-local-lib
+      with:
+        path: ~/perl
+        # Change key to install fresh dependencies from scratch
+        key: local-2020-05-09
+
+    - run: |
+        mkdir -p ~/perl
+        ls -l ~/perl
+
+    - run: perl -V
+    - name: Clone test-base-pm
+      run: >
+        git clone --depth 1
+        https://github.com/ingydotnet/test-base-pm ../test-base-pm
+
+    - name: Install deps
+      run: >
+        cpanm --quiet --notest --local-lib ~/perl
+        Test::More Test::Base Zilla::Dist Dist::Zilla
+
+    - name: Run Tests
+      run: |
+        export PERL5LIB=$HOME/perl/lib/perl5
+        PATH=$HOME/perl/bin:$PATH
+        zild disttest
+        zild dist
+        ls -lrt *.tar.gz
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: tarball
+        path: YAML-LibYAML*.tar.gz
+
+
+  # Here we download the tarball artifact and test without needing Zilla::Dist
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        perl-version:
+        - '5.8'
+        - '5.10'
+        - '5.12'
+        - '5.14'
+        - '5.16'
+        - '5.18'
+        - '5.20'
+        - '5.22'
+        - '5.24'
+        - '5.26'
+        - '5.28'
+
+    container:
+      image: perl:${{ matrix.perl-version }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: tarball
+
+    - run: perl -V
+
+    - name: Install deps
+      run: >
+        cpanm --quiet --notest --local-lib ~/perl
+        Test::More Test::Base
+
+    - name: Run tests
+      run: |
+        export PERL5LIB=$HOME/perl/lib/perl5
+        PATH=$HOME/perl/bin:$PATH
+        ls -lrt *.tar.gz
+        tar xvf YAML-LibYAML*.tar.gz
+        cd YAML-LibYAML-*
+        ls -l
+        perl Makefile.PL && make && make test
+
