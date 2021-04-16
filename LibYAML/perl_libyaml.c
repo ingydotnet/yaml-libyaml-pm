@@ -824,6 +824,7 @@ dump_prewalk(perl_yaml_dumper_t *dumper, SV *node)
 {
     int i, len;
     U32 ref_type;
+    SvGETMAGIC(node);
 
     if (! (SvROK(node) || SvTYPE(node) == SVt_PVGV)) return;
 
@@ -862,11 +863,17 @@ dump_prewalk(perl_yaml_dumper_t *dumper, SV *node)
     else if (ref_type == SVt_PVHV) {
         HV *hash = (HV *)SvRV(node);
         HE *he;
+        SV *key;
+        SV *val;
         hv_iterinit(hash);
+
         while ((he = hv_iternext(hash))) {
-            SV *val = HeVAL(he);
-            if (val)
+            key = hv_iterkeysv(he);
+            he = hv_fetch_ent(hash, key, 0, 0);
+            val = he ? HeVAL(he) : NULL;
+            if (val) {
                 dump_prewalk(dumper, val);
+            }
         }
     }
     else if (ref_type <= SVt_PVNV || ref_type == SVt_PVGV) {
@@ -896,6 +903,7 @@ dump_node(perl_yaml_dumper_t *dumper, SV *node)
     yaml_char_t *tag = NULL;
     const char *class = NULL;
 
+    SvGETMAGIC(node);
     if (SvTYPE(node) == SVt_PVGV) {
         SV **svr;
         tag = (yaml_char_t *)TAG_PERL_PREFIX "glob";
