@@ -1,12 +1,12 @@
 =meta: 0.0.2
 
 name: YAML-LibYAML
-version: 0.82
+version: 0.82_001
 abstract: Perl YAML Serialization using XS and libyaml
 homepage: http://yaml.org
 language: perl
 license: perl
-copyright: 2007-2020
+copyright: 2007-2021
 
 author:
   name: Ingy döt Net
@@ -26,7 +26,7 @@ requires:
 
 test:
   requires:
-    Test::More: 0.90
+    Test::More: 0.90 # need 'subtest()'
 
 =zild:
   libname: YAML::XS
