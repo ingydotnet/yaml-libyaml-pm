@@ -1,8 +1,9 @@
 ---
-version: 0.82_001
-date:    Sun 02 May 2021 02:16:27 AM CEST
+version: 0.83
+date:    Sat 08 May 2021 11:51:32 PM CEST
 changes:
 - Recognize tied variables (PR#101 tinita)
+- Add license file from included libyaml code (PR#102 tinita)
 ---
 version: 0.82
 date:    Sat 02 May 2020 08:39:03 PM CEST
