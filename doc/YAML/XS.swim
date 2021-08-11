@@ -110,6 +110,12 @@ functions. Only `Load` and `Dump` are exported by default.
 
   Sets the number of spaces for indentation for `Dump`.
 
+- `$YAML::XS::Width` (since v0.84)
+
+  Default is 80.
+
+  Sets the approximate line width for `Dump`. A negative value suppresses the
+  line wrapping.
 
 = Using YAML::XS with Unicode
 
