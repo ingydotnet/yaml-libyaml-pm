@@ -32,6 +32,7 @@ typedef struct {
     int load_bool_jsonpp;
     int load_bool_boolean;
     int load_blessed;
+    int forbid_duplicate_keys;
     int document;
 } perl_yaml_loader_t;
 

@@ -51,6 +51,21 @@ functions. Only `Load` and `Dump` are exported by default.
   the object is deleted. An example with File::Temp removing files can be found
   at [https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=862373]
 
+- $YAML::XS::ForbidDuplicateKeys` (since 0.84)
+
+  Default: false
+
+  When set to true, `Load` will die when encountering a duplicate key in a hash,
+  e.g.
+
+    key: value
+    key: another value
+
+  This can be useful for bigger YAML documents where it is not that obvious,
+  and it is recommended to set it to true.
+  That's also what a YAML loader should do by default according to the YAML
+  specification.
+
 - `$YAML::XS::UseCode`
 
 - `$YAML::XS::DumpCode`

@@ -156,10 +156,14 @@ Load(SV *yaml_sv)
 
     loader.load_blessed = 0;
     gv = gv_fetchpv("YAML::XS::LoadBlessed", FALSE, SVt_PV);
-    if (SvOK(GvSV(gv))) {
-        if (SvTRUE(GvSV(gv))) {
-            loader.load_blessed = 1;
-        }
+    if (SvOK(GvSV(gv)) && SvTRUE(GvSV(gv))) {
+        loader.load_blessed = 1;
+    }
+
+    loader.forbid_duplicate_keys = 0;
+    gv = gv_fetchpv("YAML::XS::ForbidDuplicateKeys", FALSE, SVt_PV);
+    if (SvOK(GvSV(gv)) && SvTRUE(GvSV(gv))) {
+        loader.forbid_duplicate_keys = 1;
     }
 
     yaml_str = (const unsigned char *)SvPV_const(yaml_sv, yaml_len);
@@ -352,6 +356,17 @@ load_mapping(perl_yaml_loader_t *loader, char *tag)
         while ((key_node = load_node(loader))) {
             assert(SvPOK(key_node));
             value_node = load_node(loader);
+            if (loader->forbid_duplicate_keys &&
+                hv_exists_ent(hash, key_node, 0)
+            ) {
+                croak(
+                    "%s",
+                    loader_error_msg(
+                        loader,
+                        form("Duplicate key '%s'", SvPV_nolen(key_node))
+                    )
+                );
+            }
             hv_store_ent(
                 hash, sv_2mortal(key_node), value_node, 0
             );
