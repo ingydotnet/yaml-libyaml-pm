@@ -14,7 +14,7 @@ author:
   homepage: http://ingy.net
   github: ingydotnet
   twitter: ingydotnet
-  freenode: ingy
+  libera: ingy
 
 devel:
   git: https://github.com/ingydotnet/yaml-libyaml-pm
@@ -32,3 +32,4 @@ test:
   libname: YAML::XS
   include_testbase: true
   test-000: require
+  no-travis: true
