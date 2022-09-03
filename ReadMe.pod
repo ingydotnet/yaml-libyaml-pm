@@ -10,9 +10,6 @@ See http://github.com/ingydotnet/swim-pm#readme
 
 YAML::XS - Perl YAML Serialization using XS and libyaml
 
-=for html
-<a href="https://travis-ci.org/ingydotnet/yaml-libyaml-pm"><img src="https://travis-ci.org/ingydotnet/yaml-libyaml-pm.png" alt="yaml-libyaml-pm"></a>
-
 =head1 Synopsis
 
     use YAML::XS;
@@ -173,7 +170,7 @@ built with:
 
 =head1 Author
 
-Ingy döt Net <ingy@cpan.org>
+Ingy döt Net <ingy@ingy.net>
 
 =head1 Copyright and License
 
