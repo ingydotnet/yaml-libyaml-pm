@@ -639,12 +639,13 @@ load_code(perl_yaml_loader_t * loader)
     char *anchor = (char *)loader->event.data.scalar.anchor;
     char *tag = (char *)loader->event.data.scalar.tag;
     char *prefix = TAG_PERL_PREFIX "code:";
+    SV *code;
 
     if (! loader->load_code) {
         string = "{}";
         length = 2;
     }
-    SV *code = newSVpvn(string, length);
+    code = newSVpvn(string, length);
     SvUTF8_on(code);
 
 
@@ -775,6 +776,7 @@ Dump(SV *dummy, ...)
     yaml_event_t event_stream_end;
     int i;
     SV *yaml = sv_2mortal(newSVpvn("", 0));
+    SV *indent, *width;
     sp = mark;
 
     set_dumper_options(&dumper);
@@ -783,11 +785,15 @@ Dump(SV *dummy, ...)
     yaml_emitter_initialize(&dumper.emitter);
 
     /* set indent */
-    SV* indent = get_sv("YAML::XS::Indent", GV_ADD);
+    indent = get_sv("YAML::XS::Indent", GV_ADD);
     if (SvIOK(indent)) yaml_emitter_set_indent(&dumper.emitter, SvIV(indent));
 
     yaml_emitter_set_unicode(&dumper.emitter, 1);
-    yaml_emitter_set_width(&dumper.emitter, 2);
+
+    /* set width */
+    width = get_sv("YAML::XS::Width", GV_ADD);
+    yaml_emitter_set_width(&dumper.emitter, SvIOK(width) ? SvIV(width) : 2);
+
     yaml_emitter_set_output(
         &dumper.emitter,
         &append_output,
