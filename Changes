@@ -1,4 +1,9 @@
 ---
+version: 0.84
+date:    Sat 03 Sep 2022 09:20:20 PM CEST
+changes:
+- Add option ForbidDuplicateKeys (PR#105 tinita)
+---
 version: 0.83
 date:    Sat 08 May 2021 11:51:32 PM CEST
 changes:
