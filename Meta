@@ -1,7 +1,7 @@
 =meta: 0.0.2
 
 name: YAML-LibYAML
-version: 0.84
+version: 0.84_001
 abstract: Perl YAML Serialization using XS and libyaml
 homepage: http://yaml.org
 language: perl
@@ -32,3 +32,5 @@ test:
   libname: YAML::XS
   include_testbase: true
   test-000: require
+  no-travis: true
+  no-readme: true

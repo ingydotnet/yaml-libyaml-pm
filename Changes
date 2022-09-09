@@ -1,4 +1,10 @@
 ---
+version: 0.84_001
+date:    Fri Sep  9 11:30:58 AM EDT 2022
+changes:
+- Convert doc from Swim to Markdown
+- Remove travis testing
+---
 version: 0.84
 date:    Sat 03 Sep 2022 09:20:20 PM CEST
 changes:
