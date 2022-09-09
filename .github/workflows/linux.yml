@@ -24,6 +24,10 @@ jobs:
       image: perl:${{ matrix.perl-version }}
 
     steps:
+    - run: |
+        apt-get update
+        apt-get install -y pandoc
+
     - uses: actions/checkout@v2
 
     - name: Cache local lib
@@ -48,7 +52,7 @@ jobs:
     - name: Install deps
       run: >
         cpanm --quiet --notest --local-lib ~/perl
-        Test::More Test::Base Zilla::Dist Dist::Zilla
+        Test::More Test::Base Zilla::Dist
 
     - name: Run Tests
       run: |
