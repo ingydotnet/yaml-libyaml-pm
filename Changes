@@ -1,4 +1,9 @@
 ---
+version: 0.86
+date:    Wed Jan 25 09:34:14 PM EST 2023
+changes:
+- Fix YAML::XS pod in cpanminus
+---
 version: 0.85
 date:    Mon Sep 12 08:20:19 AM EDT 2022
 changes:
