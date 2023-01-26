@@ -1,4 +1,4 @@
-<!-- doc-head: -->
+<!-- doc-head: YAML::XS -->
 
 <!-- badge: gha linux -->
 
