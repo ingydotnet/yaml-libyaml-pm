@@ -2,7 +2,7 @@
 version: 0.86_001
 date:    Thu May  4 12:46:22 PM CEST 2023
 changes:
-- Turn off interal POK flag for number scalars
+- Turn off internal POK flag for number scalars
 ---
 version: 0.86
 date:    Wed Jan 25 09:34:14 PM EST 2023
