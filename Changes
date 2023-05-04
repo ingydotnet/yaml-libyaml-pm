@@ -1,6 +1,6 @@
 ---
-version: 0.86_001
-date:    Thu May  4 12:46:22 PM CEST 2023
+version: 0.87
+date:    Thu May  4 09:37:26 PM CEST 2023
 changes:
 - Turn off internal POK flag for number scalars
 ---
