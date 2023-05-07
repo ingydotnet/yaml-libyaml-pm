@@ -479,7 +479,12 @@ load_scalar(perl_yaml_loader_t *loader)
             scalar = newSVpvn(string, length);
             if ( looks_like_number(scalar) ) {
                 /* numify */
-                SvIV_please(scalar);
+                if (SvNV(scalar) == SvIV(scalar)) {
+                    SvIOK_only(scalar);
+                }
+                else {
+                    SvNOK_only(scalar);
+                }
             }
             else {
                 croak("%s",
