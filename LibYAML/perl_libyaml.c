@@ -575,12 +575,7 @@ load_scalar(perl_yaml_loader_t *loader)
 
     if (style == YAML_PLAIN_SCALAR_STYLE && looks_like_number(scalar) ) {
         /* numify */
-        if (SvNV(scalar) == SvIV(scalar)) {
-            SvIOK_only(scalar);
-        }
-        else {
-            SvNOK_only(scalar);
-        }
+        SvIV_please(scalar);
     }
 
     (void)sv_utf8_decode(scalar);
