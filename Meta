@@ -6,7 +6,7 @@ abstract: Perl YAML Serialization using XS and libyaml
 homepage: http://yaml.org
 language: perl
 license: perl
-copyright: 2007-2023
+copyright: 2007-2024
 
 author:
   name: Ingy döt Net

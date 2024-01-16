@@ -181,7 +181,7 @@ Ingy döt Net <ingy@ingy.net>
 
 # Copyright and License
 
-Copyright 2007-2023 - Ingy döt Net
+Copyright 2007-2024 - Ingy döt Net
 
 This program is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself.
