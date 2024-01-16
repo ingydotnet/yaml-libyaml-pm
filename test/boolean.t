@@ -1,6 +1,7 @@
 use FindBin '$Bin';
 use lib $Bin;
-use TestYAMLTests tests => 5;
+use constant HAVE_BOOLEANS => ($^V ge v5.36);
+use TestYAMLTests tests => 5 + (HAVE_BOOLEANS ? 1 : 0);
 
 my $yaml = <<'...';
 ---
@@ -39,3 +40,15 @@ my $yaml4 = Dump Load $yaml3;
 
 is $yaml4, $yaml3,
     "Everything related to boolean YNY roundtrips";
+
+if( HAVE_BOOLEANS ) {
+    no if HAVE_BOOLEANS, warnings => "experimental::builtin";
+
+    is Dump({ true => builtin::true, false => builtin::false }),
+        <<'...',
+---
+'false': false
+'true': true
+...
+        'core booleans dump as booleans';
+}

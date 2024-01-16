@@ -1,5 +1,9 @@
 #include <perl_libyaml.h>
 
+#if (PERL_REVISION > 5) || (PERL_REVISION == 5 && PERL_VERSION >= 36)
+#  define PERL_HAVE_BOOLEANS
+#endif
+
 static SV *
 call_coderef(SV *code, AV *args)
 {
@@ -1152,12 +1156,20 @@ dump_scalar(perl_yaml_dumper_t *dumper, SV *node, yaml_char_t *tag)
         string_len = 1;
         style = YAML_PLAIN_SCALAR_STYLE;
     }
-    else if (node == &PL_sv_yes) {
+    else if (node == &PL_sv_yes
+#ifdef PERL_HAVE_BOOLEANS
+        || (SvIsBOOL(node) && SvTRUE(node))
+#endif
+    ) {
         string = "true";
         string_len = 4;
         style = YAML_PLAIN_SCALAR_STYLE;
     }
-    else if (node == &PL_sv_no) {
+    else if (node == &PL_sv_no
+#ifdef PERL_HAVE_BOOLEANS
+        || (SvIsBOOL(node) && !SvTRUE(node))
+#endif
+    ) {
         string = "false";
         string_len = 5;
         style = YAML_PLAIN_SCALAR_STYLE;
