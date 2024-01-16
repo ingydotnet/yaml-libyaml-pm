@@ -37,7 +37,7 @@ jobs:
       with:
         path: ~/perl
         # Change key to install fresh dependencies from scratch
-        key: local-2020-05-09
+        key: local-2024-01-16
 
     - run: |
         mkdir -p ~/perl
