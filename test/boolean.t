@@ -1,7 +1,7 @@
 use FindBin '$Bin';
 use lib $Bin;
 use constant HAVE_BOOLEANS => ($^V ge v5.36);
-use TestYAMLTests tests => 5 + (HAVE_BOOLEANS ? 1 : 0);
+use TestYAMLTests tests => 5 + (HAVE_BOOLEANS ? 2 : 0);
 
 my $yaml = <<'...';
 ---
@@ -51,4 +51,11 @@ if( HAVE_BOOLEANS ) {
 'true': true
 ...
         'core booleans dump as booleans';
+
+    ok builtin::is_bool(Load(<<'...',)->{false}),
+---
+'false': false
+'true': true
+...
+        'booleans loaded as core booleans';
 }
