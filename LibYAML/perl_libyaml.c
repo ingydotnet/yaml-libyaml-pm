@@ -354,6 +354,9 @@ load_mapping(perl_yaml_loader_t *loader, char *tag)
 
         /* Get each key string and value node and put them in the hash */
         while ((key_node = load_node(loader))) {
+            if (! SvPOK(key_node)) {
+                SvPOK_on(key_node);
+            }
             assert(SvPOK(key_node));
             value_node = load_node(loader);
             if (loader->forbid_duplicate_keys &&
@@ -479,7 +482,12 @@ load_scalar(perl_yaml_loader_t *loader)
             scalar = newSVpvn(string, length);
             if ( looks_like_number(scalar) ) {
                 /* numify */
-                SvIV_please(scalar);
+                if (SvNV(scalar) == SvIV(scalar)) {
+                    SvIOK_only(scalar);
+                }
+                else {
+                    SvNOK_only(scalar);
+                }
             }
             else {
                 croak("%s",
