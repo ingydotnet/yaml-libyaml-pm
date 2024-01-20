@@ -95,7 +95,19 @@ Only `Load` and `Dump` are exported by default.
 
 * `$YAML::XS::Boolean` (since v0.67)
 
-  Default is undef.
+  Default: undef
+
+  When used with perl 5.36 or later, builtin booleans will work out of the
+  box. They will be created by `Load` and recognized by `Dump` automatically
+  (since YAML::XS 0.89).
+
+  ```perl
+  say Dump({ truth => builtin::true });
+  # truth: true
+  ```
+
+  For older perl versions you can use the following configuration to serialize
+  data as YAML booleans:
 
   When set to `"JSON::PP"` or `"boolean"`, the plain (unquoted) strings `true`
   and `false` will be loaded as `JSON::PP::Boolean` or `boolean.pm` objects.
