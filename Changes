@@ -1,4 +1,9 @@
 ---
+version: 0.88_001
+date:    Wed 24 Jan 2024 10:54:20 PM CET
+changes:
+- Recognise core booleans on Perl 5.36+ at dump time (PR#114 PEVANS++)
+---
 version: 0.88
 date:    Fri May 12 05:28:05 AM PDT 2023
 changes:
