@@ -1,6 +1,7 @@
 use ExtUtils::MakeMaker;
 use strict;
 use Config;
+use utf8;
 
 # update.sh shouldn't be used, needs fix
 #if (-d '../.git') {
