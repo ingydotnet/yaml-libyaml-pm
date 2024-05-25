@@ -1,0 +1,27 @@
+=pod
+
+=encoding utf8
+
+=head1 NAME
+
+YAML::LibYAML - Perl YAML Serialization using XS and libyaml
+
+=head1 NOTE
+
+C<YAML-LibYAML> is the CPAN I<distribution> name for the C<YAML::XS> module.
+
+See the YAML::XS documentation instead.
+
+=head1 AUTHOR
+
+Ingy döt Net L<ingy@cpan.org|mailto:ingy@cpan.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2007-2022 - Ingy döt Net
+
+This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+
+See L<http://www.perl.com/perl/misc/Artistic.html|http://www.perl.com/perl/misc/Artistic.html>
+
+=cut

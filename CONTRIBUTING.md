@@ -1,6 +1,44 @@
-# How to contribute
+# Contributing
 
-This module uses Zilla::Dist for creating releases. See also the `About` file.
+The "YAML-LibYAML" Project needs your help!
+
+Please consider being a contributor. This file contains instructions that will
+help you be an effective contributor to the Project.
+
+## GitHub
+
+The code for this Project is hosted at GitHub. The URL is:
+
+  https://github.com/ingydotnet/yaml-libyaml-pm
+
+You can get the code with this command:
+
+  git clone https://github.com/ingydotnet/yaml-libyaml-pm
+
+If you've found a bug or a missing feature that you would like the author to
+know about, report it here:
+
+  https://github.com/ingydotnet/yaml-libyaml-pm/issues
+
+or fix it and submit a pull request here:
+
+  https://github.com/ingydotnet/yaml-libyaml-pm/pulls
+
+See these links for help on interacting with GitHub:
+
+* https://help.github.com/
+* https://help.github.com/articles/creating-a-pull-request
+
+## IRC
+
+YAML-LibYAML has an IRC channel where you can find real people to help you:
+
+  irc.perl.org#yaml
+
+Join the channel. Join the team!
+
+
+    Thanks in advance,
 
 ## Commits
 
@@ -22,30 +60,3 @@ Try to follow these guidelines:
 * No trailing whitespace please
 * Look at existing code for formatting ;-)
 
-## Developing
-
-For developing, it is necessary to install Zilla::Dist.  Also, this module puts
-a copy of the Test::Base module into the `inc` directory.  For this you have to
-clone https://github.com/ingydotnet/test-base-pm parallel to this git
-repository.
-
-The layout of the git repository is a bit different from the CPAN tarball.
-For example, there is no `Makefile.PL`, and the tests are in the `test`
-directory instead of `t`.
-The documentation is in the `doc` directory in the `swim` format and
-will be converted to pod when generating the CPAN tarball.
-
-To avoid building the dist again and again during development, you can do the
-following:
-
-    % zild distdir
-    # will create YAML-LibYAML-x.yz
-    % cd YAML-LibYAML-x.yz
-    % git init
-    % git add .
-    % git commit -m Initial
-
-The generated directory will look like the final CPAN distribution, so you
-can work with `Makefile.PL` as usual.
-
-When development is finshed, copy the changed files one level up.
