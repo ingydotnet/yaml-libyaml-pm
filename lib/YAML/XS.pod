@@ -45,6 +45,7 @@ If set to true, it will load the following YAML as objects:
     local: !Foo::Bar [a]
     perl: !!perl/hash:Foo::Bar { a: 1 }
     regex: !!perl/regexp:Foo::Bar pattern
+
 You can create any kind of object with YAML. The creation itself is not the critical part. If the class has a C<DESTROY> method, it will be called once the object is deleted. An example with File::Temp removing files can be found at L<https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=862373|https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=862373>.
 
 =item * C<$YAML::XS::ForbidDuplicateKeys> (since 0.84)
@@ -55,6 +56,7 @@ When set to true, C<Load> will die when encountering a duplicate key in a hash, 
 
     key: value
     key: another value
+
 This can be useful for bigger YAML documents where it is not that obvious, and it is recommended to set it to true. That's also what a YAML loader should do by default according to the YAML specification.
 
 =item * C<$YAML::XS::UseCode>
@@ -81,6 +83,7 @@ When used with perl 5.36 or later, builtin booleans will work out of the box. Th
 
     say Dump({ truth => builtin::true });
     # truth: true
+
 For older perl versions you can use the following configuration to serialize data as YAML booleans:
 
 When set to C<"JSON::PP"> or C<"boolean">, the plain (unquoted) strings C<true> and C<false> will be loaded as C<JSON::PP::Boolean> or C<boolean.pm> objects. Those objects will be dumped again as plain "true" or "false".
@@ -95,6 +98,7 @@ With that it's possible to add new "real" booleans to a data structure:
     my $yaml = Dump($data);
     # boolfalse: false
     # booltrue: true
+
 It also lets booleans survive when loading YAML via YAML::XS and encode it in JSON via one of the various JSON encoders, which mostly support JSON::PP booleans.
 
 Please note that JSON::PP::Boolean and boolean.pm behave a bit differently. Ideally you should only use them in boolean context.
@@ -117,6 +121,7 @@ Handling unicode properly in Perl can be a pain. YAML::XS only deals with stream
 
     $perl = Load($utf8_octets);
     $utf8_octets = Dump($perl);
+
 There are many, many places where things can go wrong with unicode. If you are having problems, use Devel::Peek on all the possible data points.
 
 =head1 LIBYAML
@@ -124,6 +129,7 @@ There are many, many places where things can go wrong with unicode. If you are h
 You can find out (since v.079) which libyaml version this module was built with:
 
     my $libyaml_version = YAML::XS::LibYAML::libyaml_version();
+
 =head1 SEE ALSO
 
 =over
