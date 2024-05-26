@@ -1,4 +1,9 @@
 ---
+version: 0.89_001
+date:    2024-05-26 15:06:11+02:00
+changes:
+- Change from Zilla::Dist to Dist::Zilla
+---
 version: 0.89
 date:    Sat 27 Jan 2024 01:44:08 AM CET
 changes:
