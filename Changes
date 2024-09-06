@@ -1,4 +1,10 @@
 ---
+version: v0.901.0
+date:    2024-09-06 23:56:41+02:00
+changes:
+- Change version scheme
+- Fix missing linebreak in pod from Dist::Zilla conversion
+---
 version: 0.90
 date:    2024-09-06 23:44:13+02:00
 changes:
