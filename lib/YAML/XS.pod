@@ -17,6 +17,7 @@ YAML::XS - Perl YAML Serialization using XS and libyaml
 
     my $yaml = Dump [ 1..4 ];
     my $array = Load $yaml;
+
 =head1 DESCRIPTION
 
 Kirill Simonov's C<libyaml> is arguably the best YAML implementation. The C library is written precisely to the YAML 1.1 specification. It was originally bound to Python and was later bound to Ruby.
