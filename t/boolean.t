@@ -1,7 +1,7 @@
 use FindBin '$Bin';
 use lib $Bin;
 use constant HAVE_BOOLEANS => ($^V ge v5.36);
-use TestYAMLTests tests => 5 + (HAVE_BOOLEANS ? 2 : 0);
+use TestYAMLTests tests => 5 + (HAVE_BOOLEANS ? 4 : 0);
 
 my $yaml = <<'...';
 ---
@@ -58,4 +58,8 @@ if( HAVE_BOOLEANS ) {
 'true': true
 ...
         'booleans loaded as core booleans';
+
+    eval { $hash->{a} = 'something else' };
+    is $@, '', "core boolean element in hash is not readonly";
+    is $hash->{a}, 'something else', "core boolean element is changed";
 }

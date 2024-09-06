@@ -549,7 +549,11 @@ load_scalar(perl_yaml_loader_t *loader)
                 scalar = sv_setref_iv(scalar, name, 1);
             }
             else {
+#ifdef PERL_HAVE_BOOLEANS
+                scalar = newSVsv(&PL_sv_yes);
+#else
                 scalar = &PL_sv_yes;
+#endif
             }
             if (anchor)
                 hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(scalar), 0);
@@ -567,7 +571,11 @@ load_scalar(perl_yaml_loader_t *loader)
                 scalar = sv_setref_iv(scalar, name, 0);
             }
             else {
+#ifdef PERL_HAVE_BOOLEANS
+                scalar = newSVsv(&PL_sv_no);
+#else
                 scalar = &PL_sv_no;
+#endif
             }
             if (anchor)
                 hv_store(loader->anchors, anchor, strlen(anchor), SvREFCNT_inc(scalar), 0);

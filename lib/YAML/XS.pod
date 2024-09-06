@@ -80,10 +80,12 @@ This ensures leading that things like leading zeros and other formatting are pre
 
 Default: undef
 
-When used with perl 5.36 or later, builtin booleans will work out of the box. They will be created by C<Load> and recognized by C<Dump> automatically (since YAML::XS 0.89).
+Since YAML::XS 0.89: When used with perl 5.36 or later, builtin booleans will work out of the box. They will be created by C<Load> and recognized by C<Dump> automatically (since YAML::XS 0.89).
 
     say Dump({ truth => builtin::true });
     # truth: true
+
+Since YAML::XS v0.902: loaded booleans are not set to readonly anymore.
 
 For older perl versions you can use the following configuration to serialize data as YAML booleans:
 

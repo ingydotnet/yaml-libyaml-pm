@@ -31,3 +31,7 @@ YAML::XS::DumpFile($test_file, $t3, $t4);
 my ($t3_, $t4_) = LoadFile($test_file);
 
 is_deeply [$t3_, $t4_], [$t3, $t4], 'Unicode roundtrip ok';
+
+END {
+    rmtree('t/output');
+}
