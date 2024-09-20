@@ -1,8 +1,8 @@
 ---
-version: v0.901.1
-date:    2024-09-09 22:39:39+02:00
+version: v0.902.0
+date:    2024-09-20 21:39:00+02:00
 changes:
-- Loaded builtin ooleans are not readonly anymore for perl >= v5.36
+- Loaded builtin booleans are not readonly anymore for perl >= v5.36
 ---
 version: v0.901.0
 date:    2024-09-06 23:56:41+02:00
