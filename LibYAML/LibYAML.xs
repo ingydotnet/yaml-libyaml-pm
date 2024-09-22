@@ -33,3 +33,194 @@ libyaml_version()
 
     }
     OUTPUT: RETVAL
+
+
+MODULE = YAML::XS::LibYAML  PACKAGE = YAML::XS
+
+PROTOTYPES: DISABLE
+
+SV *
+new(char *class_name, ...)
+    PPCODE:
+    {
+        dXCPT;
+        perl_yaml_xs_t *yaml;
+        SV *point_sv;
+        SV *point_svrv;
+        HV *hash;
+        SV *object;
+        int i;
+        int indent;
+        int utf8 = 0;
+
+        XCPT_TRY_START
+        {
+            yaml = (perl_yaml_xs_t*) malloc(sizeof(perl_yaml_xs_t));
+            yaml->indent = 2;
+            hash = newHV();
+
+            if (items > 1) {
+                for (i = 1; i < items; i+=2) {
+                    if (i+1 >= items)
+                        break;
+                    if (SvPOK(ST(1))) {
+                        char *key = (char *)SvPV_nolen(ST(i));
+                        if (strEQ(key, "indent")) {
+                            indent = SvIV(ST(i+1));
+                            SV *indent_sv = newSViv(indent);
+                            hv_store(hash, "indent", 6, indent_sv, 0);
+                            yaml->indent = indent;
+                        }
+                        else if (strEQ(key, "utf8")) {
+                            utf8 = SvIV(ST(i+1));
+                            SV *utf8_sv = newSViv(utf8);
+                            hv_store(hash, "utf8", 4, utf8_sv, 0);
+                            yaml->utf8 = utf8;
+                        }
+                    }
+                }
+            }
+
+            point_sv = newSViv(PTR2IV(yaml));
+            hv_store(hash, "ptr", 3, point_sv, 0);
+
+            point_svrv = sv_2mortal(newRV_noinc((SV*)hash));
+            object = sv_bless(point_svrv, gv_stashpv(class_name, 1));
+        } XCPT_TRY_END
+
+        XCPT_CATCH
+        {
+            XCPT_RETHROW;
+        }
+        XPUSHs(object);
+        XSRETURN(1);
+    }
+
+void
+load_string(SV *object, SV *string)
+    PPCODE:
+    {
+        dXCPT;
+        perl_yaml_xs_t *yaml;
+        HV *hash;
+        SV **val;
+        STRLEN yaml_len;
+        const unsigned char *yaml_str;
+        const char *problem;
+
+        hash = (HV*)(SvROK(object)? SvRV(object): object);
+        val = hv_fetch(hash, "ptr", 3, TRUE);
+
+        if (!val || !SvOK(*val) || !SvIOK(*val)) {
+            PUTBACK;
+            return;
+        }
+
+        yaml_str = (const unsigned char *)SvPV_const(string, yaml_len);
+        yaml = INT2PTR(perl_yaml_xs_t*, SvIV(*val));
+        yaml_parser_initialize(&yaml->parser);
+        yaml_parser_set_input_string(
+            &yaml->parser,
+            yaml_str,
+            yaml_len
+        );
+        PUSHMARK(sp);
+        XCPT_TRY_START
+        {
+            oo_load_stream(yaml);
+        } XCPT_TRY_END
+
+        XCPT_CATCH
+        {
+            yaml_parser_delete(&yaml->parser);
+            XCPT_RETHROW;
+        }
+        yaml_parser_delete(&yaml->parser);
+        return;
+    }
+
+SV *
+dump_string(SV *object, ...)
+    PPCODE:
+    {
+        dXCPT;
+        perl_yaml_xs_t *yaml;
+        HV *hash;
+        SV **val;
+        yaml_event_t event_stream_start;
+        yaml_event_t event_stream_end;
+        SV *string = newSVpvn("", 0);
+        int i;
+
+        hash = (HV*)(SvROK(object)? SvRV(object): object);
+        val = hv_fetch(hash, "ptr", 3, TRUE);
+
+        XCPT_TRY_START
+        {
+            if (val && SvOK(*val) && SvIOK(*val)) {
+                yaml = INT2PTR(perl_yaml_xs_t*, SvIV(*val));
+
+                yaml_emitter_initialize(&yaml->emitter);
+                yaml_emitter_set_unicode(&yaml->emitter, 1);
+                yaml_emitter_set_indent(&yaml->emitter, yaml->indent);
+
+                yaml_emitter_set_output(&yaml->emitter, &append_output, (void *) string);
+
+                yaml_stream_start_event_initialize(
+                    &event_stream_start,
+                    YAML_UTF8_ENCODING
+                );
+                if (!yaml_emitter_emit(&yaml->emitter, &event_stream_start))
+                    croak("ERROR: %s", yaml->emitter.problem);
+
+                yaml->anchors = newHV();
+                sv_2mortal((SV *)yaml->anchors);
+                for (i = 1; i < items; i++) {
+                    yaml->anchor = 0;
+                    oo_dump_prewalk(yaml, ST(i));
+                    oo_dump_document(yaml, ST(i));
+                    hv_clear(yaml->anchors);
+                }
+
+                yaml_stream_end_event_initialize(&event_stream_end);
+                if (!yaml_emitter_emit(&yaml->emitter, &event_stream_end)) {
+                    croak("ERROR: %s", yaml->emitter.problem);
+                }
+                if (string) {
+                    if (! yaml->utf8) {
+                        SvUTF8_on(string);
+                    }
+                }
+            }
+            yaml_emitter_delete(&yaml->emitter);
+        } XCPT_TRY_END
+
+        XCPT_CATCH
+        {
+            yaml_emitter_delete(&yaml->emitter);
+            XCPT_RETHROW;
+        }
+
+        XPUSHs(string);
+        XSRETURN(1);
+    }
+
+void
+DESTROY(SV *object)
+    PPCODE:
+    {
+        dXCPT;
+        perl_yaml_xs_t *yaml;
+        HV *hash;
+        SV **val;
+
+        hash = (HV*)(SvROK(object)? SvRV(object): object);
+        val = hv_fetch(hash, "ptr", 3, TRUE);
+        if (val && SvOK(*val) && SvIOK(*val)) {
+            yaml = INT2PTR(perl_yaml_xs_t*, SvIV(*val));
+            free(yaml);
+        }
+
+        XSRETURN(0);
+    }
+

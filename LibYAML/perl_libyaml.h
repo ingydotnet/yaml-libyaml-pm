@@ -47,6 +47,17 @@ typedef struct {
     int quote_number_strings;
 } perl_yaml_dumper_t;
 
+typedef struct {
+    yaml_parser_t parser;
+    yaml_emitter_t emitter;
+    yaml_event_t event;
+    long anchor;
+    HV *anchors;
+    int indent;
+    int utf8;
+    int document;
+} perl_yaml_xs_t;
+
 static SV *
 call_coderef(SV *, AV *);
 
@@ -133,4 +144,33 @@ get_yaml_tag(SV *);
 
 int
 append_output(void *, unsigned char *, size_t size);
+
+
+void
+oo_load_stream(perl_yaml_xs_t *);
+SV *
+oo_load_node(perl_yaml_xs_t *);
+SV *
+oo_load_sequence(perl_yaml_xs_t *);
+SV *
+oo_load_mapping(perl_yaml_xs_t *);
+SV *
+oo_load_scalar(perl_yaml_xs_t *);
+SV *
+oo_load_alias(perl_yaml_xs_t *);
+
+void
+oo_dump_document(perl_yaml_xs_t *, SV *node);
+void
+oo_dump_node(perl_yaml_xs_t *, SV *node);
+void
+oo_dump_hash(perl_yaml_xs_t *, SV *node, yaml_char_t *);
+void
+oo_dump_array(perl_yaml_xs_t *, SV *node, yaml_char_t *);
+void
+oo_dump_scalar(perl_yaml_xs_t *, SV *node);
+void
+oo_dump_prewalk(perl_yaml_xs_t *, SV *);
+yaml_char_t *
+oo_get_yaml_anchor(perl_yaml_xs_t *, SV *);
 

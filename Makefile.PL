@@ -26,6 +26,7 @@ my %WriteMakefileArgs = (
     "warnings" => 0
   },
   "TEST_REQUIRES" => {
+    "Data::Dumper" => 0,
     "Devel::Peek" => 0,
     "Encode" => 0,
     "File::Find" => 0,
@@ -33,6 +34,7 @@ my %WriteMakefileArgs = (
     "FindBin" => 0,
     "IO::File" => 0,
     "IO::Pipe" => 0,
+    "JSON::PP" => 0,
     "Test::More" => "0.9",
     "Tie::Array" => 0,
     "Tie::Hash" => 0,
@@ -43,13 +45,14 @@ my %WriteMakefileArgs = (
   },
   "VERSION" => "v0.903.0",
   "test" => {
-    "TESTS" => "t/*.t"
+    "TESTS" => "t/*.t t/oop/*.t"
   }
 );
 
 
 my %FallbackPrereqs = (
   "B::Deparse" => 0,
+  "Data::Dumper" => 0,
   "Devel::Peek" => 0,
   "Encode" => 0,
   "Exporter" => 0,
@@ -58,6 +61,7 @@ my %FallbackPrereqs = (
   "FindBin" => 0,
   "IO::File" => 0,
   "IO::Pipe" => 0,
+  "JSON::PP" => 0,
   "Scalar::Util" => 0,
   "Test::More" => "0.9",
   "Tie::Array" => 0,
