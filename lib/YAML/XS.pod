@@ -15,8 +15,15 @@ YAML::XS - Perl YAML Serialization using XS and libyaml
 
     use YAML::XS;
 
+    # Classic functional interface
     my $yaml = Dump [ 1..4 ];
     my $array = Load $yaml;
+
+    # EXPERIMENTAL: Object Oriented interface for YAML 1.2
+    # Incompatible to functional interface!
+    my $xs = YAML::XS->new;
+    my $yaml = $xs->dump_string([ 1..4 ]);
+    my $array = $xs->load_string($yaml);
 
 =head1 DESCRIPTION
 
@@ -27,6 +34,8 @@ This module is a Perl XS binding to libyaml which offers Perl the best YAML supp
 This module exports the functions C<Dump>, C<Load>, C<DumpFile> and C<LoadFile>. These functions are intended to work exactly like C<YAML.pm>'s corresponding functions. Only C<Load> and C<Dump> are exported by default.
 
 =head1 CONFIGURATION
+
+The object oriented interface is described below: L<"OBJECT ORIENTED INTERFACE">
 
 =over
 
@@ -126,6 +135,198 @@ Handling unicode properly in Perl can be a pain. YAML::XS only deals with stream
     $utf8_octets = Dump($perl);
 
 There are many, many places where things can go wrong with unicode. If you are having problems, use Devel::Peek on all the possible data points.
+
+
+=head1 OBJECT ORIENTED INTERFACE
+
+Since version v0.904.0, EXPERIMENTAL
+
++++NOTE: This is incompatible with the functional interface and will treat
+YAML values in a different way.+++
+
+This has two MAJOR differences to the old functional interface:
+
+=over
+
+=item Object with options
+
+This provides an interface where you create a YAML::XS object with
+options (instead of the old interface with global variables).
+
+=item YAML 1.2 Core Schema
+
+It implements the YAML 1.2 Core Schema.
+
+(Note that the functional interface does not implement YAML 1.1, when it comes
+to loading numbers, booleans, null etc. It implements its own set of rules.)
+
+Here is an (incomplete!) example of values that are treated differently than
+with the functional interface. YAML values that match a certain pattern,
+are not loaded as strings, but as other types:
+
+    # Functional interface: special values (not compatible to other YAML modules)
+    - [true, false]                             # booleans
+    - [null, ~]                                 # undef
+    - [inf, INF, iNf, iNF, InF, INf, -inf, ...] # Inf
+    - [100_000]                                 # 100000
+    - # anything that looks_like_number()       # number
+
+    # OOP YAML 1.2 special values
+    - [true, True, TRUE, false, False, FALSE]   # booleans
+    - [null, Null, NULL, ~]                     # undef
+    - [.inf, .Inf, .INF, -.inf, -.Inf, -.INF]   # Inf
+    - [.nan, .NAN, .NaN]                        # nan
+    - [42, 0x10, 0o10]                          # dec 42, hex 16, oct 8
+
+For more subtle differences regarding numbers checkout the comprehensive data
+here:
+
+=over
+
+=item YAML 1.1 / 1.2 definitions: L<https://perlpunk.github.io/yaml-test-schema/schemas.html>
+
+=item Test data: L<https://perlpunk.github.io/yaml-test-schema/data.html>
+
+=back
+
+This way the OOP interface is compatible to YAML::PP and YAML processors in
+other languages supporting YAML 1.2.
+
+=item C<load> will return the first document in scalar context
+
+The functional interface returns the last.
+
+=item Numbers don't have string flags
+
+=item Booleans currently are only preserved for the new builtin booleans
+
+Adding a JSON::PP boolean option for older perls is planned
+
+=item References, objects, globs, regexes and coderefs cannot be loaded or dumped
+
+This is planned.
+
+=back
+
+=head2 Usage
+
+    use YAML::XS ();
+    my $xs = YAML::XS->new;
+    my $yaml = "foo: bar";
+
+    # Load single (first) document:
+    my $data = $xs->load_string($yaml);
+    $yaml = $xs->dump_string($data);
+
+    # Or to load all documents:
+    my @data = $xs->load_string($yaml);
+    $yaml = $xs->dump_string(@data);
+
+=head2 METHODS
+
+=head3 new
+
+    use YAML::XS;
+    my $xs = YAML::XS->new(
+        # load options
+        # require_footer => 0,
+
+        # dump options
+        # indent => 2,
+        # header => 1,
+        # footer => 0,
+        # width => 80,
+        # anchor_prefix => '',
+
+        # load and dump options
+        # utf8 => 0,
+    );
+
+Options:
+
+=over
+
+=item indent
+
+Default: 2
+
+Sets the number of spaces for indentation for dumping.
+
+=item utf8
+
+Default: false
+
+When false, the loader will accept unencoded character strings, and the dumper
+returns unencoded character strings.
+
+When true, the loader accepts a UTF-8 encoded string of bytes, and the dumper
+returns a UTF-8 encoded string of bytes.
+This typically makes sense when you read from / write to a file directly.
+
+=item header
+
+Default: 1
+
+Writes a C<---> before every document
+
+=item footer
+
+Default: 0
+
+Writes a C<...> at the end of every document.
+
+=item width
+
+Set the maximum number of colums for dumping. If a value has too many
+characters, it will be split into multiple lines.
+
+=item require_footer
+
+Default: 0
+
+Can be useful in a use case where you want to make sure you received the
+complete document from the sender.
+
+=item anchor_prefix
+
+Default: C<''>
+
+If set to a string like C<ANCHOR>, anchors and aliases will be prefixed
+with this instead of just being numbers:
+
+    # my $xs = YAML::XS->new( anchor_prefix => 'ANCHOR' );
+    # my $hash = { some => "mapping" };
+    # say $xs->dump_string([$hash, $hash]);
+    - &ANCHOR1
+      some: mapping
+    - *ANCHOR1
+
+=back
+
+=head3 load_string
+
+    my $yaml = <<'EOM';
+    ---
+    - 23
+    ---
+    some: mapping
+    EOM
+    my $array = $xs->load_string($yaml);
+    # [23]
+    my @documents = $xs->load_string($yaml);
+    # (
+    #   [23],
+    #   { some => "mapping" }
+    # )
+
+In scalar context, if the YAML string contains more than one document, it will
+return the first document.
+
+=head3 dump_string
+
+    $yaml = $xs->dump_string($data);
+    $yaml = $xs->dump_string($data1, $data2, $data3);
+    $yaml = $xs->dump_string(@data);
 
 =head1 LIBYAML
 

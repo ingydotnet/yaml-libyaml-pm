@@ -64,6 +64,7 @@ new(char *class_name, ...)
             yaml->width = 80;
             yaml->require_footer = 0;
             yaml->anchor_prefix = "";
+            yaml->utf8 = 0;
             hash = newHV();
 
             if (items > 1) {

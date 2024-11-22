@@ -20,7 +20,7 @@ $ENV{TEST_VERBOSE} and Dump $data;
 is $data, $vd, "load_string utf8 => 0";
 
 $yaml = $xs->dump_string($data);
-is $yaml, "--- $vd\n", "dump_string utf => 0";;
+is $yaml, "--- $vd\n", "dump_string utf8 => 0";;
 $ENV{TEST_VERBOSE} and Dump $yaml;
 note "---> $yaml";
 
@@ -33,7 +33,7 @@ is $data, $vd, "load_string utf8 => 1";
 
 $yaml = $xsu->dump_string($data);
 $ENV{TEST_VERBOSE} and Dump $yaml;
-is $yaml, "--- $v\n", "dump_string utf => 1";;
+is $yaml, "--- $v\n", "dump_string utf8 => 1";;
 note "---> $yaml";
 
 {
