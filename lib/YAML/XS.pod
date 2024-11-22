@@ -133,6 +133,94 @@ You can find out (since v.079) which libyaml version this module was built with:
 
     my $libyaml_version = YAML::XS::LibYAML::libyaml_version();
 
+=head1 OOP INTERFACE (experimental)
+
+    use YAML::XS ();
+    my $xs = YAML::XS->new;
+    my $yaml = "foo: bar";
+
+    # Load single (first) document:
+    my $data = $xs->load_string($yaml);
+    $yaml = $xs->dump_string($data);
+
+    # Or to load all documents:
+    my @data = $xs->load_string($yaml);
+    $yaml = $xs->dump_string(@data);
+
+=head2 METHODS
+
+=over
+
+=item new
+
+  my $xs = YAML::XS->new( indent => 8, utf8 => 1);
+
+Options:
+
+=over
+
+=item indent
+
+Default: 2
+
+The amount of indentation spaces when dumping
+
+=item utf8
+
+Default: false
+
+When false, the loader will accept utf8 decoded strings, and the dumper returns
+utf8 decoded strings.
+
+When true, the loader accepts utf8 encoded strings, and the dumper returns
+utf8 encoded strings. This typically makes sense when you read from / write
+to a file directly.
+
+=back
+
+=item load_string
+
+    my $data = $xs->load_string($yaml);
+    # Or to load all documents:
+    my @data = $xs->load_string($yaml);
+
+A YAML file or string can have more than one document.
+
+In scalar context, it only loads the first document. In list context,
+it returns all.
+
+=item dump_string
+
+    $yaml = $xs->dump_string($data);
+    $yaml = $xs->dump_string($doc1, $doc2);
+    $yaml = $xs->dump_string(@data);
+
+It takes one or more parameters and returns a string with one or multiple
+YAML documents.
+
+=back
+
+=head2 Differences to the functional interface
+
+=over
+
+=item YAML 1.2 Core Schema
+
+The OOP Interface implements the 1.2 Core Schema by default: L<https://perlpunk.github.io/yaml-test-schema/schemas.html>
+
+This way it's compatible to YAML::PP and YAML processors in other languages
+supporting YAML 1.2.
+
+The functional interface only recognizes the following special values:
+C<true>, C<false>, C<null>, C<~> and anything that C<looks_like_number()>.
+
+=item utf8
+
+By default it will accept and return utf8 decoded strings, unlike the
+functional interface.
+
+=back
+
 =head1 SEE ALSO
 
 =over
