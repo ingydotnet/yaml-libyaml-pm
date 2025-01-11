@@ -59,6 +59,7 @@ new(char *class_name, ...)
             yaml->indent = 2;
             yaml->header = 1;
             yaml->footer = 0;
+            yaml->require_footer = 0;
             hash = newHV();
 
             if (items > 1) {
@@ -90,6 +91,12 @@ new(char *class_name, ...)
                             SV *intsv = newSViv(intvalue);
                             hv_store(hash, "footer", 6, intsv, 0);
                             yaml->footer = intvalue;
+                        }
+                        else if (strEQ(key, "require_footer")) {
+                            intvalue = SvIV(ST(i+1));
+                            SV *intsv = newSViv(intvalue);
+                            hv_store(hash, "require_footer", 6, intsv, 0);
+                            yaml->require_footer = intvalue;
                         }
                     }
                 }

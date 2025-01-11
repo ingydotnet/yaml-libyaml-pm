@@ -85,4 +85,40 @@ EOM
     is $yaml, $exp, 'footer default';
 };
 
+subtest require_footer => sub {
+    my $yaml = <<'EOM';
+---
+key: value
+---
+x: y
+...
+EOM
+    my $yaml2 = <<'EOM';
+---
+key: value
+...
+---
+x: y
+...
+EOM
+
+    my $xs = YAML::XS->new( require_footer => 1 );
+    local $@;
+    $data = eval { $xs->load_string($yaml) };
+    like $@, qr{load: Document .1. did not end with '...'}, 'require_footer 1 failure';
+
+    local $@;
+    $data = eval { $xs->load_string($yaml2) };
+    ok !$@, 'require_footer 1 success';
+
+    local $@;
+    $data = eval { $xs->load_string('') };
+    like $@, qr{load: Document .0. did not end with '...'}, 'require_footer 1 empty doc failure';
+
+    $xs = YAML::XS->new( require_footer => 0 );
+    local $@;
+    $data = eval { $xs->load_string($yaml) };
+    ok !$@, 'require_footer 0';
+};
+
 done_testing;
