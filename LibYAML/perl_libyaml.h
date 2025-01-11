@@ -56,6 +56,7 @@ typedef struct {
     int indent;
     int utf8;
     int header;
+    int footer;
     int document;
 } perl_yaml_xs_t;
 
