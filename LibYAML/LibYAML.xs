@@ -47,16 +47,17 @@ new(char *class_name, ...)
         perl_yaml_xs_t *yaml;
         SV *point_sv;
         SV *point_svrv;
+        SV *intsv;
         HV *hash;
         SV *object;
         int i;
-        int indent;
-        int utf8 = 0;
+        int intvalue = 0;
 
         XCPT_TRY_START
         {
             yaml = (perl_yaml_xs_t*) malloc(sizeof(perl_yaml_xs_t));
             yaml->indent = 2;
+            yaml->header = 1;
             hash = newHV();
 
             if (items > 1) {
@@ -66,16 +67,22 @@ new(char *class_name, ...)
                     if (SvPOK(ST(1))) {
                         char *key = (char *)SvPV_nolen(ST(i));
                         if (strEQ(key, "indent")) {
-                            indent = SvIV(ST(i+1));
-                            SV *indent_sv = newSViv(indent);
+                            intvalue = SvIV(ST(i+1));
+                            SV *indent_sv = newSViv(intvalue);
                             hv_store(hash, "indent", 6, indent_sv, 0);
-                            yaml->indent = indent;
+                            yaml->indent = intvalue;
                         }
                         else if (strEQ(key, "utf8")) {
-                            utf8 = SvIV(ST(i+1));
-                            SV *utf8_sv = newSViv(utf8);
-                            hv_store(hash, "utf8", 4, utf8_sv, 0);
-                            yaml->utf8 = utf8;
+                            intvalue = SvIV(ST(i+1));
+                            SV *intsv = newSViv(intvalue);
+                            hv_store(hash, "utf8", 4, intsv, 0);
+                            yaml->utf8 = intvalue;
+                        }
+                        else if (strEQ(key, "header")) {
+                            intvalue = SvIV(ST(i+1));
+                            SV *intsv = newSViv(intvalue);
+                            hv_store(hash, "header", 6, intsv, 0);
+                            yaml->header = intvalue;
                         }
                     }
                 }
