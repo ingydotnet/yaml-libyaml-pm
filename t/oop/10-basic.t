@@ -4,7 +4,7 @@ use Test::More;
 use YAML::XS;
 use Data::Dumper;
 
-my $xs = YAML::XS->new( indent => 8 );
+my $xs = YAML::XS->new;
 #note __PACKAGE__.':'.__LINE__.$".Data::Dumper->Dump([\$xs], ['xs']);
 
 is ref $xs, 'YAML::XS', "got YAML::XS object";
@@ -46,10 +46,10 @@ $yaml = $xs->dump_string($data);
 my $exp = <<'EOM';
 ---
 this:
-        is:
-        - object
-        - ori
-        - ented
+  is:
+  - object
+  - ori
+  - ented
 EOM
 
 is $yaml, $exp, 'dump_string';

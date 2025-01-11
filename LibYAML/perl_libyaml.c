@@ -1709,7 +1709,7 @@ oo_dump_document(perl_yaml_xs_t *self, SV *node)
     yaml_event_t event_document_end;
 
     yaml_document_start_event_initialize(
-        &event_document_start, NULL, NULL, NULL, 0
+        &event_document_start, NULL, NULL, NULL, self->header ? 0 : 1
     );
     if (!yaml_emitter_emit(&self->emitter, &event_document_start)) {
         croak("ERROR: %s", self->emitter.problem);
