@@ -1339,6 +1339,7 @@ oo_load_stream(perl_yaml_xs_t *self)
     SV* return_sv = NULL;
     SV *node;
     int multi = 0;
+    int has_footer = 0;
 
     //fprintf(stderr, "============ oo_load_stream\n");
     sp = mark;
@@ -1359,6 +1360,12 @@ oo_load_stream(perl_yaml_xs_t *self)
 
     while (1) {
         self->document++;
+        if (self->event.type == YAML_DOCUMENT_END_EVENT) {
+            has_footer = self->event.data.document_end.implicit ? 0 : 1;
+            if (self->require_footer && ! has_footer) {
+                croak("load: Document (%d) did not end with '...' (require_footer=1)", self->document-1);
+            }
+        }
         yaml_event_delete(&self->event);
         if (!yaml_parser_parse(&self->parser, &self->event))
             goto load_error;
@@ -1381,6 +1388,9 @@ oo_load_stream(perl_yaml_xs_t *self)
             multi = self->document;
             XPUSHs(sv_2mortal(node));
         }
+    }
+    if (self->require_footer && ! has_footer) {
+        croak("load: Document (%d) did not end with '...' (require_footer=1)", self->document-1);
     }
 
     if (self->event.type != YAML_STREAM_END_EVENT)
