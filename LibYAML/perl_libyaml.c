@@ -1717,7 +1717,7 @@ oo_dump_document(perl_yaml_xs_t *self, SV *node)
 
     oo_dump_node(self, node);
 
-    yaml_document_end_event_initialize(&event_document_end, 1);
+    yaml_document_end_event_initialize(&event_document_end, self->footer ? 0 : 1);
     yaml_emitter_emit(&self->emitter, &event_document_end);
 }
 

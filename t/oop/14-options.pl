@@ -56,4 +56,33 @@ EOM
     is $yaml, $exp, 'header default';
 };
 
+subtest footer => sub {
+    $data = { key => 'value' };
+
+    my $xs = YAML::XS->new( footer => 0 );
+    $yaml = $xs->dump_string($data);
+    my $exp = <<'EOM';
+---
+key: value
+EOM
+    is $yaml, $exp, 'footer 0';
+
+    $xs = YAML::XS->new( footer => 1 );
+    $yaml = $xs->dump_string($data);
+    $exp = <<'EOM';
+---
+key: value
+...
+EOM
+    is $yaml, $exp, 'footer 1';
+
+    $xs = YAML::XS->new;
+    $yaml = $xs->dump_string($data);
+    $exp = <<'EOM';
+---
+key: value
+EOM
+    is $yaml, $exp, 'footer default';
+};
+
 done_testing;

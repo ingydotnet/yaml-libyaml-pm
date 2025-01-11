@@ -58,6 +58,7 @@ new(char *class_name, ...)
             yaml = (perl_yaml_xs_t*) malloc(sizeof(perl_yaml_xs_t));
             yaml->indent = 2;
             yaml->header = 1;
+            yaml->footer = 0;
             hash = newHV();
 
             if (items > 1) {
@@ -83,6 +84,12 @@ new(char *class_name, ...)
                             SV *intsv = newSViv(intvalue);
                             hv_store(hash, "header", 6, intsv, 0);
                             yaml->header = intvalue;
+                        }
+                        else if (strEQ(key, "footer")) {
+                            intvalue = SvIV(ST(i+1));
+                            SV *intsv = newSViv(intvalue);
+                            hv_store(hash, "footer", 6, intsv, 0);
+                            yaml->footer = intvalue;
                         }
                     }
                 }
