@@ -350,13 +350,19 @@ You can find out (since v.079) which libyaml version this module was built with:
 
 =back
 
-=head1 AUTHOR
+=head1 AUTHORS
 
-Ingy döt Net L<ingy@ingy.net|mailto:ingy@ingy.net>
+=over
+
+=item Ingy döt Net L<ingy@ingy.net|mailto:ingy@ingy.net>
+
+=item Tina Müller <tinita@cpan.org>
+
+=back
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2007-2024 - Ingy döt Net
+Copyright 2007-2025 - Ingy döt Net
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

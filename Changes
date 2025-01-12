@@ -1,4 +1,9 @@
 ---
+version: v0.904.0
+date:    2025-05-08 14:12:41+02:00
+changes:
+- Experimental OOP Interface, YAML 1.2
+---
 version: v0.903.0
 date:    2025-02-03 00:12:41+01:00
 changes:

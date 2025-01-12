@@ -26,7 +26,6 @@ my %WriteMakefileArgs = (
     "warnings" => 0
   },
   "TEST_REQUIRES" => {
-    "Data::Dumper" => 0,
     "Devel::Peek" => 0,
     "Encode" => 0,
     "File::Find" => 0,
@@ -43,7 +42,7 @@ my %WriteMakefileArgs = (
     "lib" => 0,
     "utf8" => 0
   },
-  "VERSION" => "v0.903.0",
+  "VERSION" => "v0.904.0",
   "test" => {
     "TESTS" => "t/*.t t/oop/*.t"
   }
@@ -52,7 +51,6 @@ my %WriteMakefileArgs = (
 
 my %FallbackPrereqs = (
   "B::Deparse" => 0,
-  "Data::Dumper" => 0,
   "Devel::Peek" => 0,
   "Encode" => 0,
   "Exporter" => 0,
