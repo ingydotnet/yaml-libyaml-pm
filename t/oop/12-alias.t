@@ -16,8 +16,8 @@ my $yaml = <<'EOM';
 - *SEQ
 - *MAP
 EOM
-
 my $data = $xs->load_string($yaml);
+
 my @exp = (
     (foo => ['bar'], { key => 'val' }) x 2
 );
@@ -90,5 +90,16 @@ $exp = <<'EOM';
 - .nan
 EOM
 is $yaml, $exp, 'aliases for different types';
+
+$yaml = <<'EOM';
+*alias
+EOM
+
+eval {
+    my $xs = YAML::XS->new;
+    $data = $xs->load_string($yaml);
+};
+my $err = $@;
+like $err, qr{No anchor for alias .alias.}, "error for missing anchor";
 
 done_testing;
