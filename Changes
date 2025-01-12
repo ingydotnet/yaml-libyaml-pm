@@ -1,4 +1,9 @@
 ---
+version: v0.902.2
+date:    tba
+changes:
+- OOP Interface, YAML 1.2
+---
 version: v0.902.0
 date:    2024-09-20 21:39:00+02:00
 changes:
