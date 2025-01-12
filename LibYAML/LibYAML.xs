@@ -165,52 +165,33 @@ dump_string(SV *object, ...)
     PPCODE:
     {
         dXCPT;
+
         perl_yaml_xs_t *yaml;
         HV *hash;
         SV **val;
-        yaml_event_t event_stream_start;
-        yaml_event_t event_stream_end;
         SV *string = newSVpvn("", 0);
-        int i;
 
         hash = (HV*)(SvROK(object)? SvRV(object): object);
         val = hv_fetch(hash, "ptr", 3, TRUE);
 
+        if (!val || !SvOK(*val) || !SvIOK(*val)) {
+            PUTBACK;
+            return;
+        }
+
+        yaml = INT2PTR(perl_yaml_xs_t*, SvIV(*val));
+        yaml_emitter_initialize(&yaml->emitter);
+        yaml_emitter_set_unicode(&yaml->emitter, 1);
+        yaml_emitter_set_indent(&yaml->emitter, yaml->indent);
+        yaml_emitter_set_output(&yaml->emitter, &append_output, (void *) string);
+
+        PUSHMARK(sp);
         XCPT_TRY_START
         {
-            if (val && SvOK(*val) && SvIOK(*val)) {
-                yaml = INT2PTR(perl_yaml_xs_t*, SvIV(*val));
-
-                yaml_emitter_initialize(&yaml->emitter);
-                yaml_emitter_set_unicode(&yaml->emitter, 1);
-                yaml_emitter_set_indent(&yaml->emitter, yaml->indent);
-
-                yaml_emitter_set_output(&yaml->emitter, &append_output, (void *) string);
-
-                yaml_stream_start_event_initialize(
-                    &event_stream_start,
-                    YAML_UTF8_ENCODING
-                );
-                if (!yaml_emitter_emit(&yaml->emitter, &event_stream_start))
-                    croak("ERROR: %s", yaml->emitter.problem);
-
-                yaml->anchors = newHV();
-                sv_2mortal((SV *)yaml->anchors);
-                for (i = 1; i < items; i++) {
-                    yaml->anchor = 0;
-                    oo_dump_prewalk(yaml, ST(i));
-                    oo_dump_document(yaml, ST(i));
-                    hv_clear(yaml->anchors);
-                }
-
-                yaml_stream_end_event_initialize(&event_stream_end);
-                if (!yaml_emitter_emit(&yaml->emitter, &event_stream_end)) {
-                    croak("ERROR: %s", yaml->emitter.problem);
-                }
-                if (string) {
-                    if (! yaml->utf8) {
-                        SvUTF8_on(string);
-                    }
+            oo_dump_stream(yaml, items);
+            if (string) {
+                if (! yaml->utf8) {
+                    SvUTF8_on(string);
                 }
             }
             yaml_emitter_delete(&yaml->emitter);

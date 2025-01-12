@@ -1712,6 +1712,47 @@ oo_load_alias(perl_yaml_xs_t *self)
     croak("%sNo anchor for alias '%s'", ERRMSG, anchor);
 }
 
+/*
+    DUMP
+*/
+
+void
+oo_dump_stream(perl_yaml_xs_t *self, ...)
+{
+    dXCPT;
+
+    dXSARGS;
+    int i;
+    yaml_event_t event_stream_start;
+    yaml_event_t event_stream_end;
+
+    sp = mark;
+    yaml_stream_start_event_initialize(
+        &event_stream_start,
+        YAML_UTF8_ENCODING
+    );
+    if (!yaml_emitter_emit(&self->emitter, &event_stream_start))
+        croak("ERROR: %s", self->emitter.problem);
+
+    self->anchors = newHV();
+    sv_2mortal((SV *)self->anchors);
+
+    for (i = 1; i < items; i++) {
+        self->anchor = 0;
+        oo_dump_prewalk(self, ST(i));
+        oo_dump_document(self, ST(i));
+        hv_clear(self->anchors);
+    }
+
+    yaml_stream_end_event_initialize(&event_stream_end);
+    if (!yaml_emitter_emit(&self->emitter, &event_stream_end)) {
+        croak("ERROR: %s", self->emitter.problem);
+    }
+
+    PUTBACK;
+    return;
+}
+
 void
 oo_dump_document(perl_yaml_xs_t *self, SV *node)
 {
@@ -1818,7 +1859,6 @@ oo_dump_array(perl_yaml_xs_t *self, SV *node, yaml_char_t *anchor)
         else
             oo_dump_node(self, *entry);
     }
-
 
     yaml_sequence_end_event_initialize(&event_sequence_end);
     yaml_emitter_emit(&self->emitter, &event_sequence_end);
