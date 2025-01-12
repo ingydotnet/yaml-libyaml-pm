@@ -121,4 +121,21 @@ EOM
     ok !$@, 'require_footer 0';
 };
 
+subtest anchor_prefix => sub {
+    my $xs = YAML::XS->new( anchor_prefix => 'a_' );
+    my $ref = ['yaml rocks'];
+    my $ref2 = ['another ref'];
+    my $yaml = $xs->dump_string([$ref, $ref, $ref2, $ref2]);
+    my $exp = <<'EOM';
+---
+- &a_1
+  - yaml rocks
+- *a_1
+- &a_2
+  - another ref
+- *a_2
+EOM
+    is $yaml, $exp, 'anchor_prefix';
+};
+
 done_testing;
