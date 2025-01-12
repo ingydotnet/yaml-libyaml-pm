@@ -61,6 +61,7 @@ new(char *class_name, ...)
             yaml->indent = 2;
             yaml->header = 1;
             yaml->footer = 0;
+            yaml->width = 80;
             yaml->require_footer = 0;
             yaml->anchor_prefix = "";
             hash = newHV();
@@ -94,6 +95,12 @@ new(char *class_name, ...)
                             SV *sv = newSViv(intvalue);
                             hv_store(hash, "footer", 6, sv, 0);
                             yaml->footer = intvalue;
+                        }
+                        else if (strEQ(key, "width")) {
+                            intvalue = SvIV(ST(i+1));
+                            SV *sv = newSViv(intvalue);
+                            hv_store(hash, "width", 5, sv, 0);
+                            yaml->width = intvalue;
                         }
                         else if (strEQ(key, "require_footer")) {
                             intvalue = SvIV(ST(i+1));
@@ -194,6 +201,7 @@ dump_string(SV *object, ...)
         yaml_emitter_initialize(&yaml->emitter);
         yaml_emitter_set_unicode(&yaml->emitter, 1);
         yaml_emitter_set_indent(&yaml->emitter, yaml->indent);
+        yaml_emitter_set_width(&yaml->emitter, yaml->width);
         yaml_emitter_set_output(&yaml->emitter, &append_output, (void *) string);
 
         PUSHMARK(sp);
