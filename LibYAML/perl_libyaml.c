@@ -1659,7 +1659,7 @@ oo_load_scalar(perl_yaml_xs_t *self)
             PUSHMARK(sp);
             XPUSHs(scalar);
             PUTBACK;
-            is_num = call_pv("YAML::XS::__is_nummber", G_SCALAR);
+            is_num = call_pv("YAML::XS::__is_number", G_SCALAR);
             SPAGAIN;
             is_num = (POPi);
 
@@ -2001,7 +2001,7 @@ oo_dump_scalar(perl_yaml_xs_t *self, SV *node)
             PUSHMARK(sp);
             XPUSHs(scalar);
             PUTBACK;
-            is_num = call_pv("YAML::XS::__is_nummber", G_SCALAR);
+            is_num = call_pv("YAML::XS::__is_number", G_SCALAR);
             SPAGAIN;
             is_num = (POPi);
 
