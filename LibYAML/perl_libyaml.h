@@ -163,6 +163,8 @@ SV *
 oo_load_alias(perl_yaml_xs_t *);
 
 void
+oo_dump_stream(perl_yaml_xs_t *, ...);
+void
 oo_dump_document(perl_yaml_xs_t *, SV *node);
 void
 oo_dump_node(perl_yaml_xs_t *, SV *node);
