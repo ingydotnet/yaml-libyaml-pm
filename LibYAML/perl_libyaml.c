@@ -2065,17 +2065,30 @@ oo_get_yaml_anchor(perl_yaml_xs_t *self, SV *node)
     yaml_event_t event_alias;
     SV *iv;
     SV **seen = hv_fetch(self->anchors, (char *)&node, sizeof(node), 0);
+    char *prefix;
+    char *label;
 
     if (seen && *seen != &PL_sv_undef) {
         if (*seen == &PL_sv_yes) {
             self->anchor++;
             iv = newSViv(self->anchor);
             hv_store(self->anchors, (char *)&node, sizeof(node), iv, 0);
-            return (yaml_char_t*)SvPV_nolen(iv);
+
+            yaml_char_t *anchor = (yaml_char_t *)SvPV_nolen(*seen);
+            prefix = self->anchor_prefix;
+            label = malloc(strlen(prefix)+strlen(anchor)+1);
+            strcpy(label, prefix);
+            strcat(label, anchor);
+            return label;
         }
         else {
             yaml_char_t *anchor = (yaml_char_t *)SvPV_nolen(*seen);
-            yaml_alias_event_initialize(&event_alias, anchor);
+            prefix = self->anchor_prefix;
+            label = malloc(strlen(prefix)+strlen(anchor)+1);
+            strcpy(label, prefix);
+            strcat(label, anchor);
+
+            yaml_alias_event_initialize(&event_alias, label);
             yaml_emitter_emit(&self->emitter, &event_alias);
             return (yaml_char_t *) "";
         }

@@ -47,11 +47,12 @@ new(char *class_name, ...)
         perl_yaml_xs_t *yaml;
         SV *point_sv;
         SV *point_svrv;
-        SV *intsv;
+        SV *sv;
         HV *hash;
         SV *object;
         int i;
         int intvalue = 0;
+        char *stringvalue;
 
         XCPT_TRY_START
         {
@@ -60,6 +61,7 @@ new(char *class_name, ...)
             yaml->header = 1;
             yaml->footer = 0;
             yaml->require_footer = 0;
+            yaml->anchor_prefix = "";
             hash = newHV();
 
             if (items > 1) {
@@ -76,27 +78,33 @@ new(char *class_name, ...)
                         }
                         else if (strEQ(key, "utf8")) {
                             intvalue = SvIV(ST(i+1));
-                            SV *intsv = newSViv(intvalue);
-                            hv_store(hash, "utf8", 4, intsv, 0);
+                            SV *sv = newSViv(intvalue);
+                            hv_store(hash, "utf8", 4, sv, 0);
                             yaml->utf8 = intvalue;
                         }
                         else if (strEQ(key, "header")) {
                             intvalue = SvIV(ST(i+1));
-                            SV *intsv = newSViv(intvalue);
-                            hv_store(hash, "header", 6, intsv, 0);
+                            SV *sv = newSViv(intvalue);
+                            hv_store(hash, "header", 6, sv, 0);
                             yaml->header = intvalue;
                         }
                         else if (strEQ(key, "footer")) {
                             intvalue = SvIV(ST(i+1));
-                            SV *intsv = newSViv(intvalue);
-                            hv_store(hash, "footer", 6, intsv, 0);
+                            SV *sv = newSViv(intvalue);
+                            hv_store(hash, "footer", 6, sv, 0);
                             yaml->footer = intvalue;
                         }
                         else if (strEQ(key, "require_footer")) {
                             intvalue = SvIV(ST(i+1));
-                            SV *intsv = newSViv(intvalue);
-                            hv_store(hash, "require_footer", 6, intsv, 0);
+                            SV *sv = newSViv(intvalue);
+                            hv_store(hash, "require_footer", 14, sv, 0);
                             yaml->require_footer = intvalue;
+                        }
+                        else if (strEQ(key, "anchor_prefix")) {
+                            stringvalue = SvPV_nolen(ST(i+1));
+                            SV *sv = newSVpvn(stringvalue, 0);
+                            hv_store(hash, "anchor_prefix", 13, sv, 0);
+                            yaml->anchor_prefix = stringvalue;
                         }
                     }
                 }
