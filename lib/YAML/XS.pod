@@ -146,8 +146,13 @@ implements its own schema which is not compatible with any other module.
 This is about resolving scalar values like C<null>, C<true>, C<23> as
 C<undef>, boolean, number.
 
-* YAML 1.1 / 1.2 definitions: L<https://perlpunk.github.io/yaml-test-schema/schemas.html>
-* Test data: L<https://perlpunk.github.io/yaml-test-schema/data.html>
+=over
+
+=item YAML 1.1 / 1.2 definitions: L<https://perlpunk.github.io/yaml-test-schema/schemas.html>
+
+=item Test data: L<https://perlpunk.github.io/yaml-test-schema/data.html>
+
+=back
 
 This way it's compatible to YAML::PP and YAML processors in other languages
 supporting YAML 1.2.
@@ -170,8 +175,6 @@ C<true>, C<false>, C<null>, C<~> and anything that C<looks_like_number()>.
 =back
 
 =head2 METHODS
-
-=over
 
 =head3 new
 
@@ -209,6 +212,7 @@ utf8 decoded strings.
 When true, the loader accepts utf8 encoded strings, and the dumper returns
 utf8 encoded strings. This typically makes sense when you read from / write
 to a file directly.
+
 =item header
 
 Default: 1
@@ -222,6 +226,9 @@ Default: 0
 Writes a C<...> at the end of every document.
 
 =item width
+
+Set the maximum number of colums for dumping. If a value has too many
+characters, it will be split into multiple lines.
 
 =item require_footer
 
@@ -237,6 +244,7 @@ Default: C<''>
 If set to a string like C<ANCHOR>, anchors and aliases will be prefixed
 with this instead of just being numbers:
 
+    # my $xs = YAML::XS->new( anchor_prefix => 'ANCHOR' );
     # my $hash = { some => "mapping" };
     # say $xs->dump_string([$hash, $hash]);
     - &ANCHOR1
@@ -245,7 +253,7 @@ with this instead of just being numbers:
 
 =back
 
-=item load_string
+=head3 load_string
 
     my $yaml = <<'EOM';
     ---
@@ -256,21 +264,19 @@ with this instead of just being numbers:
     my $array = $xs->load_string($yaml);
     # [23]
     my @documents = $xs->load_string($yaml);
-    # [
+    # (
     #   [23],
     #   { some => "mapping" }
-    # ]
+    # )
 
 In scalar context, if the YAML string contains more than one document, it will
 return the first document.
 
-=item dump_string
+=head3 dump_string
 
     $yaml = $xs->dump_string($data);
     $yaml = $xs->dump_string($data1, $data2, $data3);
     $yaml = $xs->dump_string(@data);
-
-=back
 
 =head1 USING YAML::XS WITH UNICODE
 
