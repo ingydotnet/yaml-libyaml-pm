@@ -1330,6 +1330,46 @@ void xxx_local_patches() {
     Object Oriented Interface
 */
 
+char *
+oo_loader_error_msg(perl_yaml_xs_t *self, char *problem)
+{
+    char *msg;
+    if (!problem)
+        problem = (char *)self->parser.problem;
+    if (!problem) {
+        problem = "A problem";
+    }
+    else {
+        problem = form("The problem:\n\n    %s\n\n", problem);
+    }
+    msg = form(
+        "YAML::XS load Error: "
+        "%swas found at document: %d",
+        problem,
+        self->document
+    );
+    if (
+        self->parser.problem_mark.line ||
+        self->parser.problem_mark.column
+    )
+        msg = form("%s, line: %lu, column: %lu\n",
+            msg,
+            (unsigned long)self->parser.problem_mark.line + 1,
+            (unsigned long)self->parser.problem_mark.column + 1
+        );
+    else
+        msg = form("%s\n", msg);
+    if (self->parser.context)
+        msg = form("%s%s at line: %lu, column: %lu\n",
+            msg,
+            self->parser.context,
+            (unsigned long)self->parser.context_mark.line + 1,
+            (unsigned long)self->parser.context_mark.column + 1
+        );
+
+    return msg;
+}
+
 void
 oo_load_stream(perl_yaml_xs_t *self)
 {
@@ -1341,7 +1381,6 @@ oo_load_stream(perl_yaml_xs_t *self)
     int multi = 0;
     int has_footer = 0;
 
-    //fprintf(stderr, "============ oo_load_stream\n");
     sp = mark;
 
     self->document = 0;
@@ -1404,8 +1443,7 @@ oo_load_stream(perl_yaml_xs_t *self)
     return;
 
 load_error:
-    yaml_event_delete(&self->event);
-    croak("load: %s", (char *)self->parser.problem);
+    croak("%s", oo_loader_error_msg(self, NULL));
 }
 
 SV *
@@ -1463,8 +1501,8 @@ oo_load_node(perl_yaml_xs_t *self)
 
     return return_sv;
 
-    load_error:
-        croak("%s", loader_error_msg(self, NULL));
+load_error:
+    croak("%s", oo_loader_error_msg(self, NULL));
 }
 
 SV *
@@ -1519,7 +1557,7 @@ oo_load_mapping(perl_yaml_xs_t *self)
             ) {
                 croak(
                     "%s",
-                    loader_error_msg(
+                    oo_loader_error_msg(
                         self,
                         form("Duplicate key '%s'", SvPV_nolen(key_node))
                     )
@@ -1566,7 +1604,7 @@ oo_load_scalar(perl_yaml_xs_t *self)
             scalar = &PL_sv_yes;
 #endif
             if (tag && ! strEQ(tag, YAML_BOOL_TAG)) {
-                croak("%s", loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+                croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
             }
         }
         else if (strEQ(string, "false") || strEQ(string, "FALSE") || strEQ(string, "False")) {
@@ -1576,13 +1614,13 @@ oo_load_scalar(perl_yaml_xs_t *self)
             scalar = &PL_sv_no;
 #endif
             if (tag && ! strEQ(tag, YAML_BOOL_TAG)) {
-                croak("%s", loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+                croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
             }
         }
         else if (strEQ(string, "null") || strEQ(string, "NULL") || strEQ(string, "Null") || strEQ(string, "~") || strEQ(string, "")) {
             scalar = newSV(0);
             if (tag && ! strEQ(tag, YAML_NULL_TAG)) {
-                croak("%s", loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+                croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
             }
         }
         else if (
@@ -1591,7 +1629,7 @@ oo_load_scalar(perl_yaml_xs_t *self)
             || strEQ(string, "-.INF") || strEQ(string, "-.Inf") || strEQ(string, "-.inf")
             ) {
             if (tag && ! strEQ(tag, YAML_FLOAT_TAG)) {
-                croak("%s", loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+                croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
             }
             if (string[0] == 45) {
                 scalar = newSVnv(-NV_INF);
@@ -1607,7 +1645,7 @@ oo_load_scalar(perl_yaml_xs_t *self)
             string++;
             length--;
             if (tag && ! strEQ(tag, YAML_FLOAT_TAG)) {
-                croak("%s", loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+                croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
             }
             scalar = newSVnv(nv);
         }
@@ -1632,12 +1670,12 @@ oo_load_scalar(perl_yaml_xs_t *self)
             if (is_num) {
                 if (is_num == 2) {
                     if (tag && ! strEQ(tag, YAML_FLOAT_TAG)) {
-                        croak("%s", loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+                        croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
                     }
                 }
                 else {
                     if (tag && ! strEQ(tag, YAML_INT_TAG)) {
-                        croak("%s", loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+                        croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
                     }
                 }
                 int neg = 0;
@@ -1673,14 +1711,14 @@ oo_load_scalar(perl_yaml_xs_t *self)
             else {
                 scalar = newSVpvn(string, length);
                 if (tag && ! strEQ(tag, YAML_STR_TAG)) {
-                    croak("%s", loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+                    croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
                 }
             }
         }
         else {
             scalar = newSVpvn(string, length);
             if (tag && ! strEQ(tag, YAML_STR_TAG)) {
-                croak("%s", loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+                croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
             }
         }
         if (anchor) {
@@ -1692,7 +1730,7 @@ oo_load_scalar(perl_yaml_xs_t *self)
     else {
         scalar = newSVpvn(string, length);
         if (tag && ! strEQ(tag, YAML_STR_TAG)) {
-            croak("%s", loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+            croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
         }
     }
     if (anchor) {
@@ -1709,7 +1747,7 @@ oo_load_alias(perl_yaml_xs_t *self)
     SV **entry = hv_fetch(self->anchors, anchor, strlen(anchor), 0);
     if (entry)
         return SvREFCNT_inc(*entry);
-    croak("%sNo anchor for alias '%s'", ERRMSG, anchor);
+    croak("%s", oo_loader_error_msg(self, form("No anchor for alias '%s'", anchor)));
 }
 
 /*
