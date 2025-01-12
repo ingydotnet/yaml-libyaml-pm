@@ -138,4 +138,41 @@ EOM
     is $yaml, $exp, 'anchor_prefix';
 };
 
+subtest width => sub {
+    my $xs = YAML::XS->new;
+    my $string = "012345678 9" x 10;
+    my $yaml = $xs->dump_string($string);
+    my $exp = <<'EOM';
+--- 012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9012345678
+  9012345678 9012345678 9
+EOM
+    is $yaml, $exp, "default width";
+
+    my $xs = YAML::XS->new(width => 5);
+    my $string = "012345678 9" x 10;
+    my $yaml = $xs->dump_string($string);
+    my $exp = <<'EOM';
+--- 012345678
+  9012345678
+  9012345678
+  9012345678
+  9012345678
+  9012345678
+  9012345678
+  9012345678
+  9012345678
+  9012345678
+  9
+EOM
+    is $yaml, $exp, "width=5";
+
+    my $xs = YAML::XS->new(width => -1);
+    my $string = "012345678 9" x 10;
+    my $yaml = $xs->dump_string($string);
+    my $exp = <<'EOM';
+--- 012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9
+EOM
+    is $yaml, $exp, "width=-1";
+};
+
 done_testing;

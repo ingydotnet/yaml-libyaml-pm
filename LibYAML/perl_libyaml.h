@@ -58,6 +58,7 @@ typedef struct {
     int utf8;
     int header;
     int footer;
+    int width;
     int require_footer;
     char *anchor_prefix;
     int document;
