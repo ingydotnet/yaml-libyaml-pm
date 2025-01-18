@@ -50,7 +50,7 @@ for my $input (@k) {
     next if $input =~ m/^!!(bool)/;
 #    warn __PACKAGE__.':'.__LINE__.$".Data::Dumper->Dump([\$input], ['input']);
     my $yaml = "---\n$input\n";
-    my $data = eval { $xs->load_string($yaml) };
+    my $data = eval { $xs->load($yaml) };
     my $error = $@;
     if ($test_data eq 'error') {
         like $error, qr{Invalid tag .* for value}, "load($input) error";
@@ -108,7 +108,7 @@ for my $input (@k) {
     }
 
     unless ($inf_broken) {
-        my $yaml_dump = $xs->dump_string($data);
+        my $yaml_dump = $xs->dump($data);
         $yaml_dump =~ s/---(\n| )//;
         $yaml_dump =~ s/\n\z//;
         if ($input !~ m/^(FALSE|False|false|TRUE|True|true)$/) {
@@ -146,7 +146,7 @@ my $yaml = <<'EOM';
 - .23
 EOM
 
-my $data = $xs->load_string($yaml);
+my $data = $xs->load($yaml);
 note __PACKAGE__.':'.__LINE__.$".Data::Dumper->Dump([\$data], ['data']);
 #is scalar @$data, 7, 'expected number of elements';
 pass "test";

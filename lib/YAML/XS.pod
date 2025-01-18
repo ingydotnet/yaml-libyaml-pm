@@ -22,8 +22,8 @@ YAML::XS - Perl YAML Serialization using XS and libyaml
     # EXPERIMENTAL: Object Oriented interface for YAML 1.2
     # Incompatible to functional interface!
     my $xs = YAML::XS->new;
-    my $yaml = $xs->dump_string([ 1..4 ]);
-    my $array = $xs->load_string($yaml);
+    my $yaml = $xs->dump([ 1..4 ]);
+    my $array = $xs->load($yaml);
 
 =head1 DESCRIPTION
 
@@ -215,12 +215,12 @@ This is planned.
     my $yaml = "foo: bar";
 
     # Load single (first) document:
-    my $data = $xs->load_string($yaml);
-    $yaml = $xs->dump_string($data);
+    my $data = $xs->load($yaml);
+    $yaml = $xs->dump($data);
 
     # Or to load all documents:
-    my @data = $xs->load_string($yaml);
-    $yaml = $xs->dump_string(@data);
+    my @data = $xs->load($yaml);
+    $yaml = $xs->dump(@data);
 
 =head2 METHODS
 
@@ -296,14 +296,14 @@ with this instead of just being numbers:
 
     # my $xs = YAML::XS->new( anchor_prefix => 'ANCHOR' );
     # my $hash = { some => "mapping" };
-    # say $xs->dump_string([$hash, $hash]);
+    # say $xs->dump([$hash, $hash]);
     - &ANCHOR1
       some: mapping
     - *ANCHOR1
 
 =back
 
-=head3 load_string
+=head3 load
 
     my $yaml = <<'EOM';
     ---
@@ -311,9 +311,9 @@ with this instead of just being numbers:
     ---
     some: mapping
     EOM
-    my $array = $xs->load_string($yaml);
+    my $array = $xs->load($yaml);
     # [23]
-    my @documents = $xs->load_string($yaml);
+    my @documents = $xs->load($yaml);
     # (
     #   [23],
     #   { some => "mapping" }
@@ -322,11 +322,11 @@ with this instead of just being numbers:
 In scalar context, if the YAML string contains more than one document, it will
 return the first document.
 
-=head3 dump_string
+=head3 dump
 
-    $yaml = $xs->dump_string($data);
-    $yaml = $xs->dump_string($data1, $data2, $data3);
-    $yaml = $xs->dump_string(@data);
+    $yaml = $xs->dump($data);
+    $yaml = $xs->dump($data1, $data2, $data3);
+    $yaml = $xs->dump(@data);
 
 =head1 LIBYAML
 

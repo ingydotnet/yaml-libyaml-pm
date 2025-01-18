@@ -16,17 +16,17 @@ my $yaml = <<'EOM';
 - *SEQ
 - *MAP
 EOM
-my $data = $xs->load_string($yaml);
+my $data = $xs->load($yaml);
 
 my @exp = (
     (foo => ['bar'], { key => 'val' }) x 2
 );
-is_deeply $data, \@exp, 'load_string';
+is_deeply $data, \@exp, 'load';
 is $data->[0], $data->[3], 'scalar alias loaded correctly';
 is $data->[1], $data->[4], 'sequence alias loaded correctly';
 is $data->[2], $data->[5], 'mapping alias loaded correctly';
 
-$yaml = $xs->dump_string($data);
+$yaml = $xs->dump($data);
 
 my $exp = <<'EOM';
 ---
@@ -44,7 +44,7 @@ is $yaml, $exp, 'aliases are dumped correctly';
 my $circle = [ 'x' ];
 $circle->[1] = $circle;
 
-$yaml = $xs->dump_string($circle);
+$yaml = $xs->dump($circle);
 $exp = <<'EOM';
 --- &1
 - x
@@ -70,8 +70,8 @@ $yaml = <<'EOM';
 - *NAN
 EOM
 
-$data = $xs->load_string($yaml);
-$yaml = $xs->dump_string($data);
+$data = $xs->load($yaml);
+$yaml = $xs->dump($data);
 $exp = <<'EOM';
 ---
 - null
@@ -97,7 +97,7 @@ EOM
 
 eval {
     my $xs = YAML::XS->new;
-    $data = $xs->load_string($yaml);
+    $data = $xs->load($yaml);
 };
 my $err = $@;
 like $err, qr{No anchor for alias .alias.}, "error for missing anchor";

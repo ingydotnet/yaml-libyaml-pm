@@ -135,7 +135,7 @@ new(char *class_name, ...)
     }
 
 void
-load_string(SV *object, SV *string)
+load(SV *object, SV *string)
     PPCODE:
     {
         dXCPT;
@@ -180,7 +180,7 @@ load_string(SV *object, SV *string)
     }
 
 SV *
-dump_string(SV *object, ...)
+dump(SV *object, ...)
     PPCODE:
     {
         dXCPT;

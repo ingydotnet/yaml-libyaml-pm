@@ -15,7 +15,7 @@ subtest indent => sub {
         },
     };
 
-    $yaml = $xs->dump_string($data);
+    $yaml = $xs->dump($data);
 
     my $exp = <<'EOM';
 ---
@@ -26,21 +26,21 @@ this:
         - ented
 EOM
 
-    is $yaml, $exp, 'dump_string';
+    is $yaml, $exp, 'dump';
 };
 
 subtest header => sub {
     $data = { key => 'value' };
 
     my $xs = YAML::XS->new( header => 0 );
-    $yaml = $xs->dump_string($data);
+    $yaml = $xs->dump($data);
     my $exp = <<'EOM';
 key: value
 EOM
     is $yaml, $exp, 'header 0';
 
     $xs = YAML::XS->new( header => 1 );
-    $yaml = $xs->dump_string($data);
+    $yaml = $xs->dump($data);
     $exp = <<'EOM';
 ---
 key: value
@@ -48,7 +48,7 @@ EOM
     is $yaml, $exp, 'header 1';
 
     $xs = YAML::XS->new;
-    $yaml = $xs->dump_string($data);
+    $yaml = $xs->dump($data);
     $exp = <<'EOM';
 ---
 key: value
@@ -60,7 +60,7 @@ subtest footer => sub {
     $data = { key => 'value' };
 
     my $xs = YAML::XS->new( footer => 0 );
-    $yaml = $xs->dump_string($data);
+    $yaml = $xs->dump($data);
     my $exp = <<'EOM';
 ---
 key: value
@@ -68,7 +68,7 @@ EOM
     is $yaml, $exp, 'footer 0';
 
     $xs = YAML::XS->new( footer => 1 );
-    $yaml = $xs->dump_string($data);
+    $yaml = $xs->dump($data);
     $exp = <<'EOM';
 ---
 key: value
@@ -77,7 +77,7 @@ EOM
     is $yaml, $exp, 'footer 1';
 
     $xs = YAML::XS->new;
-    $yaml = $xs->dump_string($data);
+    $yaml = $xs->dump($data);
     $exp = <<'EOM';
 ---
 key: value
@@ -104,20 +104,20 @@ EOM
 
     my $xs = YAML::XS->new( require_footer => 1 );
     local $@;
-    $data = eval { $xs->load_string($yaml) };
+    $data = eval { $xs->load($yaml) };
     like $@, qr{load: Document .1. did not end with '...'}, 'require_footer 1 failure';
 
     local $@;
-    $data = eval { $xs->load_string($yaml2) };
+    $data = eval { $xs->load($yaml2) };
     ok !$@, 'require_footer 1 success';
 
     local $@;
-    $data = eval { $xs->load_string('') };
+    $data = eval { $xs->load('') };
     like $@, qr{load: Document .0. did not end with '...'}, 'require_footer 1 empty doc failure';
 
     $xs = YAML::XS->new( require_footer => 0 );
     local $@;
-    $data = eval { $xs->load_string($yaml) };
+    $data = eval { $xs->load($yaml) };
     ok !$@, 'require_footer 0';
 };
 
@@ -125,7 +125,7 @@ subtest anchor_prefix => sub {
     my $xs = YAML::XS->new( anchor_prefix => 'a_' );
     my $ref = ['yaml rocks'];
     my $ref2 = ['another ref'];
-    my $yaml = $xs->dump_string([$ref, $ref, $ref2, $ref2]);
+    my $yaml = $xs->dump([$ref, $ref, $ref2, $ref2]);
     my $exp = <<'EOM';
 ---
 - &a_1
@@ -141,17 +141,17 @@ EOM
 subtest width => sub {
     my $xs = YAML::XS->new;
     my $string = "012345678 9" x 10;
-    my $yaml = $xs->dump_string($string);
+    my $yaml = $xs->dump($string);
     my $exp = <<'EOM';
 --- 012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9012345678
   9012345678 9012345678 9
 EOM
     is $yaml, $exp, "default width";
 
-    my $xs = YAML::XS->new(width => 5);
-    my $string = "012345678 9" x 10;
-    my $yaml = $xs->dump_string($string);
-    my $exp = <<'EOM';
+    $xs = YAML::XS->new(width => 5);
+    $string = "012345678 9" x 10;
+    $yaml = $xs->dump($string);
+    $exp = <<'EOM';
 --- 012345678
   9012345678
   9012345678
@@ -166,10 +166,10 @@ EOM
 EOM
     is $yaml, $exp, "width=5";
 
-    my $xs = YAML::XS->new(width => -1);
-    my $string = "012345678 9" x 10;
-    my $yaml = $xs->dump_string($string);
-    my $exp = <<'EOM';
+    $xs = YAML::XS->new(width => -1);
+    $string = "012345678 9" x 10;
+    $yaml = $xs->dump($string);
+    $exp = <<'EOM';
 --- 012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9
 EOM
     is $yaml, $exp, "width=-1";
