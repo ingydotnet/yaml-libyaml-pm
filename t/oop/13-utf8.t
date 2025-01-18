@@ -15,25 +15,25 @@ my ($yaml, $data);
 note "=================================================== YAML::XS utf8: 0";
 $yaml = $vd;
 $ENV{TEST_VERBOSE} and Dump $yaml;
-$data = $xs->load_string($yaml);
+$data = $xs->load($yaml);
 $ENV{TEST_VERBOSE} and Dump $data;
-is $data, $vd, "load_string utf8 => 0";
+is $data, $vd, "load utf8 => 0";
 
-$yaml = $xs->dump_string($data);
-is $yaml, "--- $vd\n", "dump_string utf8 => 0";;
+$yaml = $xs->dump($data);
+is $yaml, "--- $vd\n", "dump utf8 => 0";;
 $ENV{TEST_VERBOSE} and Dump $yaml;
 note "---> $yaml";
 
 note "=================================================== YAML::XS utf8: 1";
 $yaml = "_ö_";
 $ENV{TEST_VERBOSE} and Dump $yaml;
-$data = $xsu->load_string($yaml);
+$data = $xsu->load($yaml);
 $ENV{TEST_VERBOSE} and Dump $data;
-is $data, $vd, "load_string utf8 => 1";
+is $data, $vd, "load utf9 => 1";
 
-$yaml = $xsu->dump_string($data);
+$yaml = $xsu->dump($data);
 $ENV{TEST_VERBOSE} and Dump $yaml;
-is $yaml, "--- $v\n", "dump_string utf8 => 1";;
+is $yaml, "--- $v\n", "dump utf8 => 1";;
 note "---> $yaml";
 
 {
