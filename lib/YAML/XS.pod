@@ -19,7 +19,8 @@ YAML::XS - Perl YAML Serialization using XS and libyaml
     my $yaml = Dump [ 1..4 ];
     my $array = Load $yaml;
 
-    # Object oriented interface supporting YAML 1.2
+    # EXPERIMENTAL: Object Oriented interface for YAML 1.2
+    # Incompatible to functional interface!
     my $xs = YAML::XS->new;
     my $yaml = $xs->dump([ 1..4 ]);
     my $array = $xs->load($yaml);
@@ -34,7 +35,7 @@ This module exports the functions C<Dump>, C<Load>, C<DumpFile> and C<LoadFile>.
 
 =head1 CONFIGURATION
 
-The new object oriented interface is described below: L<"OBJECT ORIENTED INTERFACE">
+The object oriented interface is described below: L<"OBJECT ORIENTED INTERFACE">
 
 =over
 
@@ -130,7 +131,10 @@ Sets the number of spaces for indentation for C<Dump>.
 
 Since version v0.903.0
 
-This has two major differences to the old functional interface:
++++NOTE: This is incompatible with the functional interface and will treat
+YAML values in a different way.+++
+
+This has two MAJOR differences to the old functional interface:
 
 =over
 
@@ -139,12 +143,29 @@ This has two major differences to the old functional interface:
 This provides an interface where you can create a YAML::XS object with
 options (instead of the old interface with global variables).
 
-=item YAML 1.2 support
+=item YAML 1.2 Core Schema
 
-It implements the YAML 1.2 Core Schema, while the old interface
-implements its own schema which is not compatible with any other module.
-This is about resolving scalar values like C<null>, C<true>, C<23> as
-C<undef>, boolean, number.
+It implements the YAML 1.2 Core Schema.
+
+Here is an (incomplete!) example of values that are treated differently than
+with the functional interface. YAML values that match a certain pattern,
+are not loaded as strings, but as other types:
+
+    # YAML::XS special values (not compatible to other YAML modules)
+    - [true, false]                             # booleans
+    - [null, ~]                                 # undef
+    - [inf, INF, iNf, iNF, InF, INf, -inf, ...] # Inf
+    - [100_000]                                 # 100000
+    - # anything that looks_like_number()       # number
+
+    # YAML 1.2 OOP special values
+    - [true, True, TRUE, false, False, FALSE]   # booleans
+    - [null, Null, NULL, ~]                     # undef
+    - [.inf, .Inf, .INF, -.inf, -.Inf, -.INF]   # Inf
+    - [42, 0x10, 0o10]                          # dec 42, hex 16, oct 8
+
+For more subtle differences regarding numbers checkout the comprehensive data
+here:
 
 =over
 
@@ -154,11 +175,8 @@ C<undef>, boolean, number.
 
 =back
 
-This way it's compatible to YAML::PP and YAML processors in other languages
-supporting YAML 1.2.
-
-The functional YAML::XS interface only recognizes the following special values:
-C<true>, C<false>, C<null>, C<~> and anything that C<looks_like_number()>.
+This way the OOP interface is compatible to YAML::PP and YAML processors in
+other languages supporting YAML 1.2.
 
     use YAML::XS ();
     my $xs = YAML::XS->new;
