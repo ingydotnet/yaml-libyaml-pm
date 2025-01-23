@@ -1373,10 +1373,7 @@ oo_loader_error_msg(perl_yaml_xs_t *self, char *problem)
 void
 oo_load_stream(perl_yaml_xs_t *self)
 {
-    dXCPT;
-
     dXSARGS;
-    SV* return_sv = NULL;
     SV *node;
     int multi = 0;
     int has_footer = 0;
@@ -1589,7 +1586,6 @@ oo_load_scalar(perl_yaml_xs_t *self)
     STRLEN length = (STRLEN)self->event.data.scalar.length;
     int is_num = 0;
     I32 flags = 0;
-    UV *uv;
     if (tag) {
         if (strEQ(tag, YAML_STR_TAG)) {
             style = YAML_SINGLE_QUOTED_SCALAR_STYLE;
@@ -1641,13 +1637,13 @@ oo_load_scalar(perl_yaml_xs_t *self)
         else if (
             strEQ(string, ".NAN") || strEQ(string, ".NaN") || strEQ(string, ".nan")
             ) {
-            NV nv = NV_NAN;
+            NV nan = NV_NAN;
             string++;
             length--;
             if (tag && ! strEQ(tag, YAML_FLOAT_TAG)) {
                 croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
             }
-            scalar = newSVnv(nv);
+            scalar = newSVnv(nan);
         }
         else if (
             string[0] == 43 || string[0] == 45 || string[0] == 46
@@ -1694,13 +1690,13 @@ oo_load_scalar(perl_yaml_xs_t *self)
                 if (is_num == 3) {
                     string += 2;
                     length -= 2;
-                    int num = grok_oct(string, &length, &flags, &uv);
+                    int num = grok_oct(string, &length, &flags, NULL);
                     scalar = newSViv((int) num);
                 }
                 if (is_num == 4) {
                     string += 2;
                     length -= 2;
-                    int num = grok_hex(string, &length, &flags, &uv);
+                    int num = grok_hex(string, &length, &flags, NULL);
                     scalar = newSViv((int) num);
                 }
                 if (anchor) {
@@ -1753,8 +1749,6 @@ oo_load_alias(perl_yaml_xs_t *self)
 void
 oo_dump_stream(perl_yaml_xs_t *self, ...)
 {
-    dXCPT;
-
     dXSARGS;
     int i;
     yaml_event_t event_stream_start;
@@ -1911,6 +1905,7 @@ oo_dump_scalar(perl_yaml_xs_t *self, SV *node)
     int is_num = 0;
     STRLEN length;
     SV *node_clone;
+    int i;
 
     SvGETMAGIC(node);
     if (!SvOK(node)) {
@@ -1958,7 +1953,7 @@ oo_dump_scalar(perl_yaml_xs_t *self, SV *node)
             SV *str = SvPV_nolen(node);
             string = (char *)str;
             int dot = 0;
-            for (int i=0; i < strlen(string); i++) {
+            for (i=0; i < strlen(string); i++) {
                 if (string[i] == 46) {
                     dot = 1;
                     break;
