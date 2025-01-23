@@ -148,10 +148,10 @@ subtest width => sub {
 EOM
     is $yaml, $exp, "default width";
 
-    my $xs = YAML::XS->new(width => 5);
-    my $string = "012345678 9" x 10;
-    my $yaml = $xs->dump($string);
-    my $exp = <<'EOM';
+    $xs = YAML::XS->new(width => 5);
+    $string = "012345678 9" x 10;
+    $yaml = $xs->dump($string);
+    $exp = <<'EOM';
 --- 012345678
   9012345678
   9012345678
@@ -166,10 +166,10 @@ EOM
 EOM
     is $yaml, $exp, "width=5";
 
-    my $xs = YAML::XS->new(width => -1);
-    my $string = "012345678 9" x 10;
-    my $yaml = $xs->dump($string);
-    my $exp = <<'EOM';
+    $xs = YAML::XS->new(width => -1);
+    $string = "012345678 9" x 10;
+    $yaml = $xs->dump($string);
+    $exp = <<'EOM';
 --- 012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9012345678 9
 EOM
     is $yaml, $exp, "width=-1";
