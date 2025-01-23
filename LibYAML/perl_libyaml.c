@@ -1373,12 +1373,8 @@ oo_loader_error_msg(perl_yaml_xs_t *self, char *problem)
 void
 oo_load_stream(perl_yaml_xs_t *self)
 {
-    dXCPT;
-
     dXSARGS;
-    SV* return_sv = NULL;
     SV *node;
-    int multi = 0;
     int has_footer = 0;
 
     sp = mark;
@@ -1424,7 +1420,6 @@ oo_load_stream(perl_yaml_xs_t *self)
         if (! (GIMME_V == G_ARRAY) && self->document > 1) {
         }
         else {
-            multi = self->document;
             XPUSHs(sv_2mortal(node));
         }
     }
@@ -1589,7 +1584,6 @@ oo_load_scalar(perl_yaml_xs_t *self)
     STRLEN length = (STRLEN)self->event.data.scalar.length;
     int is_num = 0;
     I32 flags = 0;
-    UV *uv;
     if (tag) {
         if (strEQ(tag, YAML_STR_TAG)) {
             style = YAML_SINGLE_QUOTED_SCALAR_STYLE;
@@ -1641,13 +1635,13 @@ oo_load_scalar(perl_yaml_xs_t *self)
         else if (
             strEQ(string, ".NAN") || strEQ(string, ".NaN") || strEQ(string, ".nan")
             ) {
-            NV nv = NV_NAN;
+            NV nan = NV_NAN;
             string++;
             length--;
             if (tag && ! strEQ(tag, YAML_FLOAT_TAG)) {
                 croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
             }
-            scalar = newSVnv(nv);
+            scalar = newSVnv(nan);
         }
         else if (
             string[0] == 43 || string[0] == 45 || string[0] == 46
@@ -1694,13 +1688,13 @@ oo_load_scalar(perl_yaml_xs_t *self)
                 if (is_num == 3) {
                     string += 2;
                     length -= 2;
-                    int num = grok_oct(string, &length, &flags, &uv);
+                    int num = grok_oct(string, &length, &flags, NULL);
                     scalar = newSViv((int) num);
                 }
                 if (is_num == 4) {
                     string += 2;
                     length -= 2;
-                    int num = grok_hex(string, &length, &flags, &uv);
+                    int num = grok_hex(string, &length, &flags, NULL);
                     scalar = newSViv((int) num);
                 }
                 if (anchor) {
@@ -1757,8 +1751,6 @@ oo_load_alias(perl_yaml_xs_t *self)
 void
 oo_dump_stream(perl_yaml_xs_t *self, ...)
 {
-    dXCPT;
-
     dXSARGS;
     int i;
     yaml_event_t event_stream_start;
@@ -1914,6 +1906,7 @@ oo_dump_scalar(perl_yaml_xs_t *self, SV *node)
     int is_num = 0;
     STRLEN length;
     SV *node_clone;
+    int i;
 
     SvGETMAGIC(node);
     if (!SvOK(node)) {
@@ -1958,10 +1951,9 @@ oo_dump_scalar(perl_yaml_xs_t *self, SV *node)
             style = YAML_PLAIN_SCALAR_STYLE;
         }
         else {
-            SV *str = SvPV_nolen(node);
-            string = (char *)str;
+            string = SvPV_nolen(node);
             int dot = 0;
-            for (int i=0; i < strlen(string); i++) {
+            for (i=0; i < strlen(string); i++) {
                 if (string[i] == 46) {
                     dot = 1;
                     break;
@@ -1975,8 +1967,7 @@ oo_dump_scalar(perl_yaml_xs_t *self, SV *node)
         }
     }
     else if (SvIOK(node)) {
-        SV *str = SvPV_nolen(node);
-        string = (char *)str;
+        string = SvPV_nolen(node);
         string_len = strlen(string);
     }
     else {
@@ -2040,7 +2031,7 @@ oo_dump_scalar(perl_yaml_xs_t *self, SV *node)
 void
 oo_dump_prewalk(perl_yaml_xs_t *self, SV *node)
 {
-    int i, len;
+    int i;
     U32 ref_type;
     AV *array;
     SvGETMAGIC(node);
@@ -2114,19 +2105,19 @@ oo_get_yaml_anchor(perl_yaml_xs_t *self, SV *node)
 
             yaml_char_t *anchor = (yaml_char_t *)SvPV_nolen(*seen);
             prefix = self->anchor_prefix;
-            label = malloc(strlen(prefix)+strlen(anchor)+1);
+            label = malloc(strlen(prefix)+strlen((char *)anchor)+1);
             strcpy(label, prefix);
-            strcat(label, anchor);
-            return label;
+            strcat(label, (char *)anchor);
+            return (yaml_char_t *)label;
         }
         else {
             yaml_char_t *anchor = (yaml_char_t *)SvPV_nolen(*seen);
             prefix = self->anchor_prefix;
-            label = malloc(strlen(prefix)+strlen(anchor)+1);
+            label = malloc(strlen(prefix)+strlen((char *)anchor)+1);
             strcpy(label, prefix);
-            strcat(label, anchor);
+            strcat(label, (char *)anchor);
 
-            yaml_alias_event_initialize(&event_alias, label);
+            yaml_alias_event_initialize(&event_alias, (yaml_char_t *)label);
             yaml_emitter_emit(&self->emitter, &event_alias);
             return (yaml_char_t *) "";
         }
