@@ -1375,7 +1375,6 @@ oo_load_stream(perl_yaml_xs_t *self)
 {
     dXSARGS;
     SV *node;
-    int multi = 0;
     int has_footer = 0;
 
     sp = mark;
@@ -1421,7 +1420,6 @@ oo_load_stream(perl_yaml_xs_t *self)
         if (! (GIMME_V == G_ARRAY) && self->document > 1) {
         }
         else {
-            multi = self->document;
             XPUSHs(sv_2mortal(node));
         }
     }
@@ -1950,8 +1948,7 @@ oo_dump_scalar(perl_yaml_xs_t *self, SV *node)
             style = YAML_PLAIN_SCALAR_STYLE;
         }
         else {
-            SV *str = SvPV_nolen(node);
-            string = (char *)str;
+            string = SvPV_nolen(node);
             int dot = 0;
             for (i=0; i < strlen(string); i++) {
                 if (string[i] == 46) {
@@ -1967,8 +1964,7 @@ oo_dump_scalar(perl_yaml_xs_t *self, SV *node)
         }
     }
     else if (SvIOK(node)) {
-        SV *str = SvPV_nolen(node);
-        string = (char *)str;
+        string = SvPV_nolen(node);
         string_len = strlen(string);
     }
     else {
@@ -2032,7 +2028,7 @@ oo_dump_scalar(perl_yaml_xs_t *self, SV *node)
 void
 oo_dump_prewalk(perl_yaml_xs_t *self, SV *node)
 {
-    int i, len;
+    int i;
     U32 ref_type;
     AV *array;
     SvGETMAGIC(node);
@@ -2106,19 +2102,19 @@ oo_get_yaml_anchor(perl_yaml_xs_t *self, SV *node)
 
             yaml_char_t *anchor = (yaml_char_t *)SvPV_nolen(*seen);
             prefix = self->anchor_prefix;
-            label = malloc(strlen(prefix)+strlen(anchor)+1);
+            label = malloc(strlen(prefix)+strlen((char *)anchor)+1);
             strcpy(label, prefix);
-            strcat(label, anchor);
-            return label;
+            strcat(label, (char *)anchor);
+            return (yaml_char_t *)label;
         }
         else {
             yaml_char_t *anchor = (yaml_char_t *)SvPV_nolen(*seen);
             prefix = self->anchor_prefix;
-            label = malloc(strlen(prefix)+strlen(anchor)+1);
+            label = malloc(strlen(prefix)+strlen((char *)anchor)+1);
             strcpy(label, prefix);
-            strcat(label, anchor);
+            strcat(label, (char *)anchor);
 
-            yaml_alias_event_initialize(&event_alias, label);
+            yaml_alias_event_initialize(&event_alias, (yaml_char_t *)label);
             yaml_emitter_emit(&self->emitter, &event_alias);
             return (yaml_char_t *) "";
         }
