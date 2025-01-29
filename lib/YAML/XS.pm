@@ -54,7 +54,7 @@ sub LoadFile {
         $IN = $filename;
     }
     else {
-        open $IN, $filename
+        open $IN, '<', $filename
           or die "Can't open '$filename' for input:\n$!";
     }
     return YAML::XS::LibYAML::Load(do { local $/; local $_ = <$IN> });
