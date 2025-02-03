@@ -146,4 +146,17 @@ sub __code_loader {
     return $sub;
 }
 
+my $RE_INT_CORE = qr{^([+-]?(?:[0-9]+))$};
+my $RE_FLOAT_CORE = qr{^([+-]?(?:\.[0-9]+|[0-9]+(?:\.[0-9]*)?)(?:[eE][+-]?[0-9]+)?)$};
+my $RE_INT_OCTAL = qr{^0o([0-7]+)$};
+my $RE_INT_HEX = qr{^0x([0-9a-fA-F]+)$};
+sub __is_number {
+    my ($string) = @_;
+    $string =~ $RE_INT_CORE and return 1;
+    $string =~ $RE_FLOAT_CORE and return 2;
+    $string =~ $RE_INT_OCTAL and return 3;
+    $string =~ $RE_INT_HEX and return 4;
+    return 0;
+}
+
 1;
