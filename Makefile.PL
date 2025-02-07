@@ -26,10 +26,12 @@ my %WriteMakefileArgs = (
     "warnings" => 0
   },
   "TEST_REQUIRES" => {
+    "Cwd" => 0,
     "Devel::Peek" => 0,
     "Encode" => 0,
     "File::Find" => 0,
     "File::Path" => 0,
+    "File::Temp" => 0,
     "FindBin" => 0,
     "IO::File" => 0,
     "IO::Pipe" => 0,
@@ -50,11 +52,13 @@ my %WriteMakefileArgs = (
 
 my %FallbackPrereqs = (
   "B::Deparse" => 0,
+  "Cwd" => 0,
   "Devel::Peek" => 0,
   "Encode" => 0,
   "Exporter" => 0,
   "File::Find" => 0,
   "File::Path" => 0,
+  "File::Temp" => 0,
   "FindBin" => 0,
   "IO::File" => 0,
   "IO::Pipe" => 0,
