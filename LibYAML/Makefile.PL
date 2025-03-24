@@ -26,7 +26,7 @@ WriteMakefile(
     # CCFLAGS => '-pedantic -Wall',
     # CCFLAGS => '-Wall',
     DEFINE => $DEFINE,
-    LIBS => [''], # e.g., '-lm'
+    LIBS => [$ENV{USE_SYSTEM_LIBYAML} ? '-lyaml' : ()], # e.g., '-lm'
     INC => '-I.',
     OBJECT => $obj_files,
     ABSTRACT_FROM => 'lib/YAML/XS/LibYAML.pm',
