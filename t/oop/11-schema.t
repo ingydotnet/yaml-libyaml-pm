@@ -8,7 +8,7 @@ use Data::Dumper;
 use FindBin '$Bin';
 my $schema_file = "$Bin/schema-core.yaml";
 
-my $xs = YAML::XS->new();
+my $xs = YAML::XS->new(header => 0);
 
 my $core = YAML::XS::LoadFile($schema_file);
 
@@ -18,6 +18,10 @@ my $nan = 0 + 'nan';
 diag("inf: $inf -inf: $inf_negative nan: $nan");
 my $inf_broken = $inf eq '0';
 $inf_broken and diag("inf/nan seem broken, skipping those tests");
+my $is_bool = eval 'use experimental qw/ builtin /; sub { builtin::is_bool($_[0]) }';
+if ($] < 5.036000) {
+    $is_bool = sub { 1 };
+}
 my %check = (
     null => sub { not defined $_[0] },
     inf => sub {
@@ -34,11 +38,11 @@ my %check = (
     },
     true => sub {
         my ($bool) = @_;
-        return $bool eq 1;
+        return ($bool eq 1 and $is_bool->($bool));
     },
     false => sub {
         my ($bool) = @_;
-        return $bool eq '';
+        return ($bool eq '' and $is_bool->($bool));
     },
 );
 
@@ -46,9 +50,6 @@ my @k = sort keys %$core;
 #@k = @k[0..280];
 for my $input (@k) {
     my $test_data = $core->{ $input };
-    # TODO booleans
-    next if $input =~ m/^!!(bool)/;
-#    warn __PACKAGE__.':'.__LINE__.$".Data::Dumper->Dump([\$input], ['input']);
     my $yaml = "---\n$input\n";
     my $data = eval { $xs->load($yaml) };
     my $error = $@;
@@ -67,7 +68,7 @@ for my $input (@k) {
 
     my $func;
 
-    my $label = sprintf "type %s: load(%s)", $type, $input;
+    my $label = sprintf "type %s: load(%s) -> '%s'", $type, $input, (defined $data ? $data : 'undef');
     if ($check =~ m/^([\w-]+)\(\)$/) {
         my $func_name = $1;
         $func = $check{ $func_name };
@@ -109,10 +110,13 @@ for my $input (@k) {
 
     unless ($inf_broken) {
         my $yaml_dump = $xs->dump($data);
-        $yaml_dump =~ s/---(\n| )//;
         $yaml_dump =~ s/\n\z//;
-        if ($input !~ m/^(FALSE|False|false|TRUE|True|true)$/) {
-            # TODO booleans
+        if ($input =~ m/\b(false|true)\b/i) {
+            if ($] >= 5.036000) {
+                cmp_ok($yaml_dump, 'eq', $dump, "$label-dump as expected");
+            }
+        }
+        else {
             cmp_ok($yaml_dump, 'eq', $dump, "$label-dump as expected");
         }
     }
