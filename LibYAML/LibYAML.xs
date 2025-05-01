@@ -57,7 +57,6 @@ new(char *class_name, ...)
         XCPT_TRY_START
         {
             yaml = (perl_yaml_xs_t*) malloc(sizeof(perl_yaml_xs_t));
-            yaml->active = 1;
             yaml->indent = 2;
             yaml->header = 1;
             yaml->footer = 0;
@@ -140,6 +139,7 @@ load(SV *object, SV *string)
     {
         dXCPT;
         perl_yaml_xs_t *yaml;
+        yaml_parser_t yp;
         HV *hash;
         SV **val;
         STRLEN yaml_len;
@@ -162,6 +162,7 @@ load(SV *object, SV *string)
             yaml_str,
             yaml_len
         );
+        yp = yaml->parser;
         PUSHMARK(sp);
         XCPT_TRY_START
         {
@@ -170,12 +171,10 @@ load(SV *object, SV *string)
 
         XCPT_CATCH
         {
-            if (yaml->active == 1) {
-                yaml_parser_delete(&yaml->parser);
-            }
+            yaml_parser_delete(&yp);
             XCPT_RETHROW;
         }
-        yaml_parser_delete(&yaml->parser);
+        yaml_parser_delete(&yp);
         return;
     }
 
@@ -186,6 +185,7 @@ dump(SV *object, ...)
         dXCPT;
 
         perl_yaml_xs_t *yaml;
+        yaml_emitter_t ye;
         HV *hash;
         SV **val;
         SV *string = newSVpvn("", 0);
@@ -204,6 +204,7 @@ dump(SV *object, ...)
         yaml_emitter_set_indent(&yaml->emitter, yaml->indent);
         yaml_emitter_set_width(&yaml->emitter, yaml->width);
         yaml_emitter_set_output(&yaml->emitter, &append_output, (void *) string);
+        ye = yaml->emitter;
 
         PUSHMARK(sp);
         XCPT_TRY_START
@@ -214,17 +215,15 @@ dump(SV *object, ...)
                     SvUTF8_on(string);
                 }
             }
-            yaml_emitter_delete(&yaml->emitter);
         } XCPT_TRY_END
 
         XCPT_CATCH
         {
-            if (yaml->active == 1) {
-                yaml_emitter_delete(&yaml->emitter);
-            }
+            yaml_emitter_delete(&ye);
             XCPT_RETHROW;
         }
 
+        yaml_emitter_delete(&ye);
         XPUSHs(string);
         XSRETURN(1);
     }
@@ -242,7 +241,6 @@ DESTROY(SV *object)
         val = hv_fetch(hash, "ptr", 3, TRUE);
         if (val && SvOK(*val) && SvIOK(*val)) {
             yaml = INT2PTR(perl_yaml_xs_t*, SvIV(*val));
-            yaml->active = 0;
             free(yaml);
             yaml = NULL;
         }

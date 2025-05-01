@@ -61,7 +61,6 @@ typedef struct {
 } perl_yaml_dumper_t;
 
 typedef struct {
-    int active;
     yaml_parser_t parser;
     yaml_emitter_t emitter;
     yaml_event_t event;
