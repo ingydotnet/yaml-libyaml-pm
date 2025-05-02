@@ -24,6 +24,19 @@
 #define LOADERRMSG "YAML::XS::Load Error: "
 #define DUMPERRMSG "YAML::XS::Dump Error: "
 
+typedef enum yaml_xs_scalar_type_e {
+    YAML_XS_SCALAR_TYPE_STRING,
+    YAML_XS_SCALAR_TYPE_BOOL_TRUE,
+    YAML_XS_SCALAR_TYPE_BOOL_FALSE,
+    YAML_XS_SCALAR_TYPE_NULL,
+    YAML_XS_SCALAR_TYPE_FLOAT_INF,
+    YAML_XS_SCALAR_TYPE_FLOAT_NAN,
+    YAML_XS_SCALAR_TYPE_INT_OCT,
+    YAML_XS_SCALAR_TYPE_INT_HEX,
+    YAML_XS_SCALAR_TYPE_INT,
+    YAML_XS_SCALAR_TYPE_FLOAT,
+} yaml_xs_scalar_type_t;
+
 typedef struct {
     yaml_parser_t parser;
     yaml_event_t event;
