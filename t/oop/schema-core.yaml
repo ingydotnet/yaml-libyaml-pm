@@ -90,6 +90,8 @@
 '!!int 100_000': error
 '!!int 190:20:30': error
 '!!int 23': ['int', '23', '23']
+'!!null 23333333333333': error
+'!!null 23.333333333333': error
 '!!null #empty': ['null', 'null()', "null"]
 '!!null NULL': ['null', 'null()', "null"]
 '!!null NuLL': error

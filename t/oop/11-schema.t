@@ -57,6 +57,11 @@ for my $input (@k) {
         like $error, qr{Invalid tag .* for value}, "load($input) error";
         next;
     }
+    elsif ($error) {
+        diag "Got error:\n#####\n$error\n####";
+        fail "load($input) no error";
+        next;
+    }
     my ($type, $check, $dump) = @$test_data;
     my $data_copy = $data; # avoid stringifying original data
 #    warn __PACKAGE__.':'.__LINE__.$".Data::Dumper->Dump([\$data_copy], ['data_copy']);
