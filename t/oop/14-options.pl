@@ -2,7 +2,6 @@ use strict;
 use warnings;
 use Test::More;
 use YAML::XS;
-use Data::Dumper;
 
 
 my ($yaml, $data, @data);

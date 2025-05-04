@@ -4,7 +4,6 @@ use Test::More;
 use YAML::XS ();
 use B;
 use Devel::Peek;
-use Data::Dumper;
 use FindBin '$Bin';
 my $schema_file = "$Bin/schema-core.yaml";
 
@@ -156,7 +155,7 @@ my $yaml = <<'EOM';
 EOM
 
 my $data = $xs->load($yaml);
-note __PACKAGE__.':'.__LINE__.$".Data::Dumper->Dump([\$data], ['data']);
+#note __PACKAGE__.':'.__LINE__.$".Data::Dumper->Dump([\$data], ['data']);
 #is scalar @$data, 7, 'expected number of elements';
 pass "test";
 
