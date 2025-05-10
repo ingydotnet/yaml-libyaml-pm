@@ -191,20 +191,20 @@ Load(SV *yaml_sv)
         yaml_len
     );
 
-    /* Get the first event. Must be a STREAM_START */
-    if (!yaml_parser_parse(&loader.parser, &loader.event))
-        goto load_error;
-    if (loader.event.type != YAML_STREAM_START_EVENT)
-        croak("%sExpected STREAM_START_EVENT; Got: %d != %d",
-            ERRMSG,
-            loader.event.type,
-            YAML_STREAM_START_EVENT
-         );
-
-    loader.anchors = newHV();
-    sv_2mortal((SV *)loader.anchors);
-
     XCPT_TRY_START {
+
+        /* Get the first event. Must be a STREAM_START */
+        if (!yaml_parser_parse(&loader.parser, &loader.event))
+            croak("%s", loader_error_msg(&loader, NULL));
+        if (loader.event.type != YAML_STREAM_START_EVENT)
+            croak("%sExpected STREAM_START_EVENT; Got: %d != %d",
+                ERRMSG,
+                loader.event.type,
+                YAML_STREAM_START_EVENT
+             );
+
+        loader.anchors = newHV();
+        sv_2mortal((SV *)loader.anchors);
 
         /* Keep calling load_node until end of stream */
         while (1) {
@@ -212,7 +212,7 @@ Load(SV *yaml_sv)
             /* We are through with the previous event - delete it! */
             yaml_event_delete(&loader.event);
             if (!yaml_parser_parse(&loader.parser, &loader.event))
-                goto load_error;
+                croak("%s", loader_error_msg(&loader, NULL));
             if (loader.event.type == YAML_STREAM_END_EVENT)
                 break;
             node = load_node(&loader);
@@ -222,7 +222,7 @@ Load(SV *yaml_sv)
             if (! node) break;
             XPUSHs(sv_2mortal(node));
             if (!yaml_parser_parse(&loader.parser, &loader.event))
-                goto load_error;
+                croak("%s", loader_error_msg(&loader, NULL));
             if (loader.event.type != YAML_DOCUMENT_END_EVENT)
                 croak("%sExpected DOCUMENT_END_EVENT", ERRMSG);
         }
@@ -246,9 +246,6 @@ Load(SV *yaml_sv)
     yaml_parser_delete(&loader.parser);
     PUTBACK;
     return;
-
-load_error:
-    croak("%s", loader_error_msg(&loader, NULL));
 }
 
 /*
