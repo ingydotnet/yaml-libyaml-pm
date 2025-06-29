@@ -920,6 +920,8 @@ dump_document(perl_yaml_dumper_t *dumper, SV *node)
     yaml_emitter_emit(&dumper->emitter, &event_document_start);
     dump_node(dumper, node);
     yaml_document_end_event_initialize(&event_document_end, 1);
+    // suppress end-of-document marker ('...')
+    dumper->emitter.open_ended = 0;
     yaml_emitter_emit(&dumper->emitter, &event_document_end);
 }
 
