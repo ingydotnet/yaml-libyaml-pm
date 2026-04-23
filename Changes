@@ -1,4 +1,9 @@
 ---
+version: v0.905.0
+date:    2026-04-24 09:37:22+02:00
+changes:
+- Fix memory leak for trailing UTF8 octets (PR#123)
+---
 version: v0.904.0
 date:    2025-05-08 14:12:41+02:00
 changes:
