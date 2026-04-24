@@ -29,13 +29,15 @@ jobs:
         - '5.34-bullseye'
         - '5.36-bookworm'
         - '5.38-bookworm'
+        - '5.40-bookworm'
+        - '5.42-bookworm'
         - 'latest'
 
     container:
       image: perl:${{ matrix.perl-version }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
 
     - run: perl -V
 
