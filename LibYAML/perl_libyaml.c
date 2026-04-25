@@ -1334,6 +1334,7 @@ _match_core_schema(char *string)
     int got_decimal = 0;
     int got_mantissa = 0;
     int is_float = 0;
+    int got_dot = 0;
 
     if (strEQ(string, "true") || strEQ(string, "TRUE") || strEQ(string, "True")) {
         return YAML_XS_SCALAR_TYPE_BOOL_TRUE;
@@ -1383,8 +1384,9 @@ _match_core_schema(char *string)
         if (string[i] >= 48 && string[i] <= 57) { // 0-9
             got_decimal = 1;
         }
-        else if (string[i] == 46) { // .
+        else if (got_dot == 0 && string[i] == 46) { // .
             is_float = 1;
+            got_dot = 1;
             while (i < strlen(string)) {
                 if (string[i] >= 48 && string[i] <= 57) { // 0-9
                     got_mantissa = 1;
@@ -1406,12 +1408,13 @@ _match_core_schema(char *string)
     int got_exponent = 0;
     if (i < strlen(string) && (string[i] == 101 || string[i] == 69)) { // eE
         i++;
-        got_exponent = 1;
         is_float = 1;
+        if (string[i] == 43 || string[i] == 45) { // +-
+            i++;
+        }
         while (i < strlen(string)) {
-            if (string[i] == 43 || string[i] == 45) { // +-
-            }
-            else if (string[i] >= 48 && string[i] <= 57) {
+            if (string[i] >= 48 && string[i] <= 57) { // 0-9
+                got_exponent = 1;
             }
             else {
                 break;
