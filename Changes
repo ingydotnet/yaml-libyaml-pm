@@ -1,4 +1,9 @@
 ---
+version: v0.906.0
+date:    2026-04-26 11:12:32+02:00
+changes:
+- Fix detecting floats in YAML 1.2 Core Schema (issue#125)
+---
 version: v0.905.0
 date:    2026-04-24 09:37:22+02:00
 changes:
