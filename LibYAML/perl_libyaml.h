@@ -74,6 +74,7 @@ typedef struct {
     int require_footer;
     char *anchor_prefix;
     int cyclic_refs;
+    int merge_keys;
     int document;
 } perl_yaml_xs_t;
 

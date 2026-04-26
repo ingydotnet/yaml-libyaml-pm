@@ -1328,6 +1328,15 @@ void xxx_local_patches() {
 */
 
 int
+_merge_key(char *string)
+{
+    if (strEQ(string, "<<")) {
+        return 1;
+    }
+    return 0;
+}
+
+int
 _match_core_schema(char *string)
 {
     int i = 0;
@@ -1671,6 +1680,17 @@ oo_load_mapping(perl_yaml_xs_t *self)
 
         /* Get each key string and value node and put them in the hash */
         while ((key_node = oo_load_node(self))) {
+
+            fprintf(stderr, "========== oo_load_mapping\n");
+            if (sv_isobject(key_node)) {
+                fprintf(stderr, "========== oo_load_mapping object\n");
+                HV* stash = SvSTASH(SvRV(key_node));
+                const char* classname = HvNAME(stash);
+
+                if (strEQ(classname, "YAML::XS::_node::mergekey")) {
+//                    // merge
+                }
+            }
             if (!SvOK(key_node)) {
                 sv_setpvn(key_node, "", 0);
             }
@@ -1731,6 +1751,19 @@ oo_load_scalar(perl_yaml_xs_t *self)
         goto return_string;
     }
 
+    char *class;
+    if (_merge_key(string)) {
+        fprintf(stderr, "=============== oo_load_scalar merge\n");
+        HV *hash;
+        SV *point_svrv;
+        SV *object;
+        hash = newHV();
+        class = "YAML::XS::_node::mergekey";
+        point_svrv = (newRV_noinc((SV*)hash));
+        object = sv_bless(point_svrv, gv_stashpv(class, 1));
+        scalar = object;
+        goto return_scalar;
+    }
     scalar_type = _match_core_schema(string);
 
     /* bool true */
