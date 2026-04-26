@@ -35,6 +35,7 @@ my %WriteMakefileArgs = (
     "IO::Pipe" => 0,
     "JSON::PP" => 0,
     "Test::More" => "0.9",
+    "Test::Warnings" => 0,
     "Tie::Array" => 0,
     "Tie::Hash" => 0,
     "blib" => 0,
@@ -42,7 +43,7 @@ my %WriteMakefileArgs = (
     "lib" => 0,
     "utf8" => 0
   },
-  "VERSION" => "v0.906.1",
+  "VERSION" => "v0.907.0",
   "test" => {
     "TESTS" => "t/*.t t/oop/*.t"
   }
@@ -62,6 +63,7 @@ my %FallbackPrereqs = (
   "JSON::PP" => 0,
   "Scalar::Util" => 0,
   "Test::More" => "0.9",
+  "Test::Warnings" => 0,
   "Tie::Array" => 0,
   "Tie::Hash" => 0,
   "base" => 0,
