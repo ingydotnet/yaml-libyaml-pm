@@ -1662,7 +1662,6 @@ oo_load_mapping(perl_yaml_xs_t *self)
 
     XCPT_TRY_START {
 
-        if (anchor)
         /* If cyclic refs are allowed we add the anchor here before
            we descend deeper into the data structure */
         if (self->cyclic_refs) {
