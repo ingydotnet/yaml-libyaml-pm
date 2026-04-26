@@ -1,4 +1,9 @@
 ---
+version: v0.906.1
+date:    2026-04-26 14:57:01+02:00
+changes:
+- Turn off cyclic references by default
+---
 version: v0.906.0
 date:    2026-04-26 11:12:32+02:00
 changes:
