@@ -44,7 +44,7 @@ jobs:
     - name: Install deps
       run: >
         cpanm --quiet --notest --local-lib ~/perl
-        Test::More Test::Base
+        Test::More Test::Base Test::Warnings
 
     - name: Run tests
       run: |
