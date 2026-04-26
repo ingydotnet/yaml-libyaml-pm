@@ -1671,6 +1671,9 @@ oo_load_mapping(perl_yaml_xs_t *self)
 
         /* Get each key string and value node and put them in the hash */
         while ((key_node = oo_load_node(self))) {
+            if (!SvOK(key_node)) {
+                sv_setpvn(key_node, "", 0);
+            }
             assert(SvPOK(key_node));
             value_node = oo_load_node(self);
             if ( /* self->forbid_duplicate_keys && */
