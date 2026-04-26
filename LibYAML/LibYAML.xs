@@ -63,6 +63,7 @@ new(char *class_name, ...)
             yaml->width = 80;
             yaml->require_footer = 0;
             yaml->anchor_prefix = "";
+            yaml->cyclic_refs = 0;
             yaml->utf8 = 0;
             hash = newHV();
 
@@ -113,6 +114,12 @@ new(char *class_name, ...)
                             SV *sv = newSVpvn(stringvalue, 0);
                             hv_store(hash, "anchor_prefix", 13, sv, 0);
                             yaml->anchor_prefix = stringvalue;
+                        }
+                        else if (strEQ(key, "cyclic_refs")) {
+                            intvalue = SvIV(ST(i+1));
+                            SV *sv = newSViv(intvalue);
+                            hv_store(hash, "cyclic_refs", 11, sv, 0);
+                            yaml->cyclic_refs = intvalue;
                         }
                     }
                 }

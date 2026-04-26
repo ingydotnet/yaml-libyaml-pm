@@ -73,6 +73,7 @@ typedef struct {
     int width;
     int require_footer;
     char *anchor_prefix;
+    int cyclic_refs;
     int document;
 } perl_yaml_xs_t;
 

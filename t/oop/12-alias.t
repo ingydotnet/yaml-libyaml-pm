@@ -5,6 +5,63 @@ use YAML::XS;
 
 my $xs = YAML::XS->new;
 
+subtest cyclic => sub {
+    my $xs_with_cyclic = YAML::XS->new(cyclic_refs => 1);
+    subtest sequence => sub {
+        my $yaml = <<'EOM';
+&CIRCLE [ something else, *CIRCLE ]
+EOM
+
+        my $circle = eval {
+            $xs->load($yaml);
+        };
+        my $err = $@;
+        like $err, qr{No anchor for alias 'CIRCLE'}, 'expected error message';
+
+        $circle = eval {
+            $xs_with_cyclic->load($yaml);
+        };
+        $err = $@;
+        is $err, '', 'no error with cyclic_refs on';
+        is $circle->[0], 'something else', 'first element like expected';
+        is "$circle->[1]", "$circle", 'second element points to root element';
+
+        $yaml = $xs->dump($circle);
+        my $exp = <<'EOM';
+--- &1
+- something else
+- *1
+EOM
+        is $yaml, $exp, 'circular refs are dumped correctly';
+    };
+
+    subtest mapping => sub {
+        my $yaml = <<'EOM';
+&CIRCLE { something_else: *CIRCLE }
+EOM
+
+        my $circle = eval {
+            $xs->load($yaml);
+        };
+        my $err = $@;
+        like $err, qr{No anchor for alias 'CIRCLE'}, 'expected error message';
+
+        $circle = eval {
+            $xs_with_cyclic->load($yaml);
+        };
+        $err = $@;
+        is $err, '', 'no error with cyclic_refs on';
+        is "$circle->{something_else}", "$circle", 'hash value points to root element';
+
+        $yaml = $xs->dump($circle);
+        my $exp = <<'EOM';
+--- &1
+something_else: *1
+EOM
+        is $yaml, $exp, 'circular refs are dumped correctly';
+    };
+ };
+
 my $yaml = <<'EOM';
 - &SCALAR foo
 - &SEQ [bar]
@@ -39,17 +96,6 @@ my $exp = <<'EOM';
 - *2
 EOM
 is $yaml, $exp, 'aliases are dumped correctly';
-
-my $circle = [ 'x' ];
-$circle->[1] = $circle;
-
-$yaml = $xs->dump($circle);
-$exp = <<'EOM';
---- &1
-- x
-- *1
-EOM
-is $yaml, $exp, 'circular refs are dumped correctly';
 
 $yaml = <<'EOM';
 - &NULL null

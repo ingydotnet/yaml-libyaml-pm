@@ -237,6 +237,7 @@ This is planned.
         # footer => 0,
         # width => 80,
         # anchor_prefix => '',
+        # cyclic_refs => 0,
 
         # load and dump options
         # utf8 => 0,
@@ -300,6 +301,22 @@ with this instead of just being numbers:
     - &ANCHOR1
       some: mapping
     - *ANCHOR1
+
+=item cyclic_refs
+
+Since version v0.907
+
+Default: 0
+
+YAML can contain data structures where an alias points to a node
+containing the current node, creating a cyclic (circular) data
+structure.
+If you load untrusted YAML documents, that can lead to memory
+leaks.
+Since it's not a very common use case, YAML::XS defaults to
+not allowing it. It will just behave as if the anchor was never
+created in this case.
+You an set it to 1 to allow it.
 
 =back
 

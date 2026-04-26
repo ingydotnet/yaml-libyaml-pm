@@ -1622,12 +1622,23 @@ oo_load_sequence(perl_yaml_xs_t *self)
 
     XCPT_TRY_START {
 
-        if (anchor)
-            hv_store(self->anchors, anchor, strlen(anchor), SvREFCNT_inc(array_ref), 0);
-
+        /* If cyclic refs are allowed we add the anchor here before
+           we descend deeper into the data structure */
+        if (self->cyclic_refs) {
+            if (anchor)
+                hv_store(self->anchors, anchor, strlen(anchor), SvREFCNT_inc(array_ref), 0);
+        }
         while ((node = oo_load_node(self))) {
             av_push(array, node);
         }
+        /* If cyclic refs are forbidden, we only add the anchor after
+           processing the node, so it is only visible to data after
+           this node */
+        if (!self->cyclic_refs) {
+            if (anchor)
+                hv_store(self->anchors, anchor, strlen(anchor), SvREFCNT_inc(array_ref), 0);
+        }
+
 
     } XCPT_TRY_END
 
@@ -1652,7 +1663,12 @@ oo_load_mapping(perl_yaml_xs_t *self)
     XCPT_TRY_START {
 
         if (anchor)
-            hv_store(self->anchors, anchor, strlen(anchor), SvREFCNT_inc(hash_ref), 0);
+        /* If cyclic refs are allowed we add the anchor here before
+           we descend deeper into the data structure */
+        if (self->cyclic_refs) {
+            if (anchor)
+                hv_store(self->anchors, anchor, strlen(anchor), SvREFCNT_inc(hash_ref), 0);
+        }
 
         /* Get each key string and value node and put them in the hash */
         while ((key_node = oo_load_node(self))) {
@@ -1672,6 +1688,14 @@ oo_load_mapping(perl_yaml_xs_t *self)
             hv_store_ent(
                 hash, sv_2mortal(key_node), value_node, 0
             );
+        }
+
+        /* If cyclic refs are forbidden, we only add the anchor after
+           processing the node, so it is only visible to data after
+           this node */
+        if (!self->cyclic_refs) {
+            if (anchor)
+                hv_store(self->anchors, anchor, strlen(anchor), SvREFCNT_inc(hash_ref), 0);
         }
 
     } XCPT_TRY_END
