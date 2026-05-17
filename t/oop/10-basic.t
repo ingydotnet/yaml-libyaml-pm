@@ -8,23 +8,26 @@ my $xs = YAML::XS->new;
 is ref $xs, 'YAML::XS', "got YAML::XS object";
 
 my $yaml = <<'EOM';
+seq:
 - foo
 - [bar]
-- key: val
+map:
+  key: val
+  200: number as key works
+  null: undef as key -> empty string
 ---
 foo: bar
 EOM
 
-
-my @exp = (
-    foo => ['bar'], { key => 'val' }
-);
+my $exp = {
+   seq => [ foo => ['bar'] ],
+   map => { key => 'val',  200 => 'number as key works', '' => 'undef as key -> empty string' }
+};
 my $data = $xs->load($yaml);
-is_deeply $data, \@exp, 'load scalar context';
-
+is_deeply $data, $exp, 'load scalar context';
 
 my @data = $xs->load($yaml);
-is_deeply $data[0], \@exp, 'load list context, first document';
+is_deeply $data[0], $exp, 'load list context, first document';
 is_deeply $data[1], { foo => 'bar' }, 'load list context, second document';
 
 @data = $xs->load('foo: bar');
