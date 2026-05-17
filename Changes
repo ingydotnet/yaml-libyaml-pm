@@ -1,8 +1,13 @@
 ---
+version: v0.907.1
+date:    2026-05-17 17:11:18+02:00
+changes:
+- 'fix: Improve handling of mapping keys, for example numbers'
+---
 version: v0.907.0
 date:    2026-05-10 19:47:04+02:00
 changes:
-- Turn off cyclic references by default
+- Turn off cyclic references by default (OOP interface)
 ---
 version: v0.906.0
 date:    2026-04-26 11:12:32+02:00
