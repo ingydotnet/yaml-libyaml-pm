@@ -1674,7 +1674,6 @@ oo_load_mapping(perl_yaml_xs_t *self)
             if (!SvOK(key_node)) {
                 sv_setpvn(key_node, "", 0);
             }
-            assert(SvPOK(key_node));
             value_node = oo_load_node(self);
             if ( /* self->forbid_duplicate_keys && */
                 hv_exists_ent(hash, key_node, 0)
@@ -1687,9 +1686,9 @@ oo_load_mapping(perl_yaml_xs_t *self)
                     )
                 );
             }
-            hv_store_ent(
-                hash, sv_2mortal(key_node), value_node, 0
-            );
+            if (!hv_store_ent(hash, key_node, value_node, 0))
+                SvREFCNT_dec(value_node);
+            SvREFCNT_dec(key_node);
         }
 
         /* If cyclic refs are forbidden, we only add the anchor after
