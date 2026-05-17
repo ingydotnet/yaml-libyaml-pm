@@ -40,7 +40,7 @@ $data = {
 };
 $yaml = $xs->dump($data);
 
-my $exp = <<'EOM';
+$exp = <<'EOM';
 ---
 this:
   is:
