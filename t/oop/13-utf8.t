@@ -44,7 +44,7 @@ note "---> $yaml";
     $ENV{TEST_VERBOSE} and Dump $yaml;
 
 }
-if (require JSON::PP) {
+if (eval {require JSON::PP; 1}) {
     my $j = JSON::PP->new;
     my $ju = JSON::PP->new->utf8;
     my ($json, $data);
