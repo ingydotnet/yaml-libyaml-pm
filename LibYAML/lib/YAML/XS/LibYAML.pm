@@ -3,6 +3,8 @@ use 5.008001;
 use strict;
 use warnings;
 
+our $VERSION = '0.000'; # VERSION
+
 use XSLoader;
 XSLoader::load 'YAML::XS::LibYAML';
 use base 'Exporter';
