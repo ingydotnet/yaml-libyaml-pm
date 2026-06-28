@@ -2059,12 +2059,12 @@ oo_dump_scalar(perl_yaml_xs_t *self, SV *node)
             string_len = 5;
             style = YAML_PLAIN_SCALAR_STYLE;
         }
-        else if (isnan(val)) {
+        else if (Perl_isnan(val)) {
             string = ".nan";
             string_len = 4;
             style = YAML_PLAIN_SCALAR_STYLE;
         }
-        else if (isinf(val)) {
+        else if (Perl_isinf(val)) {
             if (val == -NV_INF) {
                 string = "-.inf";
                 string_len = 5;
