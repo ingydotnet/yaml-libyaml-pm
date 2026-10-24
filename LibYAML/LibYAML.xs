@@ -164,7 +164,7 @@ load(SV *object, SV *string)
     {
         dXCPT;
         perl_yaml_xs_t *yaml;
-        yaml_parser_t yp;
+        perl_oo_loader_t loader = {0};
         HV *hash;
         SV **val;
         STRLEN yaml_len;
@@ -181,25 +181,28 @@ load(SV *object, SV *string)
 
         yaml_str = (const unsigned char *)SvPV_const(string, yaml_len);
         yaml = INT2PTR(perl_yaml_xs_t*, SvIV(*val));
-        yaml_parser_initialize(&yaml->parser);
+
+        yaml_parser_initialize(&loader.parser);
         yaml_parser_set_input_string(
-            &yaml->parser,
+            &loader.parser,
             yaml_str,
             yaml_len
         );
-        yp = yaml->parser;
         PUSHMARK(sp);
         XCPT_TRY_START
         {
-            oo_load_stream(yaml);
+            oo_load_stream(yaml, &loader);
         } XCPT_TRY_END
 
         XCPT_CATCH
         {
-            yaml_parser_delete(&yp);
+            //fprintf(stderr, "=============== load EXCEPTION\n");
+            yaml_event_delete(&loader.event);
+            yaml_parser_delete(&loader.parser);
+            //fprintf(stderr, "=============== load after yaml_parser_delete\n");
             XCPT_RETHROW;
         }
-        yaml_parser_delete(&yp);
+        yaml_parser_delete(&loader.parser);
         return;
     }
 
@@ -210,7 +213,7 @@ dump(SV *object, ...)
         dXCPT;
 
         perl_yaml_xs_t *yaml;
-        yaml_emitter_t ye;
+        perl_oo_dumper_t dumper;
         HV *hash;
         SV **val;
         SV *string = newSVpvn("", 0);
@@ -224,17 +227,16 @@ dump(SV *object, ...)
         }
 
         yaml = INT2PTR(perl_yaml_xs_t*, SvIV(*val));
-        yaml_emitter_initialize(&yaml->emitter);
-        yaml_emitter_set_unicode(&yaml->emitter, 1);
-        yaml_emitter_set_indent(&yaml->emitter, yaml->indent);
-        yaml_emitter_set_width(&yaml->emitter, yaml->width);
-        yaml_emitter_set_output(&yaml->emitter, &append_output, (void *) string);
-        ye = yaml->emitter;
+        yaml_emitter_initialize(&dumper.emitter);
+        yaml_emitter_set_unicode(&dumper.emitter, 1);
+        yaml_emitter_set_indent(&dumper.emitter, yaml->indent);
+        yaml_emitter_set_width(&dumper.emitter, yaml->width);
+        yaml_emitter_set_output(&dumper.emitter, &append_output, (void *) string);
 
         PUSHMARK(sp);
         XCPT_TRY_START
         {
-            oo_dump_stream(yaml, items);
+            oo_dump_stream(yaml, &dumper, items);
             if (string) {
                 if (! yaml->utf8) {
                     SvUTF8_on(string);
@@ -244,11 +246,11 @@ dump(SV *object, ...)
 
         XCPT_CATCH
         {
-            yaml_emitter_delete(&ye);
+            yaml_emitter_delete(&dumper.emitter);
             XCPT_RETHROW;
         }
 
-        yaml_emitter_delete(&ye);
+        yaml_emitter_delete(&dumper.emitter);
         XPUSHs(string);
         XSRETURN(1);
     }
@@ -264,6 +266,7 @@ DESTROY(SV *object)
 
         hash = (HV*)(SvROK(object)? SvRV(object): object);
         val = hv_fetch(hash, "ptr", 3, TRUE);
+        //fprintf(stderr, "=============== DESTROY\n");
         if (val && SvOK(*val) && SvIOK(*val)) {
             yaml = INT2PTR(perl_yaml_xs_t*, SvIV(*val));
             free(yaml);

@@ -69,9 +69,6 @@ typedef struct {
 } perl_yaml_dumper_t;
 
 typedef struct {
-    yaml_parser_t parser;
-    yaml_emitter_t emitter;
-    yaml_event_t event;
     long anchor;
     HV *anchors;
     int indent;
@@ -83,8 +80,17 @@ typedef struct {
     char *anchor_prefix;
     int cyclic_refs;
     int boolean;
-    int document;
 } perl_yaml_xs_t;
+
+typedef struct {
+    yaml_parser_t parser;
+    yaml_event_t event;
+    int document;
+} perl_oo_loader_t;
+
+typedef struct {
+    yaml_emitter_t emitter;
+} perl_oo_dumper_t;
 
 static SV *
 call_coderef(SV *, AV *);
@@ -175,32 +181,32 @@ append_output(void *, unsigned char *, size_t size);
 
 
 void
-oo_load_stream(perl_yaml_xs_t *);
+oo_load_stream(perl_yaml_xs_t *, perl_oo_loader_t *);
 SV *
-oo_load_node(perl_yaml_xs_t *);
+oo_load_node(perl_yaml_xs_t *, perl_oo_loader_t *);
 SV *
-oo_load_sequence(perl_yaml_xs_t *);
+oo_load_sequence(perl_yaml_xs_t *, perl_oo_loader_t *);
 SV *
-oo_load_mapping(perl_yaml_xs_t *);
+oo_load_mapping(perl_yaml_xs_t *, perl_oo_loader_t *);
 SV *
-oo_load_scalar(perl_yaml_xs_t *);
+oo_load_scalar(perl_yaml_xs_t *, perl_oo_loader_t *);
 SV *
-oo_load_alias(perl_yaml_xs_t *);
+oo_load_alias(perl_yaml_xs_t *, perl_oo_loader_t *);
 
 void
-oo_dump_stream(perl_yaml_xs_t *, ...);
+oo_dump_stream(perl_yaml_xs_t *, perl_oo_dumper_t *, ...);
 void
-oo_dump_document(perl_yaml_xs_t *, SV *node);
+oo_dump_document(perl_yaml_xs_t *, perl_oo_dumper_t *, SV *node);
 void
-oo_dump_node(perl_yaml_xs_t *, SV *node);
+oo_dump_node(perl_yaml_xs_t *, perl_oo_dumper_t *, SV *node);
 void
-oo_dump_hash(perl_yaml_xs_t *, SV *node, yaml_char_t *);
+oo_dump_hash(perl_yaml_xs_t *, perl_oo_dumper_t *, SV *node, yaml_char_t *);
 void
-oo_dump_array(perl_yaml_xs_t *, SV *node, yaml_char_t *);
+oo_dump_array(perl_yaml_xs_t *, perl_oo_dumper_t *, SV *node, yaml_char_t *);
 void
-oo_dump_scalar(perl_yaml_xs_t *, SV *node);
+oo_dump_scalar(perl_yaml_xs_t *, perl_oo_dumper_t *, SV *node);
 void
 oo_dump_prewalk(perl_yaml_xs_t *, SV *);
 yaml_char_t *
-oo_get_yaml_anchor(perl_yaml_xs_t *, SV *);
+oo_get_yaml_anchor(perl_yaml_xs_t *, perl_oo_dumper_t *, SV *);
 

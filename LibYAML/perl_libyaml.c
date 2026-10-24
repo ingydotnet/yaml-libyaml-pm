@@ -1445,11 +1445,11 @@ _match_core_schema(char *string)
 */
 
 char *
-oo_loader_error_msg(perl_yaml_xs_t *self, char *problem)
+oo_loader_error_msg(perl_oo_loader_t *loader, char *problem)
 {
     char *msg;
     if (!problem)
-        problem = (char *)self->parser.problem;
+        problem = (char *)loader->parser.problem;
     if (!problem) {
         problem = "A problem";
     }
@@ -1460,32 +1460,32 @@ oo_loader_error_msg(perl_yaml_xs_t *self, char *problem)
         "YAML::XS load Error: "
         "%swas found at document: %d",
         problem,
-        self->document
+        loader->document
     );
     if (
-        self->parser.problem_mark.line ||
-        self->parser.problem_mark.column
+        loader->parser.problem_mark.line ||
+        loader->parser.problem_mark.column
     )
         msg = form("%s, line: %lu, column: %lu\n",
             msg,
-            (unsigned long)self->parser.problem_mark.line + 1,
-            (unsigned long)self->parser.problem_mark.column + 1
+            (unsigned long)loader->parser.problem_mark.line + 1,
+            (unsigned long)loader->parser.problem_mark.column + 1
         );
     else
         msg = form("%s\n", msg);
-    if (self->parser.context)
+    if (loader->parser.context)
         msg = form("%s%s at line: %lu, column: %lu\n",
             msg,
-            self->parser.context,
-            (unsigned long)self->parser.context_mark.line + 1,
-            (unsigned long)self->parser.context_mark.column + 1
+            loader->parser.context,
+            (unsigned long)loader->parser.context_mark.line + 1,
+            (unsigned long)loader->parser.context_mark.column + 1
         );
 
     return msg;
 }
 
 void
-oo_load_stream(perl_yaml_xs_t *self)
+oo_load_stream(perl_yaml_xs_t *self, perl_oo_loader_t *loader)
 {
     dXSARGS;
     SV *node;
@@ -1493,58 +1493,58 @@ oo_load_stream(perl_yaml_xs_t *self)
 
     sp = mark;
 
-    self->document = 0;
+    loader->document = 0;
 
     self->anchors = newHV();
     sv_2mortal((SV *)self->anchors);
 
-    if (!yaml_parser_parse(&self->parser, &self->event))
+    if (!yaml_parser_parse(&loader->parser, &loader->event))
         goto load_error;
-    if (self->event.type != YAML_STREAM_START_EVENT)
+    if (loader->event.type != YAML_STREAM_START_EVENT)
         croak("%sExpected STREAM_START_EVENT; Got: %d != %d",
             ERRMSG,
-            self->event.type,
+            loader->event.type,
             YAML_STREAM_START_EVENT
          );
 
     while (1) {
-        self->document++;
-        if (self->event.type == YAML_DOCUMENT_END_EVENT) {
-            has_footer = self->event.data.document_end.implicit ? 0 : 1;
+        loader->document++;
+        if (loader->event.type == YAML_DOCUMENT_END_EVENT) {
+            has_footer = loader->event.data.document_end.implicit ? 0 : 1;
             if (self->require_footer && ! has_footer) {
-                croak("load: Document (%d) did not end with '...' (require_footer=1)", self->document-1);
+                croak("load: Document (%d) did not end with '...' (require_footer=1)", loader->document-1);
             }
         }
-        yaml_event_delete(&self->event);
-        if (!yaml_parser_parse(&self->parser, &self->event))
+        yaml_event_delete(&loader->event);
+        if (!yaml_parser_parse(&loader->parser, &loader->event))
             goto load_error;
-        if (self->event.type == YAML_STREAM_END_EVENT)
+        if (loader->event.type == YAML_STREAM_END_EVENT)
             break;
-        node = oo_load_node(self);
-        yaml_event_delete(&self->event);
+        node = oo_load_node(self, loader);
+        yaml_event_delete(&loader->event);
         hv_clear(self->anchors);
 
         if (! node) break;
 
-        if (!yaml_parser_parse(&self->parser, &self->event))
+        if (!yaml_parser_parse(&loader->parser, &loader->event))
             goto load_error;
-        if (self->event.type != YAML_DOCUMENT_END_EVENT)
+        if (loader->event.type != YAML_DOCUMENT_END_EVENT)
             croak("%sExpected DOCUMENT_END_EVENT", ERRMSG);
 
-        if (! (GIMME_V == G_ARRAY) && self->document > 1) {
+        if (! (GIMME_V == G_ARRAY) && loader->document > 1) {
         }
         else {
             XPUSHs(sv_2mortal(node));
         }
     }
     if (self->require_footer && ! has_footer) {
-        croak("load: Document (%d) did not end with '...' (require_footer=1)", self->document-1);
+        croak("load: Document (%d) did not end with '...' (require_footer=1)", loader->document-1);
     }
 
-    if (self->event.type != YAML_STREAM_END_EVENT)
+    if (loader->event.type != YAML_STREAM_END_EVENT)
         croak("%sExpected STREAM_END_EVENT; Got: %d != %d",
             ERRMSG,
-            self->event.type,
+            loader->event.type,
             YAML_STREAM_END_EVENT
          );
 
@@ -1552,76 +1552,76 @@ oo_load_stream(perl_yaml_xs_t *self)
     return;
 
 load_error:
-    croak("%s", oo_loader_error_msg(self, NULL));
+    croak("%s", oo_loader_error_msg(loader, NULL));
 }
 
 SV *
-oo_load_node(perl_yaml_xs_t *self)
+oo_load_node(perl_yaml_xs_t *self, perl_oo_loader_t *loader)
 {
     SV* return_sv = NULL;
     /* This uses stack, but avoids (severe!) memory leaks */
     yaml_event_t uplevel_event;
 
-    uplevel_event = self->event;
+    uplevel_event = loader->event;
 
     /* Get the next parser event */
-    if (!yaml_parser_parse(&self->parser, &self->event))
+    if (!yaml_parser_parse(&loader->parser, &loader->event))
         goto load_error;
 
     /* These events don't need yaml_event_delete */
     /* Some kind of error occurred */
-    if (self->event.type == YAML_NO_EVENT)
+    if (loader->event.type == YAML_NO_EVENT)
         goto load_error;
 
     /* Return NULL when we hit the end of a scope */
-    if (self->event.type == YAML_DOCUMENT_END_EVENT ||
-        self->event.type == YAML_MAPPING_END_EVENT ||
-        self->event.type == YAML_SEQUENCE_END_EVENT) {
+    if (loader->event.type == YAML_DOCUMENT_END_EVENT ||
+        loader->event.type == YAML_MAPPING_END_EVENT ||
+        loader->event.type == YAML_SEQUENCE_END_EVENT) {
             /* restore the uplevel event, so it can be properly deleted */
-            self->event = uplevel_event;
+            loader->event = uplevel_event;
             return return_sv;
     }
 
-    switch (self->event.type) {
+    switch (loader->event.type) {
         case YAML_MAPPING_START_EVENT:
-            return_sv = oo_load_mapping(self);
+            return_sv = oo_load_mapping(self, loader);
             break;
 
         case YAML_SEQUENCE_START_EVENT:
-            return_sv = oo_load_sequence(self);
+            return_sv = oo_load_sequence(self, loader);
             break;
 
         case YAML_SCALAR_EVENT:
-            return_sv = oo_load_scalar(self);
+            return_sv = oo_load_scalar(self, loader);
             break;
 
         case YAML_ALIAS_EVENT:
-            return_sv = oo_load_alias(self);
+            return_sv = oo_load_alias(self, loader);
             break;
 
         default:
-            croak("%sInvalid event '%d' at top level", ERRMSG, (int) self->event.type);
+            croak("%sInvalid event '%d' at top level", ERRMSG, (int) loader->event.type);
     }
 
-    yaml_event_delete(&self->event);
+    yaml_event_delete(&loader->event);
 
     /* restore the uplevel event, so it can be properly deleted */
-    self->event = uplevel_event;
+    loader->event = uplevel_event;
 
     return return_sv;
 
 load_error:
-    croak("%s", oo_loader_error_msg(self, NULL));
+    croak("%s", oo_loader_error_msg(loader, NULL));
 }
 
 SV *
-oo_load_sequence(perl_yaml_xs_t *self)
+oo_load_sequence(perl_yaml_xs_t *self, perl_oo_loader_t *loader)
 {
     dXCPT;
     SV *node;
     AV *array = newAV();
     SV *array_ref = (SV *)newRV_noinc((SV *)array);
-    char *anchor = (char *)self->event.data.sequence_start.anchor;
+    char *anchor = (char *)loader->event.data.sequence_start.anchor;
 
     XCPT_TRY_START {
 
@@ -1631,7 +1631,7 @@ oo_load_sequence(perl_yaml_xs_t *self)
             if (anchor)
                 hv_store(self->anchors, anchor, strlen(anchor), SvREFCNT_inc(array_ref), 0);
         }
-        while ((node = oo_load_node(self))) {
+        while ((node = oo_load_node(self, loader))) {
             av_push(array, node);
         }
         /* If cyclic refs are forbidden, we only add the anchor after
@@ -1654,14 +1654,14 @@ oo_load_sequence(perl_yaml_xs_t *self)
 }
 
 SV *
-oo_load_mapping(perl_yaml_xs_t *self)
+oo_load_mapping(perl_yaml_xs_t *self, perl_oo_loader_t *loader)
 {
     dXCPT;
     SV *key_node;
     SV *value_node;
     HV *hash = newHV();
     SV *hash_ref = (SV *)newRV_noinc((SV *)hash);
-    char *anchor = (char *)self->event.data.mapping_start.anchor;
+    char *anchor = (char *)loader->event.data.mapping_start.anchor;
 
     XCPT_TRY_START {
 
@@ -1673,18 +1673,18 @@ oo_load_mapping(perl_yaml_xs_t *self)
         }
 
         /* Get each key string and value node and put them in the hash */
-        while ((key_node = oo_load_node(self))) {
+        while ((key_node = oo_load_node(self, loader))) {
             if (!SvOK(key_node)) {
                 sv_setpvn(key_node, "", 0);
             }
-            value_node = oo_load_node(self);
+            value_node = oo_load_node(self, loader);
             if ( /* self->forbid_duplicate_keys && */
                 hv_exists_ent(hash, key_node, 0)
             ) {
                 croak(
                     "%s",
                     oo_loader_error_msg(
-                        self,
+                        loader,
                         form("Duplicate key '%s'", SvPV_nolen(key_node))
                     )
                 );
@@ -1713,14 +1713,14 @@ oo_load_mapping(perl_yaml_xs_t *self)
 }
 
 SV *
-oo_load_scalar(perl_yaml_xs_t *self)
+oo_load_scalar(perl_yaml_xs_t *self, perl_oo_loader_t *loader)
 {
     SV *scalar;
-    char *string = (char *)self->event.data.scalar.value;
-    yaml_scalar_style_t style = self->event.data.scalar.style;
-    char *anchor = (char *)self->event.data.scalar.anchor;
-    char *tag = (char *)self->event.data.scalar.tag;
-    STRLEN length = (STRLEN)self->event.data.scalar.length;
+    char *string = (char *)loader->event.data.scalar.value;
+    yaml_scalar_style_t style = loader->event.data.scalar.style;
+    char *anchor = (char *)loader->event.data.scalar.anchor;
+    char *tag = (char *)loader->event.data.scalar.tag;
+    STRLEN length = (STRLEN)loader->event.data.scalar.length;
     I32 flags = 0;
     int scalar_type = 0;
     if (tag) {
@@ -1755,7 +1755,7 @@ oo_load_scalar(perl_yaml_xs_t *self)
 #endif
         }
         if (tag && ! strEQ(tag, YAML_BOOL_TAG)) {
-            croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+            croak("%s", oo_loader_error_msg( loader, form("Invalid tag '%s' for value '%s'", tag, string)));
         }
         goto return_scalar;
     }
@@ -1780,7 +1780,7 @@ oo_load_scalar(perl_yaml_xs_t *self)
 #endif
         }
         if (tag && ! strEQ(tag, YAML_BOOL_TAG)) {
-            croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+            croak("%s", oo_loader_error_msg( loader, form("Invalid tag '%s' for value '%s'", tag, string)));
         }
         goto return_scalar;
     }
@@ -1789,7 +1789,7 @@ oo_load_scalar(perl_yaml_xs_t *self)
     if (scalar_type == YAML_XS_SCALAR_TYPE_NULL) {
         scalar = newSV(0);
         if (tag && ! strEQ(tag, YAML_NULL_TAG)) {
-            croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+            croak("%s", oo_loader_error_msg( loader, form("Invalid tag '%s' for value '%s'", tag, string)));
         }
         goto return_scalar;
     }
@@ -1797,7 +1797,7 @@ oo_load_scalar(perl_yaml_xs_t *self)
     /* inf */
     if (scalar_type == YAML_XS_SCALAR_TYPE_FLOAT_INF) {
         if (tag && ! strEQ(tag, YAML_FLOAT_TAG)) {
-            croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+            croak("%s", oo_loader_error_msg( loader, form("Invalid tag '%s' for value '%s'", tag, string)));
         }
         if (string[0] == 45) {
             scalar = newSVnv(-NV_INF);
@@ -1814,7 +1814,7 @@ oo_load_scalar(perl_yaml_xs_t *self)
         string++;
         length--;
         if (tag && ! strEQ(tag, YAML_FLOAT_TAG)) {
-            croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+            croak("%s", oo_loader_error_msg( loader, form("Invalid tag '%s' for value '%s'", tag, string)));
         }
         scalar = newSVnv(nan);
         goto return_scalar;
@@ -1823,7 +1823,7 @@ oo_load_scalar(perl_yaml_xs_t *self)
     /* oct */
     if (scalar_type == YAML_XS_SCALAR_TYPE_INT_OCT) {
         if (tag && ! strEQ(tag, YAML_INT_TAG)) {
-            croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+            croak("%s", oo_loader_error_msg( loader, form("Invalid tag '%s' for value '%s'", tag, string)));
         }
         string += 2;
         length -= 2;
@@ -1835,7 +1835,7 @@ oo_load_scalar(perl_yaml_xs_t *self)
     /* hex */
     if (scalar_type == YAML_XS_SCALAR_TYPE_INT_HEX) {
         if (tag && ! strEQ(tag, YAML_INT_TAG)) {
-            croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+            croak("%s", oo_loader_error_msg( loader, form("Invalid tag '%s' for value '%s'", tag, string)));
         }
         string += 2;
         length -= 2;
@@ -1851,14 +1851,14 @@ oo_load_scalar(perl_yaml_xs_t *self)
     scalar = newSVpvn(string, length);
     if (scalar_type == YAML_XS_SCALAR_TYPE_FLOAT) {
         if (tag && ! strEQ(tag, YAML_FLOAT_TAG)) {
-            croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+            croak("%s", oo_loader_error_msg( loader, form("Invalid tag '%s' for value '%s'", tag, string)));
         }
         SvIV_please(scalar);
         SvNOK_only(scalar);
     }
     else {
         if (tag && ! strEQ(tag, YAML_INT_TAG)) {
-            croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+            croak("%s", oo_loader_error_msg( loader, form("Invalid tag '%s' for value '%s'", tag, string)));
         }
         SvIV_please(scalar);
         SvIOK_only(scalar);
@@ -1875,7 +1875,7 @@ return_scalar:
 return_string:
     scalar = newSVpvn(string, length);
     if (tag && ! strEQ(tag, YAML_STR_TAG)) {
-        croak("%s", oo_loader_error_msg( self, form("Invalid tag '%s' for value '%s'", tag, string)));
+        croak("%s", oo_loader_error_msg( loader, form("Invalid tag '%s' for value '%s'", tag, string)));
     }
     if (anchor) {
         hv_store(self->anchors, anchor, strlen(anchor), SvREFCNT_inc(scalar), 0);
@@ -1887,13 +1887,13 @@ return_string:
 }
 
 SV *
-oo_load_alias(perl_yaml_xs_t *self)
+oo_load_alias(perl_yaml_xs_t *self, perl_oo_loader_t *loader)
 {
-    char *anchor = (char *)self->event.data.alias.anchor;
+    char *anchor = (char *)loader->event.data.alias.anchor;
     SV **entry = hv_fetch(self->anchors, anchor, strlen(anchor), 0);
     if (entry)
         return SvREFCNT_inc(*entry);
-    croak("%s", oo_loader_error_msg(self, form("No anchor for alias '%s'", anchor)));
+    croak("%s", oo_loader_error_msg(loader, form("No anchor for alias '%s'", anchor)));
 }
 
 /*
@@ -1901,7 +1901,7 @@ oo_load_alias(perl_yaml_xs_t *self)
 */
 
 void
-oo_dump_stream(perl_yaml_xs_t *self, ...)
+oo_dump_stream(perl_yaml_xs_t *self, perl_oo_dumper_t *dumper, ...)
 {
     dXSARGS;
     int i;
@@ -1913,8 +1913,8 @@ oo_dump_stream(perl_yaml_xs_t *self, ...)
         &event_stream_start,
         YAML_UTF8_ENCODING
     );
-    if (!yaml_emitter_emit(&self->emitter, &event_stream_start))
-        croak("ERROR: %s", self->emitter.problem);
+    if (!yaml_emitter_emit(&dumper->emitter, &event_stream_start))
+        croak("ERROR: %s", dumper->emitter.problem);
 
     self->anchors = newHV();
     sv_2mortal((SV *)self->anchors);
@@ -1922,13 +1922,13 @@ oo_dump_stream(perl_yaml_xs_t *self, ...)
     for (i = 1; i < items; i++) {
         self->anchor = 0;
         oo_dump_prewalk(self, ST(i));
-        oo_dump_document(self, ST(i));
+        oo_dump_document(self, dumper, ST(i));
         hv_clear(self->anchors);
     }
 
     yaml_stream_end_event_initialize(&event_stream_end);
-    if (!yaml_emitter_emit(&self->emitter, &event_stream_end)) {
-        croak("ERROR: %s", self->emitter.problem);
+    if (!yaml_emitter_emit(&dumper->emitter, &event_stream_end)) {
+        croak("ERROR: %s", dumper->emitter.problem);
     }
 
     PUTBACK;
@@ -1936,7 +1936,7 @@ oo_dump_stream(perl_yaml_xs_t *self, ...)
 }
 
 void
-oo_dump_document(perl_yaml_xs_t *self, SV *node)
+oo_dump_document(perl_yaml_xs_t *self, perl_oo_dumper_t *dumper, SV *node)
 {
     yaml_event_t event_document_start;
     yaml_event_t event_document_end;
@@ -1944,18 +1944,18 @@ oo_dump_document(perl_yaml_xs_t *self, SV *node)
     yaml_document_start_event_initialize(
         &event_document_start, NULL, NULL, NULL, self->header ? 0 : 1
     );
-    if (!yaml_emitter_emit(&self->emitter, &event_document_start)) {
-        croak("ERROR: %s", self->emitter.problem);
+    if (!yaml_emitter_emit(&dumper->emitter, &event_document_start)) {
+        croak("ERROR: %s", dumper->emitter.problem);
     }
 
-    oo_dump_node(self, node);
+    oo_dump_node(self, dumper, node);
 
     yaml_document_end_event_initialize(&event_document_end, self->footer ? 0 : 1);
-    yaml_emitter_emit(&self->emitter, &event_document_end);
+    yaml_emitter_emit(&dumper->emitter, &event_document_end);
 }
 
 void
-oo_dump_node(perl_yaml_xs_t *self, SV *node)
+oo_dump_node(perl_yaml_xs_t *self, perl_oo_dumper_t *dumper, SV *node)
 {
     yaml_char_t *anchor = NULL;
     const char *class = NULL;
@@ -1964,9 +1964,9 @@ oo_dump_node(perl_yaml_xs_t *self, SV *node)
         SV *rnode = SvRV(node);
         U32 ref_type = SvTYPE(rnode);
         if (ref_type == SVt_PVHV)
-            oo_dump_hash(self, node, anchor);
+            oo_dump_hash(self, dumper, node, anchor);
         else if (ref_type == SVt_PVAV) {
-            oo_dump_array(self, node, anchor);
+            oo_dump_array(self, dumper, node, anchor);
         }
         else if (ref_type == SVt_PVMG) {
             if (!SvMAGICAL(rnode)) {
@@ -1979,22 +1979,22 @@ oo_dump_node(perl_yaml_xs_t *self, SV *node)
                         && strEQ(class, "boolean")
                     ) {
                     if (SvIV(node)) {
-                        oo_dump_scalar(self, &PL_sv_yes);
+                        oo_dump_scalar(self, dumper, &PL_sv_yes);
                     }
                     else {
-                        oo_dump_scalar(self, &PL_sv_no);
+                        oo_dump_scalar(self, dumper, &PL_sv_no);
                     }
                 }
             }
         }
     }
     else {
-        oo_dump_scalar(self, node);
+        oo_dump_scalar(self, dumper, node);
     }
 }
 
 void
-oo_dump_hash(perl_yaml_xs_t *self, SV *node, yaml_char_t *anchor)
+oo_dump_hash(perl_yaml_xs_t *self, perl_oo_dumper_t *dumper, SV *node, yaml_char_t *anchor)
 {
     yaml_event_t event_mapping_start;
     yaml_event_t event_mapping_end;
@@ -2005,13 +2005,13 @@ oo_dump_hash(perl_yaml_xs_t *self, SV *node, yaml_char_t *anchor)
     HE *he;
 
     if (!anchor)
-        anchor = oo_get_yaml_anchor(self, (SV *)hash);
+        anchor = oo_get_yaml_anchor(self, dumper, (SV *)hash);
     if (anchor && strEQ((char*)anchor, "")) return;
 
     yaml_mapping_start_event_initialize(
         &event_mapping_start, anchor, NULL, 0, YAML_BLOCK_MAPPING_STYLE
     );
-    yaml_emitter_emit(&self->emitter, &event_mapping_start);
+    yaml_emitter_emit(&dumper->emitter, &event_mapping_start);
 
     av = newAV();
     len = 0;
@@ -2027,18 +2027,18 @@ oo_dump_hash(perl_yaml_xs_t *self, SV *node, yaml_char_t *anchor)
         HE *he  = hv_fetch_ent(hash, key, 0, 0);
         SV *val = he ? HeVAL(he) : NULL;
         if (val == NULL) { val = &PL_sv_undef; }
-        oo_dump_node(self, key);
-        oo_dump_node(self, val);
+        oo_dump_node(self, dumper, key);
+        oo_dump_node(self, dumper, val);
     }
 
     SvREFCNT_dec(av);
 
     yaml_mapping_end_event_initialize(&event_mapping_end);
-    yaml_emitter_emit(&self->emitter, &event_mapping_end);
+    yaml_emitter_emit(&dumper->emitter, &event_mapping_end);
 }
 
 void
-oo_dump_array(perl_yaml_xs_t *self, SV *node, yaml_char_t *anchor)
+oo_dump_array(perl_yaml_xs_t *self, perl_oo_dumper_t *dumper, SV *node, yaml_char_t *anchor)
 {
     yaml_event_t event_sequence_start;
     yaml_event_t event_sequence_end;
@@ -2047,28 +2047,28 @@ oo_dump_array(perl_yaml_xs_t *self, SV *node, yaml_char_t *anchor)
     int array_size = av_len(array) + 1;
 
     if (!anchor)
-        anchor = oo_get_yaml_anchor(self, (SV *)array);
+        anchor = oo_get_yaml_anchor(self, dumper, (SV *)array);
     if (anchor && strEQ((char*)anchor, "")) return;
 
     yaml_sequence_start_event_initialize(
         &event_sequence_start, anchor, NULL, 0, YAML_BLOCK_SEQUENCE_STYLE
     );
-    yaml_emitter_emit(&self->emitter, &event_sequence_start);
+    yaml_emitter_emit(&dumper->emitter, &event_sequence_start);
 
     for (i = 0; i < array_size; i++) {
         SV **entry = av_fetch(array, i, 0);
         if (entry == NULL)
-            oo_dump_node(self, &PL_sv_undef);
+            oo_dump_node(self, dumper, &PL_sv_undef);
         else
-            oo_dump_node(self, *entry);
+            oo_dump_node(self, dumper, *entry);
     }
 
     yaml_sequence_end_event_initialize(&event_sequence_end);
-    yaml_emitter_emit(&self->emitter, &event_sequence_end);
+    yaml_emitter_emit(&dumper->emitter, &event_sequence_end);
 }
 
 void
-oo_dump_scalar(perl_yaml_xs_t *self, SV *node)
+oo_dump_scalar(perl_yaml_xs_t *self, perl_oo_dumper_t *dumper, SV *node)
 {
     yaml_event_t event_scalar;
     char *string;
@@ -2164,10 +2164,10 @@ oo_dump_scalar(perl_yaml_xs_t *self, SV *node)
         croak("Could not initialize scalar event\n");
     }
 
-    if (! yaml_emitter_emit(&self->emitter, &event_scalar))
+    if (! yaml_emitter_emit(&dumper->emitter, &event_scalar))
         croak("%sEmit scalar '%s', error: %s\n",
             ERRMSG,
-            string, self->emitter.problem
+            string, dumper->emitter.problem
         );
 }
 
@@ -2232,7 +2232,7 @@ oo_dump_prewalk(perl_yaml_xs_t *self, SV *node)
 }
 
 yaml_char_t *
-oo_get_yaml_anchor(perl_yaml_xs_t *self, SV *node)
+oo_get_yaml_anchor(perl_yaml_xs_t *self, perl_oo_dumper_t *dumper, SV *node)
 {
     yaml_event_t event_alias;
     SV *iv;
@@ -2261,7 +2261,7 @@ oo_get_yaml_anchor(perl_yaml_xs_t *self, SV *node)
             strcat(label, (char *)anchor);
 
             yaml_alias_event_initialize(&event_alias, (yaml_char_t *)label);
-            yaml_emitter_emit(&self->emitter, &event_alias);
+            yaml_emitter_emit(&dumper->emitter, &event_alias);
             return (yaml_char_t *) "";
         }
     }
