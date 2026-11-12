@@ -1,4 +1,10 @@
 ---
+version: v0.910.1
+date:    2026-11-13 00:29:49+01:00
+changes:
+- 'fix(OOP Interface): Refactor C structure to avoid race conditions between
+  exception handling and DESTROY'
+---
 version: v0.910.0
 date:    2026-07-03 11:13:32+02:00
 changes:
